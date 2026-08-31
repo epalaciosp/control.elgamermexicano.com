@@ -1,0 +1,190 @@
+{% load static %}
+<style>
+  :root { --portal-green: #00c875; --portal-bg: #080b10; --portal-surface: #121720; --portal-border: #252e3a; --portal-muted: #8490a2; }
+  body { background: var(--portal-bg) !important; color: #edf2f7; }
+  .header-navbar { background: #10151d !important; border-bottom: 1px solid #222a35; box-shadow: 0 8px 25px rgba(0,0,0,.22) !important; height: 72px; }
+  .pcoded-header .navbar-wrapper, .pcoded-header .navbar-container { height: 72px; }
+  .pcoded-header .navbar-logo { background: #0b0f15 !important; border-right: 1px solid #222a35; height: 72px; width: 286px !important; }
+  .portal-brand { align-items: center; display: flex; gap: 11px; height: 72px; padding: 9px 18px; }
+  .portal-brand img { height: 43px; object-fit: contain; width: 43px; }
+  .portal-brand strong { color: #fff; font-size: 14px; font-weight: 800; letter-spacing: .07em; line-height: 1; }
+  .portal-brand small { color: #5ce3a4; display: block; font-size: 8px; font-weight: 650; letter-spacing: .14em; margin-top: 5px; }
+  .pcoded-header .navbar-container { margin-left: 286px !important; }
+  .pcoded-header .nav-left a { color: #b9c2cf !important; }
+  .portal-header-title { color: #818c9d; font-size: 12px; font-weight: 600; margin-left: 8px; }
+  .portal-header-gamer { align-items: center; background: #070a0f; border: 1px solid #28313d; border-radius: 11px; display: flex !important; height: 58px; justify-content: center; padding: 4px 10px; position: fixed; right: 20px; top: 7px; width: 190px; z-index: 1050; }
+  .portal-header-gamer img { display: block; height: 50px; object-fit: contain; object-position: center; width: 168px; }
+  .portal-header-user { align-items: center; display: flex !important; gap: 10px; height: 72px; }
+  .portal-header-avatar { align-items: center; background: linear-gradient(135deg, #00c875, #078dd5); border-radius: 50%; color: #fff; display: flex; font-size: 13px; font-weight: 800; height: 36px; justify-content: center; width: 36px; }
+  .portal-header-copy strong { color: #f4f7fb; display: block; font-size: 12px; }
+  .portal-role-badge { color: #57dda2; display: block; font-size: 9px; font-weight: 700; letter-spacing: .08em; margin-top: 2px; text-transform: uppercase; }
+  .portal-header-logout { background: #202833; border: 1px solid #303b49; border-radius: 9px; color: #aeb8c6; cursor: pointer; height: 34px; margin-left: 5px; width: 36px; }
+  .pcoded-main-container { background: var(--portal-bg) !important; margin-top: 72px !important; }
+  .pcoded-navbar { background: #0e131b !important; border-right: 1px solid #222a35; width: 286px !important; }
+  .pcoded-navbar .pcoded-inner-navbar { background: #0e131b !important; padding: 18px 13px 32px; }
+  .pcoded-navbar .pcoded-navigation-label { color: #596578 !important; font-size: 9px; font-weight: 800; letter-spacing: .16em; margin: 24px 12px 8px !important; text-transform: uppercase; }
+  .pcoded-navbar .pcoded-item > li { margin: 4px 0; }
+  .pcoded-navbar .pcoded-item > li > a { border: 1px solid transparent; border-radius: 10px; color: #919bad !important; margin: 0 !important; padding: 11px 13px !important; }
+  .pcoded-navbar .pcoded-item > li > a .pcoded-micon { color: #778396 !important; font-size: 15px; margin-right: 9px; }
+  .pcoded-navbar .pcoded-item > li > a .pcoded-mtext { font-size: 12px; font-weight: 600; }
+  .pcoded-navbar .pcoded-item > li:hover > a { background: #171e28 !important; border-color: #273240; color: #fff !important; }
+  .pcoded-navbar .pcoded-item > li.active > a { background: linear-gradient(90deg, rgba(0,200,117,.17), rgba(0,200,117,.06)) !important; border-color: rgba(0,200,117,.28); color: #fff !important; }
+  .pcoded-navbar .pcoded-item > li.active > a .pcoded-micon { color: #35db91 !important; }
+  .portal-user-card { align-items: center; background: #151b24; border: 1px solid #27303d; border-radius: 13px; display: flex; gap: 10px; margin: 0 0 10px; padding: 12px; }
+  .portal-user-avatar { align-items: center; background: linear-gradient(135deg, #00c875, #078dd5); border-radius: 10px; color: #fff; display: flex; flex: 0 0 38px; font-size: 14px; font-weight: 800; height: 38px; justify-content: center; }
+  .portal-user-copy { min-width: 0; }
+  .portal-user-copy strong { color: #f6f8fb; display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .portal-user-copy span { color: #768295; display: block; font-size: 9px; margin-top: 3px; }
+  .portal-user-menu { background: transparent; border: 0; color: #6f7b8c; cursor: pointer; margin-left: auto; }
+  .portal-user-menu:hover { color: #ff7075; }
+  .portal-balance-card { background: linear-gradient(135deg, rgba(0,200,117,.13), rgba(7,141,213,.08)); border: 1px solid rgba(0,200,117,.23); border-radius: 12px; margin-bottom: 4px; padding: 12px 14px; }
+  .portal-balance-card span { color: #76a891; display: block; font-size: 9px; text-transform: uppercase; }
+  .portal-balance-card strong { color: #51e1a0; display: block; font-size: 18px; margin-top: 3px; }
+  .pcoded-content { background: var(--portal-bg) !important; margin-left: 286px !important; }
+  .pcoded-inner-content, .main-body, .page-wrapper, .page-body { background: var(--portal-bg) !important; }
+  .page-wrapper { padding: 28px !important; }
+  @media (max-width: 992px) {
+    .pcoded-header .navbar-logo { width: 245px !important; }
+    .pcoded-header .navbar-container { margin-left: 245px !important; }
+    .pcoded-content { margin-left: 0 !important; }
+    .pcoded-navbar { width: 270px !important; }
+    .portal-header-gamer, .portal-header-title, .portal-header-copy { display: none !important; }
+    .page-wrapper { padding: 18px !important; }
+  }
+  @media (max-width: 575px) {
+    .header-navbar, .pcoded-header .navbar-wrapper, .pcoded-header .navbar-container { height: 64px; }
+    .pcoded-main-container { margin-top: 64px !important; }
+    .pcoded-header .navbar-logo { height: 64px; width: 210px !important; }
+    .pcoded-header .navbar-container { margin-left: 210px !important; }
+    .portal-brand { height: 64px; padding-left: 12px; }
+    .portal-brand img { height: 36px; width: 36px; }
+    .portal-brand strong { font-size: 12px; }
+    .portal-header-user { height: 64px; }
+    .portal-header-avatar, .portal-header-logout { display: none; }
+    .page-wrapper { padding: 13px !important; }
+  }
+</style>
+
+<nav class="navbar header-navbar pcoded-header">
+  <div class="navbar-wrapper">
+    <div class="navbar-logo">
+      <a href="{% url 'index' %}" class="portal-brand">
+        <img src="/static/images/brand/myplataforma-mark.png" alt="MyPlataforma Digital">
+        <span>
+          <strong>MYPLATAFORMA</strong>
+          <small>VENTAS MAYORISTAS</small>
+        </span>
+      </a>
+    </div>
+
+    <div class="navbar-container container-fluid">
+      <ul class="nav-left">
+        <li>
+          <a class="mobile-menu waves-effect waves-light" id="mobile-collapse" href="#!">
+            <i class="ti-menu"></i>
+          </a>
+        </li>
+        <li class="portal-header-title">Centro de operaciones mayoristas</li>
+      </ul>
+      <a class="portal-header-gamer" href="{% url 'index' %}" aria-label="El Gamer MX"><img src="{% static 'images/brand/el-gamer-horizontal.png' %}" alt="El Gamer MX"></a>
+      <ul class="nav-right" style="display: none;">
+        <li class="portal-header-user"><span class="portal-header-avatar">{{ user.username|slice:":1"|upper }}</span><span class="portal-header-copy"><strong>{{ user.username }}</strong><span class="portal-role-badge">{% if user_type == 'superuser' %}SUPERADMIN{% else %}MAYORISTA{% endif %}</span></span><button class="portal-header-logout" type="button" onclick="portalLogout()" title="Cerrar sesión"><i class="ti-power-off"></i></button></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="pcoded-main-container">
+  <div class="pcoded-wrapper">
+    <nav class="pcoded-navbar">
+      <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
+      <div class="pcoded-inner-navbar main-menu">
+        {% include 'user_zone.html' %}
+
+        <div class="pcoded-navigation-label">Portal</div>
+        <ul class="pcoded-item pcoded-left-item">
+          <li class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+            <a href="{% url 'index' %}" class="waves-effect waves-dark">
+              <span class="pcoded-micon"><i class="ti-home"></i></span>
+              <span class="pcoded-mtext">Inicio</span>
+            </a>
+          </li>
+          <li class="{% if request.resolver_match.kwargs.section == 'catalog' %}active{% endif %}">
+            <a href="{% url 'portal-section' 'catalog' %}" class="waves-effect waves-dark">
+              <span class="pcoded-micon"><i class="ti-shopping-cart-full"></i></span>
+              <span class="pcoded-mtext">Catálogo</span>
+            </a>
+          </li>
+        </ul>
+
+        {% if user_type == 'superuser' %}
+          <div class="pcoded-navigation-label">Administración</div>
+          <ul class="pcoded-item pcoded-left-item">
+            <li class="{% if request.resolver_match.url_name == 'wholesale-partners' %}active{% endif %}">
+              <a href="{% url 'wholesale-partners' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-user"></i></span>
+                <span class="pcoded-mtext">Mayoristas</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'orders' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'orders' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-receipt"></i></span>
+                <span class="pcoded-mtext">Ventas y órdenes</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'balances' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'balances' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-wallet"></i></span>
+                <span class="pcoded-mtext">Saldos</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'integration' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'integration' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-link"></i></span>
+                <span class="pcoded-mtext">Integración Control</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'audit' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'audit' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-shield"></i></span>
+                <span class="pcoded-mtext">Auditoría</span>
+              </a>
+            </li>
+          </ul>
+        {% else %}
+          <div class="pcoded-navigation-label">Mi cuenta</div>
+          <ul class="pcoded-item pcoded-left-item">
+            <li class="{% if request.resolver_match.kwargs.section == 'services' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'services' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-package"></i></span>
+                <span class="pcoded-mtext">Mis servicios</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'renewals' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'renewals' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-reload"></i></span>
+                <span class="pcoded-mtext">Renovaciones</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'purchases' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'purchases' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-shopping-cart"></i></span>
+                <span class="pcoded-mtext">Compras</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'balance' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'balance' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-wallet"></i></span>
+                <span class="pcoded-mtext">Saldo y movimientos</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'support' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'support' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-comment"></i></span>
+                <span class="pcoded-mtext">Soporte</span>
+              </a>
+            </li>
+          </ul>
+        {% endif %}
+      </div>
+    </nav>

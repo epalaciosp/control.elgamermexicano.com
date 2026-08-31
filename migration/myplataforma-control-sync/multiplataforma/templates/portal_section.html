@@ -1,0 +1,49 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+  .section-wrap { color: #fff; }
+  .section-hero, .empty-state { background: #171d27; border: 1px solid #293240; border-radius: 18px; }
+  .section-hero { align-items: center; display: flex; gap: 18px; padding: 26px; }
+  .section-icon { align-items: center; background: rgba(0, 205, 114, .12); border: 1px solid rgba(0, 205, 114, .28); border-radius: 15px; color: #38dc91; display: flex; flex: 0 0 56px; font-size: 23px; height: 56px; justify-content: center; }
+  .section-eyebrow { color: #2bd688; font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+  .section-hero h2 { color: #fff; font-size: clamp(25px, 4vw, 36px); margin: 5px 0 7px; }
+  .section-hero p { color: #98a2b3; margin: 0; max-width: 850px; }
+  .empty-state { margin-top: 18px; padding: 50px 26px; text-align: center; }
+  .empty-state .empty-icon { align-items: center; background: #202936; border-radius: 50%; color: #7d8a9d; display: inline-flex; font-size: 28px; height: 72px; justify-content: center; width: 72px; }
+  .empty-state h4 { color: #fff; font-size: 21px; margin: 18px 0 8px; }
+  .empty-state p { color: #8d99aa; margin: auto; max-width: 620px; }
+  .empty-state .balance-number { color: #3fe397; display: block; font-size: 36px; font-weight: 750; margin-top: 18px; }
+  .back-link { color: #8b97a8; display: inline-block; margin-top: 18px; }
+  .back-link:hover { color: #fff; }
+  @media (max-width: 600px) { .section-hero { align-items: flex-start; flex-direction: column; padding: 20px; } }
+</style>
+
+<div class="section-wrap">
+  <section class="section-hero">
+    <div class="section-icon"><i class="{{ section_data.icon }}"></i></div>
+    <div>
+      <span class="section-eyebrow">{{ section_data.eyebrow }}</span>
+      <h2>{{ section_data.title }}</h2>
+      <p>{{ section_data.description }}</p>
+    </div>
+  </section>
+
+  <section class="empty-state">
+    <div class="empty-icon"><i class="{{ section_data.icon }}"></i></div>
+    {% if section == 'balance' %}
+      <h4>Saldo actual</h4>
+      <span class="balance-number">${{ balance|default:0|intcomma }}</span>
+      <p>La cuenta comenzó en cero. Aquí se mostrará cada recarga, compra, devolución y ajuste autorizado.</p>
+    {% elif section == 'integration' %}
+      <h4>Conexión privada en preparación</h4>
+      <p>El siguiente paso habilitará la publicación de inventario desde Control, sin guardar copias de credenciales en este portal.</p>
+    {% else %}
+      <h4>Sección lista para recibir información nueva</h4>
+      <p>No se importó información obsoleta. Los registros aparecerán cuando comience la nueva operación conectada con Control.</p>
+    {% endif %}
+    <a class="back-link" href="{% url 'index' %}"><i class="ti-arrow-left"></i> Regresar al inicio</a>
+  </section>
+</div>
+{% endblock %}

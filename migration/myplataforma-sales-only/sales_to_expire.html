@@ -1,0 +1,329 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+{% block menu %} 
+    {% include 'menu.html' %}
+{% endblock %} 
+
+{% block header %}
+ <div class="page-header">
+	  <div class="page-block">
+		  <div class="row align-items-center">
+			  <div class="col-md-8">
+				  <div class="page-header-title">
+					  <h5 class="m-b-10">Cuentas próximas a expirar</h5>
+				  </div>
+			  </div>
+
+		  </div>
+	  </div>
+  </div>
+{% endblock %}
+{% block content %}
+<style>
+    div.dataTables_wrapper {
+        margin-bottom: 3em;
+    }
+
+</style>
+<div class="row">
+    <!-- task, page, download counter  start -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card">
+            <div class="card-block">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h4 class="text-c-purple">{{ len_sales_to_expire_today }}</h4>
+                        <h6 class="text-muted m-b-0">Cuentas que vencen hoy</h6>
+                    </div>
+                    <div class="col-4 text-right">
+                        <i class="fa fa-file-text-o f-28"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-c-purple">
+                <div class="row align-items-center">
+                    <div class="col-9">
+                        <a href="#tabla"><p class="text-white m-b-0">Ver</p></a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card">
+            <div class="card-block">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h4 class="text-c-green">{{ len_sales_to_expire }}</h4>
+                        <h6 class="text-muted m-b-0">Cuentas próximas a vencer</h6>
+                    </div>
+                    <div class="col-4 text-right">
+                        <i class="fa fa-file-text-o f-28"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-c-green">
+                <div class="row align-items-center">
+                    <div class="col-9">
+                         <a href="#tabla"><p class="text-white m-b-0">Ver</p></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card">
+            <div class="card-block">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h4 class="text-c-red">{{ len_reports_pendding }}</h4>
+                        <h6 class="text-muted m-b-0">Reportes pendientes</h6>
+                    </div>
+                    <div class="col-4 text-right">
+                        <i class="fa fa-file-text-o f-28"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-c-red">
+                <div class="row align-items-center">
+                    <div class="col-9">
+                         <a href="{% url 'reported-issues-platform' %}"><p class="text-white m-b-0">Ver</p></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+     <div class="col-xl-3 col-md-6">
+        <div class="card">
+            <div class="card-block">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h4 class="text-c-blue">{{ len_reports_solucionated }}</h4>
+                        <h6 class="text-muted m-b-0">Reportes solucionados</h6>
+                    </div>
+                    <div class="col-4 text-right">
+                        <i class="fa fa-file-text-o f-28"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-c-blue">
+                <div class="row align-items-center">
+                    <div class="col-9">
+                         <a href="{% url 'reported-issues-platform' %}"><p class="text-white m-b-0">Ver</p></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card">
+            <div class="card-block">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h4 class="text-c-blue">{{ len_request_renewal }}</h4>
+                        <h6 class="text-muted m-b-0">Cuentas renovadas</h6>
+                    </div>
+                    <div class="col-4 text-right">
+                        <i class="fa fa-file-text-o f-28"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-c-blue">
+                <div class="row align-items-center">
+                    <div class="col-9">
+                         <a href="#renovated"><p class="text-white m-b-0">Ver</p></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card">
+            <div class="card-block">
+                <div class="row align-items-center">
+                    <div class="col-8">
+                        <h4 class="text-c-blue">{{ len_deny_renewal }}</h4>
+                        <h6 class="text-muted m-b-0">Renovaciones rechazadas</h6>
+                    </div>
+                    <div class="col-4 text-right">
+                        <i class="ti-na f-28"></i>
+
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-c-blue">
+                <div class="row align-items-center">
+                    <div class="col-9">
+                         <a href="#deny"><p class="text-white m-b-0">Ver</p></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- task, page, download counter  end -->
+
+    <!--  sale analytics start -->
+
+
+    <!--  project and team member end -->
+</div>
+<div class="row">
+	<div class="col-lg-12">
+		<div class="card">
+			<div class="card-header">
+				<h5>Listado de cuentas </h5>
+			</div>
+			<div class="card-block table-border-style">
+				<div>
+                     <a name="tabla"></a>
+                    <table  id="" class="table table-normal">
+                        <thead>
+                            <tr>
+                                <th>Fecha de expiración</th>
+                                <th>Paquete</th>
+                                <th>Email</th>
+                                <th>Contraseña</th>
+                                <th>Perfil</th>
+                                <th>Precio compra</th>
+                                <th>Accion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                           {% for sale in sales %}
+                                <tr class="gradeA odd" role="row">
+                                    <td>{{ sale.date_finish|date:"d/M/Y P" }}</td>
+                                    <td>{{ sale.subproduct.name  }}</td>
+                                    <td>{{ sale.email }}</td>
+                                    <td>{{ sale.password }}</td>
+                                    <td>{{ sale.profile }}</td>
+                                    <td>$ {{ sale.price_buy|intcomma }}</td>
+                                    <th>
+                                          {% if sale.subproduct.renewable %}
+                                        <a href="#" class="sale"  name_product="{{ sale.subproduct.name }}" id="{{ sale.id}}">
+                                        <i class="ti-loop" title="Renovar cuenta"></i>
+                                        </a>
+                                        {% endif %}
+                                    </th>
+                                </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+			</div>
+		</div>
+
+	</div>
+	<!-- /.col-lg-12 -->
+</div>
+
+<div class="row" id="renovated">
+	<div class="col-lg-12">
+		<div class="card">
+			<div class="card-header">
+				<h5>Listado de cuentas renovadas</h5>
+			</div>
+			<div class="card-block table-border-style">
+				<div>
+                    <table  class="table table-normal">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Email</th>
+                                <th>Contraseña</th>
+                                <th>Perfil</th>
+                                <th>Distribuidor</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                           {% for sale in request_renewal %}
+                            <tr class="gradeA odd" role="row">
+                                    <td>{{ sale.date_buy|date:"d/M/Y P" }}</td>
+                                    <td>{{ sale.subproduct.name }}</td>
+                                    <td>{{ sale.id }}</td>
+                                    <td>{{ sale.password }}</td>
+                                    <td>{{ sale.profile }}</td>
+                                    <td>{{ sale.owner }}</td>
+                                    <td>$ {{ sale.price_buy|intcomma }}</td>
+
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+			</div>
+		</div>
+
+	</div>
+	<!-- /.col-lg-12 -->
+</div>
+<div class="row" id="deny">
+	<div class="col-lg-12">
+		<div class="card">
+			<div class="card-header">
+				<h5>Listado de cuentas con renovación rechazada</h5>
+			</div>
+			<div class="card-block table-border-style">
+				<div>
+                    <table  class="table table-normal">
+                        <thead>
+                            <tr>
+                                <th>Fecha Compra</th>
+                                <th>Distribuidor</th>
+                                <th>Producto</th>
+                                <th>Motivo</th>
+                                <th>Email</th>
+                                <th>Perfil</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                           {% for sale in deny_renewal %}
+                            <tr class="gradeA odd" role="row">
+                                    <td>{{ sale.date_buy|date:"d/M/Y P" }}</td>
+                                    <td>{{ sale.subproduct.creater.username|title }}</td>
+                                    <td>{{ sale.subproduct.name }}</td>
+                                    <td>{{ sale.deny_renewal_response }}</td>
+                                    <td>{{ sale.email }}</td>
+                                    <td>{{ sale.profile }}</td>
+
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+			</div>
+		</div>
+
+	</div>
+	<!-- /.col-lg-12 -->
+</div>
+
+
+
+<!-- /.container-fluid -->
+ <!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+	</div>
+</div>
+<script>
+ resale_package()
+$(document).ready(function() {
+    $('#DataTables_Table_1').css('width', '1564px')
+});
+</script>
+
+
+{% endblock %}

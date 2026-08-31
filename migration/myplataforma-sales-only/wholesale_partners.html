@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+  .partners-wrap { color: #fff; }
+  .partners-head { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 18px; }
+  .partners-head h2 { color: #fff; margin-bottom: 5px; }
+  .partners-head p { color: #98a2b3; margin: 0; }
+  .partners-card { background: #171d27; border: 1px solid #293240; border-radius: 17px; overflow: hidden; }
+  .partners-table { margin: 0; min-width: 680px; }
+  .partners-table th { background: #111720; border-color: #2a3442 !important; color: #7f8b9d; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .partners-table td { border-color: #2a3442 !important; color: #c9d1dc; vertical-align: middle; }
+  .partner-name { color: #fff; font-weight: 700; }
+  .status { border-radius: 999px; display: inline-block; font-size: 11px; padding: 5px 9px; }
+  .status.active { background: rgba(0, 205, 114, .12); color: #3fe397; }
+  .status.inactive { background: rgba(239, 68, 68, .12); color: #ff7d89; }
+  .role-pill { background: #222b38; border-radius: 999px; color: #aab5c4; display: inline-block; font-size: 11px; padding: 5px 9px; }
+  .table-scroll { overflow-x: auto; }
+  @media (max-width: 700px) { .partners-head { align-items: flex-start; flex-direction: column; gap: 12px; } }
+</style>
+
+<div class="partners-wrap">
+  <header class="partners-head">
+    <div>
+      <h2>Mayoristas autorizados</h2>
+      <p>Únicamente se conservaron las dos cuentas acordadas.</p>
+    </div>
+    <span class="role-pill">{{ wholesalers|length }} cuentas</span>
+  </header>
+
+  <section class="partners-card">
+    <div class="table-scroll">
+      <table class="table partners-table">
+        <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Saldo inicial</th></tr></thead>
+        <tbody>
+          {% for partner in wholesalers %}
+            <tr>
+              <td class="partner-name">{{ partner.username }}</td>
+              <td>{{ partner.first_name|default:'—' }} {{ partner.last_name }}</td>
+              <td><span class="role-pill">Mayorista</span></td>
+              <td>{% if partner.is_active %}<span class="status active">Activo</span>{% else %}<span class="status inactive">Inactivo</span>{% endif %}</td>
+              <td>$0</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">No hay mayoristas registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

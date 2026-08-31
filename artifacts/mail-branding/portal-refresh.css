@@ -1,0 +1,336 @@
+/* EL GAMER MX - Portal de correos 2026 */
+:root {
+  --egm-bg: #080b10;
+  --egm-surface: #141922;
+  --egm-surface-soft: #1b212b;
+  --egm-border: #2a3340;
+  --egm-text: #f6f7f9;
+  --egm-muted: #929cab;
+  --egm-green: #00a650;
+  --egm-red: #e21f26;
+}
+
+html,
+body {
+  min-width: 320px;
+  background: var(--egm-bg);
+}
+
+body {
+  color: var(--egm-text);
+  overflow-x: hidden;
+}
+
+.nebula-theme {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(0, 166, 80, 0.12), transparent 31rem),
+    radial-gradient(circle at 96% 2%, rgba(226, 31, 38, 0.1), transparent 29rem),
+    var(--egm-bg);
+}
+
+.nebula-theme header[style*="background-color"] {
+  position: relative;
+  background: linear-gradient(118deg, #070b0d 0%, #10151c 58%, #171116 100%) !important;
+  border: 0;
+  border-image: none;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.nebula-theme header[style*="background-color"]::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  content: "";
+  background: linear-gradient(90deg, var(--egm-green) 0 49.5%, #f4f4f4 49.5% 50.5%, var(--egm-red) 50.5% 100%);
+}
+
+.nebula-theme header > .container {
+  width: min(100%, 1240px);
+  padding: 0 28px 42px !important;
+}
+
+.nebula-theme header .max-w-logo {
+  width: clamp(285px, 29vw, 380px) !important;
+  max-width: min(380px, calc(100vw - 7rem)) !important;
+  height: auto !important;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.24));
+}
+
+.nebula-theme header a[href="https://correos.elgamermexicano.com"] {
+  padding: 18px 0 10px !important;
+  margin-left: 0 !important;
+}
+
+.nebula-theme header nav select {
+  min-width: 64px;
+  padding: 9px 30px 9px 13px !important;
+  color: var(--egm-text) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px !important;
+}
+
+.nebula-theme header .actions {
+  width: min(100%, 1080px);
+  margin: 8px auto 0;
+  padding: 16px;
+  background: rgba(18, 23, 31, 0.92);
+  border: 1px solid var(--egm-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+}
+
+.nebula-theme header .in-app-actions,
+.nebula-theme header .app-action {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.nebula-theme header .in-app-actions > form > .relative > .relative > div:first-child > div,
+.nebula-theme header .in-app-actions > form > .relative > .relative > div:first-child > input,
+.nebula-theme header #email_id {
+  min-height: 52px;
+  padding: 15px 48px 15px 18px !important;
+  color: var(--egm-text) !important;
+  background: #0f141b !important;
+  border: 1px solid var(--egm-border);
+  border-radius: 13px !important;
+  font-weight: 600;
+}
+
+.nebula-theme header .in-app-actions .divider {
+  margin-top: 12px !important;
+}
+
+.nebula-theme header .in-app-actions .grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  max-width: none !important;
+}
+
+.nebula-theme header .in-app-actions .grid > div {
+  display: flex;
+  min-height: 82px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 12px !important;
+  color: var(--egm-text);
+  background: linear-gradient(180deg, #202630, #191f28) !important;
+  border: 1px solid #303946;
+  border-radius: 13px !important;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.nebula-theme header .in-app-actions .grid > div:hover {
+  background: #252d38 !important;
+  border-color: rgba(0, 166, 80, 0.75);
+  transform: translateY(-2px);
+}
+
+.nebula-theme header .in-app-actions .grid > div > div:first-child {
+  margin: 0 !important;
+  font-size: 1.15rem !important;
+}
+
+.nebula-theme header .in-app-actions .grid > div > div:last-child {
+  padding-top: 0 !important;
+  font-size: 0.95rem !important;
+  font-weight: 700;
+}
+
+.nebula-theme main {
+  position: relative;
+  width: min(calc(100% - 48px), 1080px);
+  min-height: 390px;
+  margin: 26px auto 88px;
+  overflow: hidden;
+  color: var(--egm-text);
+  background: rgba(20, 25, 34, 0.96);
+  border: 1px solid var(--egm-border);
+  border-radius: 20px;
+  box-shadow: 0 24px 65px rgba(0, 0, 0, 0.34);
+}
+
+.nebula-theme main::before {
+  display: block;
+  padding: 18px 24px;
+  color: var(--egm-text);
+  background: linear-gradient(90deg, rgba(0, 166, 80, 0.1), transparent 44%, rgba(226, 31, 38, 0.08));
+  border-bottom: 1px solid var(--egm-border);
+  content: "Bandeja de entrada";
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.nebula-theme main > div {
+  background: transparent;
+}
+
+.nebula-theme main .min-h-tm-half {
+  min-height: 320px !important;
+}
+
+.nebula-theme main .text-gray-500 {
+  color: var(--egm-muted) !important;
+}
+
+.nebula-theme main .text-gray-500::before {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 16px;
+  place-items: center;
+  color: #c4ccd7;
+  background: #202731;
+  border: 1px solid #333d4a;
+  border-radius: 16px;
+  content: "✉";
+  font-size: 1.55rem;
+}
+
+.nebula-theme footer[style*="background-color"] {
+  padding: 26px 18px 88px !important;
+  color: #7f8998 !important;
+  background: transparent !important;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+#cookie {
+  right: 16px !important;
+  bottom: 16px !important;
+  left: 16px !important;
+  width: min(calc(100% - 32px), 900px) !important;
+  margin: 0 auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px 12px 18px !important;
+  color: #cfd5dd !important;
+  background: rgba(15, 20, 27, 0.96) !important;
+  border: 1px solid var(--egm-border);
+  border-radius: 14px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+#cookie button,
+#cookie .close,
+#cookie [class*="bg-yellow"] {
+  color: #fff !important;
+  background: var(--egm-green) !important;
+  border-radius: 10px !important;
+}
+
+@media (max-width: 1023px) {
+  .nebula-theme header > .container {
+    padding: 0 16px 26px !important;
+  }
+
+  .nebula-theme header .max-w-logo {
+    width: min(280px, calc(100vw - 5.5rem)) !important;
+    max-width: 100% !important;
+  }
+
+  .nebula-theme header .actions {
+    width: calc(100% - 8px);
+    margin-top: 2px;
+    padding: 13px;
+    border-radius: 17px;
+  }
+
+  .nebula-theme header .in-app-actions {
+    margin-top: 0 !important;
+  }
+
+  .nebula-theme header .in-app-actions .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+
+  .nebula-theme header .in-app-actions .grid > div {
+    min-height: 76px;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 8px !important;
+  }
+
+  .nebula-theme header .in-app-actions .grid > div > div:last-child {
+    font-size: 0.82rem !important;
+  }
+
+  .nebula-theme main {
+    width: calc(100% - 24px);
+    min-height: 350px;
+    margin: 18px auto 96px;
+    border-radius: 17px;
+  }
+
+  .nebula-theme main::before {
+    padding: 16px 18px;
+  }
+
+  .nebula-theme main .min-h-tm-half {
+    min-height: 280px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .nebula-theme header > .container {
+    padding-right: 12px !important;
+    padding-bottom: 20px !important;
+    padding-left: 12px !important;
+  }
+
+  .nebula-theme header .max-w-logo {
+    width: min(225px, calc(100vw - 5rem)) !important;
+  }
+
+  .nebula-theme header a[href="https://correos.elgamermexicano.com"] {
+    padding-top: 14px !important;
+  }
+
+  .nebula-theme header .actions {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .nebula-theme header #email_id {
+    min-height: 48px;
+    padding: 13px 42px 13px 14px !important;
+    overflow: hidden;
+    font-size: 0.86rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nebula-theme header .in-app-actions .grid > div {
+    min-height: 72px;
+  }
+
+  .nebula-theme main {
+    width: calc(100% - 20px);
+    margin-top: 14px;
+  }
+
+  .nebula-theme main::before {
+    font-size: 0.98rem;
+  }
+
+  #cookie {
+    right: 10px !important;
+    bottom: 10px !important;
+    left: 10px !important;
+    width: calc(100% - 20px) !important;
+    padding: 11px !important;
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,23 @@
+{% load humanize %}
+<div class="portal-user-card">
+  <div class="portal-user-avatar">{{ user.username|slice:":1"|upper }}</div>
+  <div class="portal-user-copy">
+    <strong>{{ user.username }}</strong>
+    <span>{% if user_type == 'superuser' %}Superadministrador{% else %}Cuenta mayorista{% endif %}</span>
+  </div>
+  <button type="button" class="portal-user-menu" onclick="portalLogout()" title="Cerrar sesión"><i class="ti-power-off"></i></button>
+</div>
+{% if user_type != 'superuser' %}
+<div class="portal-balance-card">
+  <span>Saldo disponible</span>
+  <strong>${{ money|default:0|intcomma }}</strong>
+</div>
+{% endif %}
+
+<script>
+  function portalLogout() {
+    $.get('/accounts/logout?next={% url "index" %}', function () {
+      window.location = '/';
+    });
+  }
+</script>

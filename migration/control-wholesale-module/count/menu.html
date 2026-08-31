@@ -1,0 +1,323 @@
+<style>
+  .sidebar .sidebar-brand-wrapper.egm-brand-stack {
+    align-items: stretch !important;
+    background: #000;
+    flex-direction: column;
+    height: 112px;
+  }
+
+  .sidebar .sidebar-brand-wrapper .egm-brand-horizontal {
+    align-items: center;
+    background: #000;
+    display: flex;
+    flex: 0 0 78px;
+    height: 78px;
+    justify-content: center;
+    padding: 2px 6px;
+    width: 100%;
+  }
+
+  .egm-horizontal-logo {
+    align-items: center;
+    display: flex;
+    height: 74px;
+    justify-content: center;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .sidebar .sidebar-brand-wrapper .egm-brand-horizontal .egm-horizontal-lockup {
+    display: block;
+    height: 74px !important;
+    margin: 0 !important;
+    max-height: 74px !important;
+    max-width: 100% !important;
+    object-fit: contain;
+    object-position: center center;
+    width: 100% !important;
+  }
+
+  .egm-sidebar-minimize {
+    align-items: center;
+    background: #11141b;
+    border: 0;
+    border-top: 1px solid #242733;
+    color: #8f96a8;
+    cursor: pointer;
+    flex: 0 0 34px;
+    font-size: 18px;
+    height: 34px;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.2s ease, color 0.2s ease;
+    width: 100%;
+  }
+
+  .egm-sidebar-minimize:hover,
+  .egm-sidebar-minimize:focus {
+    background: #191c24;
+    color: #fff;
+    outline: none;
+  }
+
+  .sidebar .nav {
+    padding-top: 112px;
+  }
+
+  .sidebar .sidebar-brand-wrapper .egm-brand-mini {
+    align-items: center;
+    display: none;
+    height: 70px;
+    justify-content: center;
+  }
+
+  .sidebar .sidebar-brand-wrapper .egm-brand-mini img {
+    background: #fff;
+    border-radius: 8px;
+    height: 50px !important;
+    object-fit: contain;
+    padding: 2px;
+    width: 50px !important;
+  }
+
+  .sidebar-icon-only .sidebar .sidebar-brand-wrapper .egm-brand-horizontal {
+    display: none !important;
+  }
+
+  .sidebar-icon-only .sidebar .sidebar-brand-wrapper .egm-brand-mini {
+    display: flex !important;
+  }
+
+  .customer-menu-row {
+    position: relative;
+  }
+
+  .sidebar .nav .customer-menu-main {
+    padding-right: 48px;
+  }
+
+  .customer-menu-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    color: #8f96a8;
+    font-size: 19px;
+    text-decoration: none;
+    transition: color .2s ease;
+  }
+
+  .customer-menu-toggle:hover,
+  .customer-menu-toggle:focus {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .customer-menu-toggle i {
+    transition: transform .2s ease;
+  }
+
+  .customer-menu-toggle[aria-expanded="true"] i {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-icon-only .customer-menu-toggle {
+    display: none;
+  }
+
+  .customer-expiring-submenu {
+    padding-left: 18px !important;
+  }
+
+  .sidebar .nav.sub-menu .customer-expiring-submenu .nav-link {
+    padding-left: 18px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 991.98px) {
+    .sidebar .nav {
+      padding-top: 0;
+    }
+  }
+
+</style>
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+
+        <div class="sidebar-brand-wrapper egm-brand-stack d-none d-lg-flex fixed-top">
+          <a class="sidebar-brand brand-logo egm-brand-horizontal" href="{% url 'index' %}" aria-label="El Gamer MX">
+            {% include 'brand_horizontal.html' %}
+          </a>
+          <a class="sidebar-brand brand-logo-mini egm-brand-mini" href="{% url 'index' %}" aria-label="El Gamer MX">
+            <img src="/static/assets/images/el-gamer-official.png?v=20260829-1" alt="El Gamer MX">
+          </a>
+          <button class="egm-sidebar-minimize d-none d-lg-flex" type="button" data-toggle="minimize" aria-label="Contraer o ampliar menú" title="Contraer o ampliar menú">
+            <span class="mdi mdi-menu"></span>
+          </button>
+
+        </div>
+
+        <ul class="nav">
+<!--        {{ permissions }}-->
+          <li class="nav-item nav-category">
+            <span class="nav-link">Menú principal</span>
+          </li>
+
+          <li class="nav-item menu-items">
+            <a class="nav-link" href="{% url 'dashboard' %}">
+              <span class="menu-icon">
+                <i class="mdi mdi-view-dashboard"></i>
+              </span>
+              <span class="menu-title">Dashboard</span>
+            </a>
+          </li>
+
+           <li class="nav-item menu-items">
+            <a class="nav-link" data-toggle="collapse" href="#platforms" aria-expanded="false" aria-controls="platforms">
+              <span class="menu-icon">
+                <i class="mdi mdi-youtube"></i>
+              </span>
+              <span class="menu-title">Plataformas</span>
+              <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="platforms">
+              <ul class="nav flex-column sub-menu">
+
+                {% if 'add_platform' in permissions or '*' in permissions %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'create-platform' %}">Nueva plataforma</a></li>
+                {% endif %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'platform-list' %}">Listado</a></li>
+
+              </ul>
+            </div>
+          </li>
+          <li class="nav-item menu-items">
+            <div class="customer-menu-row">
+              <a class="nav-link customer-menu-main" href="{% url 'customer-modules' %}">
+                <span class="menu-icon">
+                  <i class="mdi mdi-account-card-details"></i>
+                </span>
+                <span class="menu-title">Clientes</span>
+              </a>
+              <a class="customer-menu-toggle" data-toggle="collapse" href="#clients" aria-expanded="false" aria-controls="clients" aria-label="Mostrar módulos de clientes">
+                <i class="mdi mdi-chevron-down"></i>
+              </a>
+            </div>
+            <div class="collapse" id="clients">
+              <ul class="nav flex-column sub-menu">
+                {% if 'add_customer' in permissions or '*' in permissions %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'add-customer' %}">Nuevo cliente</a></li>
+                {% endif %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}?segment=all">Todos los clientes</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}?segment=active">Clientes activos</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}?segment=inactive">Clientes inactivos</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}?segment=vip">Clientes VIP</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-customer' %}?segment=never">Sin compras</a></li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'list-to-expire' %}?days=3">Próximos a vencer</a>
+                  <ul class="nav flex-column sub-menu customer-expiring-submenu">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'list-to-expire' %}?days=3">En 3 días</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'list-to-expire' %}?days=2">En 2 días</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'list-to-expire' %}?days=1">En 1 día</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'list-to-expire' %}?days=0">Hoy (0 días)</a></li>
+                  </ul>
+                </li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-expired' %}">Clientes vencidos</a></li>
+              </ul>
+            </div>
+          </li>
+          {% if 'view_user' in permissions or '*' in permissions %}
+          <li class="nav-item menu-items">
+            <a class="nav-link" data-toggle="collapse" href="#users" aria-expanded="false" aria-controls="users">
+              <span class="menu-icon">
+                <i class="mdi mdi-account-plus"></i>
+              </span>
+              <span class="menu-title">Colaboradores</span>
+              <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="users">
+              <ul class="nav flex-column sub-menu">
+
+                {% if '*' in permissions %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'add-user' %}">Nuevo usuario</a></li>
+                {% endif %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user' %}">Listado</a></li>
+
+              </ul>
+            </div>
+          </li>
+          {% endif %}
+          <li class="nav-item menu-items">
+            <a class="nav-link" data-toggle="collapse" href="#counts" aria-expanded="false" aria-controls="counts">
+              <span class="menu-icon">
+                <i class="mdi mdi-ticket"></i>
+              </span>
+              <span class="menu-title">Cuentas</span>
+              <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="counts">
+              <ul class="nav flex-column sub-menu">
+                <li class="nav-item"> <a class="nav-link" href="{% url 'search-sale' %}">Buscar</a></li>
+                {%  if 'add_count' in permissions %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'create-count' %}">Crear</a></li>
+                {% endif %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}">Listado</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list-to-expire' %}">Proximas a vencer</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list-expired' %}">Vencidas</a></li>
+
+              </ul>
+            </div>
+          </li>
+          {% if '*' in permissions %}
+          <li class="nav-item menu-items">
+            <a class="nav-link" href="{% url 'wholesale-inventory' %}">
+              <span class="menu-icon">
+                <i class="mdi mdi-store"></i>
+              </span>
+              <span class="menu-title">Inventario mayorista</span>
+            </a>
+          </li>
+          {% endif %}
+           <li class="nav-item menu-items">
+            <a class="nav-link" data-toggle="collapse" href="#promotions" aria-expanded="false" aria-controls="promotions">
+              <span class="menu-icon">
+                <i class="mdi mdi-package-variant"></i>
+              </span>
+              <span class="menu-title">Promociones</span>
+              <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="promotions">
+              <ul class="nav flex-column sub-menu">
+                {%  if 'add_promotion' in permissions %}
+                    <li class="nav-item"> <a class="nav-link" href="{% url 'create-promotion' %}">Crear promocion</a></li>
+                {% endif %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-promotion' %}">Listado</a></li>
+              </ul>
+            </div>
+          </li>
+
+
+          <li class="nav-item menu-items">
+            <a class="nav-link" data-toggle="collapse" href="#sales" aria-expanded="false" aria-controls="sales">
+              <span class="menu-icon">
+                <i class="mdi mdi-table-large"></i>
+              </span>
+              <span class="menu-title">Ventas</span>
+               <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="sales">
+              <ul class="nav flex-column sub-menu">
+
+                <li class="nav-item"> <a class="nav-link" href="{% url 'inter-dates' 'sales' %}">Por fechas</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'bill-list' %}">Historico</a></li>
+
+              </ul>
+            </div>
+          </li>
+
+        </ul>
+      </nav>

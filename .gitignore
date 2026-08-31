@@ -1,0 +1,45 @@
+# Credenciales y configuración privada
+.env
+.env.*
+*.pem
+*.key
+credentials
+secret
+
+# Python / Django
+_pycache_/
+*.py[cod]
+venv/
+.venv/
+db.sqlite3
+
+# macOS
+.DS_Store
+
+# Archivos temporales
+*.log
+*.tmp
+*.bak
+
+# Documentos y paquetes que no son código
+*.zip
+*.docx
+*.pdf
+
+# Codex / IDE
+.codex/
+.vscode/
+.idea/
+migration/myplataforma-login-redesign/settings.py
+
+# Scripts locales de conexión/despliegue
+*.sftp
+
+# Configuraciones privadas / copias antiguas
+migration/myplataforma-login-redesign/original/settings.py
+
+# Scripts locales
+*.sh
+
+# Configuración de servidor
+*.conf

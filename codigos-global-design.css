@@ -1,0 +1,462 @@
+:root {
+    color-scheme: dark;
+    --bg: #080b10;
+    --surface: #121720;
+    --surface-2: #191f2a;
+    --line: #2a3240;
+    --text: #f5f7fb;
+    --muted: #9ba6b7;
+    --green: #00c96b;
+    --green-dark: #009c52;
+    --red: #e31e24;
+    --shadow: 0 26px 70px rgba(0, 0, 0, .42);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    background: var(--bg);
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--text);
+    background:
+        radial-gradient(circle at 12% 8%, rgba(0, 201, 107, .12), transparent 28rem),
+        radial-gradient(circle at 90% 18%, rgba(227, 30, 36, .11), transparent 28rem),
+        linear-gradient(145deg, #080b10 0%, #0b1017 52%, #080b10 100%);
+    font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    opacity: .18;
+    background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: linear-gradient(to bottom, #000, transparent 78%);
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.page-shell {
+    width: min(1120px, calc(100% - 40px));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 38px 0 26px;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-header {
+    min-height: 82px;
+    margin-bottom: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.brand-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.brand-logo {
+    display: block;
+    width: min(390px, 55vw);
+    max-height: 92px;
+    object-fit: contain;
+    object-position: left center;
+}
+
+.secure-badge {
+    flex: 0 0 auto;
+    padding: 10px 14px;
+    border: 1px solid rgba(0, 201, 107, .26);
+    border-radius: 999px;
+    color: #c8f9df;
+    background: rgba(0, 201, 107, .08);
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.secure-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 5px rgba(0, 201, 107, .12);
+}
+
+.consult-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(25,31,42,.97), rgba(15,20,28,.98));
+    box-shadow: var(--shadow);
+}
+
+.consult-card::after {
+    position: absolute;
+    top: -160px;
+    right: -110px;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(227,30,36,.11), transparent 68%);
+}
+
+.accent-line {
+    height: 4px;
+    display: grid;
+    grid-template-columns: 1fr 22px 1fr;
+}
+
+.accent-line span:first-child { background: var(--green); }
+.accent-line span:nth-child(2) { background: #f3f4f6; }
+.accent-line span:last-child { background: var(--red); }
+
+.card-content {
+    position: relative;
+    z-index: 1;
+    padding: clamp(34px, 6vw, 66px);
+}
+
+.title-block {
+    max-width: 720px;
+}
+
+.eyebrow {
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .14em;
+}
+
+h1,
+h2,
+p {
+    margin-top: 0;
+}
+
+h1 {
+    margin-bottom: 12px;
+    font-size: clamp(34px, 5.2vw, 58px);
+    line-height: 1.05;
+    letter-spacing: -.035em;
+}
+
+.title-block > p {
+    max-width: 650px;
+    margin-bottom: 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.75;
+}
+
+.consult-form {
+    margin-top: 38px;
+}
+
+.consult-form label {
+    display: block;
+    margin-bottom: 10px;
+    color: #dfe5ed;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+}
+
+.input-wrap {
+    position: relative;
+}
+
+.mail-icon {
+    position: absolute;
+    top: 50%;
+    left: 18px;
+    width: 22px;
+    height: 22px;
+    color: #788597;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.mail-icon svg,
+.consult-form button svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+.consult-form input {
+    width: 100%;
+    min-height: 58px;
+    padding: 0 18px 0 54px;
+    border: 1px solid #303948;
+    border-radius: 13px;
+    outline: 0;
+    color: var(--text);
+    background: #0e131b;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.consult-form input::placeholder {
+    color: #687486;
+}
+
+.consult-form input:hover {
+    border-color: #3c4759;
+}
+
+.consult-form input:focus {
+    border-color: var(--green);
+    background: #0b1118;
+    box-shadow: 0 0 0 4px rgba(0, 201, 107, .12);
+}
+
+.consult-form button {
+    min-height: 58px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 13px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    box-shadow: 0 13px 30px rgba(0, 201, 107, .17);
+    cursor: pointer;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform .2s, filter .2s, box-shadow .2s;
+}
+
+.consult-form button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.consult-form button:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 34px rgba(0, 201, 107, .23);
+}
+
+.consult-form button:active {
+    transform: translateY(0);
+}
+
+.valid-domains {
+    margin-top: 28px;
+    padding: 21px 22px;
+    border: 1px solid #2b3442;
+    border-radius: 16px;
+    background: rgba(8, 12, 18, .43);
+}
+
+.domain-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+}
+
+.info-icon {
+    width: 27px;
+    height: 27px;
+    flex: 0 0 27px;
+    border-radius: 50%;
+    color: #07150e;
+    background: var(--green);
+    font-size: 15px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+}
+
+.valid-domains h2 {
+    margin-bottom: 3px;
+    color: #e7ebf1;
+    font-size: 15px;
+}
+
+.valid-domains p {
+    margin-bottom: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.valid-domains ul {
+    margin: 16px 0 0 40px;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.valid-domains li {
+    padding: 8px 11px;
+    border: 1px solid #303a49;
+    border-radius: 9px;
+    color: #c9d1dc;
+    background: #151b24;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.resultado-container:empty,
+.resultado:empty {
+    display: none;
+}
+
+.page-footer {
+    margin-top: auto;
+    padding: 30px 0 2px;
+    color: #6f7a8a;
+    font-size: 12px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.page-footer span:first-child {
+    color: #aeb7c4;
+    font-weight: 700;
+}
+
+.footer-separator {
+    margin: 0 8px;
+    color: var(--green);
+}
+
+@media (max-width: 720px) {
+    .page-shell {
+        width: min(100% - 28px, 620px);
+        padding-top: 20px;
+    }
+
+    .brand-header {
+        min-height: 60px;
+        margin-bottom: 22px;
+        gap: 12px;
+    }
+
+    .brand-logo {
+        width: min(285px, 62vw);
+        max-height: 72px;
+    }
+
+    .secure-badge {
+        padding: 9px;
+        font-size: 0;
+    }
+
+    .secure-dot {
+        margin: 0;
+    }
+
+    .consult-card {
+        border-radius: 19px;
+    }
+
+    .card-content {
+        padding: 30px 22px;
+    }
+
+    .eyebrow {
+        font-size: 11px;
+    }
+
+    h1 {
+        margin-top: 7px;
+        font-size: clamp(31px, 10vw, 42px);
+    }
+
+    .title-block > p {
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .consult-form {
+        margin-top: 29px;
+    }
+
+    .input-row {
+        grid-template-columns: 1fr;
+    }
+
+    .consult-form button {
+        width: 100%;
+    }
+
+    .valid-domains {
+        margin-top: 22px;
+        padding: 18px;
+    }
+
+    .valid-domains ul {
+        margin-left: 0;
+    }
+
+    .valid-domains li {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+
+    .page-footer {
+        padding-top: 22px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 380px) {
+    .page-shell {
+        width: min(100% - 20px, 620px);
+    }
+
+    .brand-logo {
+        width: 240px;
+    }
+
+    .card-content {
+        padding: 26px 17px;
+    }
+
+    .consult-form input {
+        padding-left: 48px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+    }
+}

@@ -1,0 +1,167 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  .wholesale-page { color: #eef2f7; }
+  .wholesale-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+  .wholesale-heading h2 { font-size: 1.45rem; font-weight: 700; margin: 0 0 6px; }
+  .wholesale-muted { color: #8f99aa; }
+  .wholesale-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .wholesale-card { background: #191e27; border: 1px solid #2a3240; border-radius: 12px; padding: 18px; }
+  .wholesale-stat { border-left: 3px solid #00c875; }
+  .wholesale-stat:nth-child(2) { border-left-color: #1597e5; }
+  .wholesale-stat:nth-child(3) { border-left-color: #8b5cf6; }
+  .wholesale-stat:nth-child(4) { border-left-color: #f2b01e; }
+  .wholesale-stat span { color: #929cad; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+  .wholesale-stat strong { display: block; font-size: 1.7rem; line-height: 1.2; margin-top: 7px; }
+  .wholesale-panel { background: #191e27; border: 1px solid #2a3240; border-radius: 12px; padding: 22px; margin-bottom: 22px; }
+  .wholesale-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+  .wholesale-panel-title h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+  .wholesale-form { display: grid; grid-template-columns: 1fr 1.3fr .7fr .75fr .55fr auto; gap: 14px; align-items: end; }
+  .wholesale-field label { display: block; color: #aeb7c5; font-size: .78rem; font-weight: 600; margin-bottom: 7px; }
+  .wholesale-control { min-height: 42px; background: #11161e !important; border: 1px solid #354052 !important; color: #eef2f7 !important; border-radius: 7px; }
+  .wholesale-check { min-height: 42px; display: flex; align-items: center; gap: 8px; }
+  .wholesale-actions { display: flex; align-items: center; gap: 8px; }
+  .wholesale-btn { border: 0; border-radius: 7px; padding: 10px 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .wholesale-btn-primary { color: #fff; background: #0799e5; }
+  .wholesale-btn-secondary { color: #d9e0e9; background: #293241; }
+  .wholesale-btn-warning { color: #17120a; background: #f2b01e; }
+  .wholesale-btn-danger { color: #fff; background: #e5484d; }
+  .wholesale-filter { display: grid; grid-template-columns: minmax(190px, 1.4fr) minmax(170px, .8fr) minmax(150px, .7fr) auto; gap: 10px; margin-bottom: 16px; }
+  .wholesale-table-wrap { overflow-x: auto; border: 1px solid #293241; border-radius: 9px; }
+  .wholesale-table { width: 100%; border-collapse: collapse; min-width: 940px; }
+  .wholesale-table th { color: #8994a7; background: #20262f; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; text-align: left; padding: 13px; }
+  .wholesale-table td { color: #cbd3df; border-top: 1px solid #2d3541; padding: 14px 13px; vertical-align: middle; }
+  .wholesale-table strong { color: #f4f7fa; }
+  .wholesale-platform { display: flex; flex-direction: column; gap: 2px; }
+  .wholesale-badge { display: inline-flex; align-items: center; border-radius: 999px; font-size: .72rem; font-weight: 700; padding: 5px 9px; }
+  .wholesale-badge-on { color: #5be6a4; background: rgba(0, 200, 117, .13); }
+  .wholesale-badge-off { color: #ff8589; background: rgba(229, 72, 77, .14); }
+  .wholesale-stock { color: #5be6a4; font-size: 1.05rem; font-weight: 800; }
+  .wholesale-row-actions { display: flex; align-items: center; gap: 7px; }
+  .wholesale-row-actions form { margin: 0; }
+  .wholesale-errors { color: #ff8589; font-size: .76rem; margin-top: 6px; }
+  .wholesale-empty { padding: 36px; text-align: center; color: #8f99aa; }
+  @media (max-width: 1180px) {
+    .wholesale-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .wholesale-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .wholesale-form .wholesale-actions { grid-column: 1 / -1; }
+  }
+  @media (max-width: 720px) {
+    .wholesale-heading { display: block; }
+    .wholesale-grid, .wholesale-form, .wholesale-filter { grid-template-columns: 1fr; }
+    .wholesale-panel { padding: 16px; }
+    .wholesale-actions, .wholesale-row-actions { flex-wrap: wrap; }
+    .wholesale-btn { width: 100%; text-align: center; }
+    .wholesale-table-wrap { border: 0; overflow: visible; }
+    .wholesale-table, .wholesale-table tbody, .wholesale-table tr, .wholesale-table td { display: block; width: 100%; min-width: 0; }
+    .wholesale-table thead { display: none; }
+    .wholesale-table tr { background: #20262f; border: 1px solid #303a48; border-radius: 10px; margin-bottom: 12px; padding: 8px 12px; }
+    .wholesale-table td { display: grid; grid-template-columns: 42% 58%; border-top: 1px solid #303a48; padding: 10px 0; }
+    .wholesale-table td:first-child { border-top: 0; }
+    .wholesale-table td::before { content: attr(data-label); color: #8994a7; font-size: .7rem; font-weight: 700; text-transform: uppercase; }
+  }
+</style>
+
+<div class="wholesale-page">
+  <div class="wholesale-heading">
+    <div>
+      <h2>Inventario mayorista</h2>
+      <div class="wholesale-muted">Publica planes y precios para Yehoshua y arojas7 sin duplicar cuentas ni credenciales.</div>
+    </div>
+  </div>
+
+  <div class="wholesale-grid">
+    <div class="wholesale-card wholesale-stat"><span>Mayoristas activos</span><strong>{{ stats.partners }}</strong></div>
+    <div class="wholesale-card wholesale-stat"><span>Publicaciones activas</span><strong>{{ stats.publications }}</strong></div>
+    <div class="wholesale-card wholesale-stat"><span>Planes publicados</span><strong>{{ stats.plans }}</strong></div>
+    <div class="wholesale-card wholesale-stat"><span>Unidades disponibles</span><strong>{{ stats.available }}</strong></div>
+  </div>
+
+  <section class="wholesale-panel">
+    <div class="wholesale-panel-title">
+      <h3>{% if editing_publication %}Editar publicación{% else %}Publicar un plan{% endif %}</h3>
+      <span class="wholesale-muted">La disponibilidad se calcula desde el inventario real.</span>
+    </div>
+    <form method="post" class="wholesale-form">
+      {% csrf_token %}
+      <div class="wholesale-field">
+        <label for="{{ form.partner.id_for_label }}">Mayorista</label>
+        {{ form.partner }}
+        {% for error in form.partner.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field">
+        <label for="{{ form.plan.id_for_label }}">Plataforma y plan</label>
+        {{ form.plan }}
+        {% for error in form.plan.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field">
+        <label for="{{ form.wholesale_price.id_for_label }}">Precio mayorista</label>
+        {{ form.wholesale_price }}
+        {% for error in form.wholesale_price.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field">
+        <label for="{{ form.stock_limit.id_for_label }}">Límite</label>
+        {{ form.stock_limit }}
+        {% for error in form.stock_limit.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field">
+        <label for="{{ form.active.id_for_label }}">Estado</label>
+        <div class="wholesale-check">{{ form.active }} <span>Publicado</span></div>
+      </div>
+      <div class="wholesale-actions">
+        <button type="submit" class="wholesale-btn wholesale-btn-primary">{% if editing_publication %}Guardar cambios{% else %}Publicar{% endif %}</button>
+        {% if editing_publication %}<a href="{% url 'wholesale-inventory' %}" class="wholesale-btn wholesale-btn-secondary">Cancelar</a>{% endif %}
+      </div>
+      {% for error in form.non_field_errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+    </form>
+  </section>
+
+  <section class="wholesale-panel">
+    <div class="wholesale-panel-title">
+      <h3>Planes publicados</h3>
+      <span class="wholesale-muted">Ocultar conserva el historial y permite reactivar después.</span>
+    </div>
+    <form method="get" class="wholesale-filter">
+      <input class="form-control wholesale-control" type="search" name="q" value="{{ search_query }}" placeholder="Buscar mayorista, plataforma o plan">
+      <select class="form-control wholesale-control" name="partner">
+        <option value="">Todos los mayoristas</option>
+        {% for partner in partners %}<option value="{{ partner.id }}" {% if selected_partner == partner.id|stringformat:'s' %}selected{% endif %}>{{ partner.username }}</option>{% endfor %}
+      </select>
+      <select class="form-control wholesale-control" name="status">
+        <option value="">Todos los estados</option>
+        <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Publicados</option>
+        <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Ocultos</option>
+      </select>
+      <button class="wholesale-btn wholesale-btn-secondary" type="submit">Filtrar</button>
+    </form>
+
+    <div class="wholesale-table-wrap">
+      <table class="wholesale-table">
+        <thead><tr><th>Mayorista</th><th>Plataforma / plan</th><th>Precio</th><th>Disponible</th><th>Límite</th><th>Estado</th><th>Actualización</th><th>Acciones</th></tr></thead>
+        <tbody>
+          {% for publication in publications %}
+          <tr>
+            <td data-label="Mayorista"><strong>{{ publication.partner.username }}</strong><br><small>{{ publication.partner.customer.name }}</small></td>
+            <td data-label="Plataforma / plan"><div class="wholesale-platform"><strong>{{ publication.plan.platform.name }}</strong><span>{{ publication.plan.name }}</span></div></td>
+            <td data-label="Precio"><strong>${{ publication.wholesale_price|floatformat:2 }}</strong></td>
+            <td data-label="Disponible"><span class="wholesale-stock">{{ publication.available_units }}</span></td>
+            <td data-label="Límite">{% if publication.stock_limit %}{{ publication.stock_limit }}{% else %}Sin límite extra{% endif %}</td>
+            <td data-label="Estado"><span class="wholesale-badge {% if publication.active %}wholesale-badge-on{% else %}wholesale-badge-off{% endif %}">{% if publication.active %}Publicado{% else %}Oculto{% endif %}</span></td>
+            <td data-label="Actualización">{{ publication.updated_at|date:"d/m/Y H:i" }}</td>
+            <td data-label="Acciones">
+              <div class="wholesale-row-actions">
+                <a class="wholesale-btn wholesale-btn-secondary" href="{% url 'wholesale-publication-edit' publication.pk %}">Editar</a>
+                <form method="post" action="{% url 'wholesale-publication-toggle' publication.pk %}">{% csrf_token %}<button class="wholesale-btn {% if publication.active %}wholesale-btn-danger{% else %}wholesale-btn-warning{% endif %}" type="submit">{% if publication.active %}Ocultar{% else %}Publicar{% endif %}</button></form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="wholesale-empty">No hay publicaciones con estos filtros.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

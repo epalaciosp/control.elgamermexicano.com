@@ -1,0 +1,33 @@
+{% load humanize %}
+<div class="main-menu-header">
+  <div class="user-details">
+    <span id="more-details">
+      {{ user.username }} <i class="fa fa-caret-down"></i>
+    </span>
+    <span>
+      {% if user_type == 'superuser' %}
+        Superadministrador
+      {% else %}
+        Mayorista · Saldo <strong>${{ money|default:0|intcomma }}</strong>
+      {% endif %}
+    </span>
+  </div>
+</div>
+
+<div class="main-menu-content">
+  <ul>
+    <li class="more-details">
+      <a href="javascript:portalLogout()">
+        <i class="ti-layout-sidebar-left"></i>Cerrar sesión
+      </a>
+    </li>
+  </ul>
+</div>
+
+<script>
+  function portalLogout() {
+    $.get('/accounts/logout?next={% url "index" %}', function () {
+      window.location = '/';
+    });
+  }
+</script>

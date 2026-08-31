@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% block head %}
+ {% include 'head.html' %}
+{% endblock %}
+<body themebg-pattern="theme1">
+    <section class="login-block">
+        <!-- Container-fluid starts -->
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <!-- Authentication card start -->
+                        <form class="md-float-material form-material" method="POST">
+                            {% csrf_token %}
+                            <div class="text-center">
+                                <img src="/static/logos/myiplataformadigital.png" alt="logo.png" width="350" height="95">
+                            </div>
+                            <div class="auth-box card">
+                                <div class="card-block">
+                                    <div class="row m-b-20">
+                                        <div class="col-md-12">
+                                            <h3 class="text-center">Bienvenido</h3>
+                                            <h6 class="text-center">Iniciar sesion</h6>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-primary">
+                                        <input id="username" type="text" name="username" class="form-control" required="">
+                                        <span class="form-bar"></span>
+                                        <label class="float-label">Username</label>
+                                    </div>
+                                    <div class="form-group form-primary">
+                                        <input type="password" name="password" class="form-control" required="">
+                                        <span class="form-bar"></span>
+                                        <label class="float-label">Contraseña</label>
+                                    </div>
+                                     <div class="checkbox">
+                                        <label>
+                                            Recordarme
+                                            <input name="remember"  class="check" type="checkbox" >
+                                        </label>
+                                    </div>
+                                    <div class="row m-t-25 text-left">
+                                        <div class="col-12">
+                                            <div class="forgot-phone text-right f-right">
+                                                <a href="{% url 'password_reset_own' %}" class="text-right f-w-600"> Olvidó su contraseña?</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row m-t-30">
+                                        <div class="col-md-12">
+                                            <button  id="login" type="submit" class="btn btn-primary btn-md btn-block waves-effect waves-light text-center m-b-20">Ingresar</button>
+                                        </div>
+                                    </div>
+                                    {% if form.errors %}
+										<p>Su usuario o contraseña son inválidos.</p>
+									{% endif %}
+                                    <hr/>
+                                    <div class="row">
+                                        <div class="col-md-10">
+                                            <p class="text-inverse text-left m-b-0">¿Quieres trabajar con nosotros?</p>
+                                            <p class="text-inverse text-left"><a href="{% url 'staff-add' %}"><b>Regístrate como proveedor o distribuidor</b></a></p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        <!-- end of form -->
+                </div>
+                <!-- end of col-sm-12 -->
+            </div>
+            <!-- end of row -->
+        </div>
+        <!-- end of container-fluid -->
+    </section>
+    <!-- Warning Section Starts -->
+    <!-- Older IE warning message -->
+    <!--[if lt IE 10]>
+
+<![endif]-->
+<!-- Warning Section Ends -->
+{% block scripts %}
+	 {% include 'script.html' %}
+    <script>
+        username = Cookies.get('username');
+        if (username){
+            $('#username').val(username)
+            $(".check").prop("checked","true")
+        }
+
+        $( "#login").click(function(e){
+        e.preventDefault()
+        check = $(".check").prop("checked")
+        username = $('#username').val()
+
+        if (check == true){
+            $.get('/set_cookie/remember/'+username,function(data){
+                console.log(data)
+            })
+        }else{
+            $.get('/set_cookie/forget/'+username,function(data){
+                console.log(data)
+            })
+        }
+        $( 'form' ).submit();
+});
+</script>
+{% endblock %}
+</body>
+
+</html>

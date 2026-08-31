@@ -1,0 +1,1709 @@
+[
+  {
+    "name": "Regionales Colombia",
+    "count": 32,
+    "channels": [
+      {
+        "name": "CALI TV",
+        "logo": "logos/CALI_TV.jpg",
+        "alt": "CALI TV"
+      },
+      {
+        "name": "CANAL CAPITAL",
+        "logo": "logos/CANAL_CAPITAL.jpg",
+        "alt": "CANAL CAPITAL"
+      },
+      {
+        "name": "CANAL CONGRESO",
+        "logo": "logos/CANAL_CONGRESO.jpg",
+        "alt": "CANAL CONGRESO"
+      },
+      {
+        "name": "CANAL INSTITUCIONAL",
+        "logo": "logos/CANAL_INSTITUCIONAL.jpg",
+        "alt": "CANAL INSTITUCIONAL"
+      },
+      {
+        "name": "CANAL TRO",
+        "logo": "logos/CANAL_TRO.jpg",
+        "alt": "CANAL TRO"
+      },
+      {
+        "name": "CANAL UNO HD",
+        "logo": "logos/CANAL_UNO_HD.jpg",
+        "alt": "CANAL UNO HD"
+      },
+      {
+        "name": "CANAL ZOOM",
+        "logo": "logos/CANAL_ZOOM.jpg",
+        "alt": "CANAL ZOOM"
+      },
+      {
+        "name": "CARACOL HD",
+        "logo": "logos/CARACOL_HD.jpg",
+        "alt": "CARACOL HD"
+      },
+      {
+        "name": "CARACOL HD2",
+        "logo": "logos/CARACOL_HD2.jpg",
+        "alt": "CARACOL HD2"
+      },
+      {
+        "name": "CARACOL INTERNACIONAL",
+        "logo": "logos/CARACOL_INTERNACIONAL.jpg",
+        "alt": "CARACOL INTERNACIONAL"
+      },
+      {
+        "name": "CITY TV",
+        "logo": "logos/CITY_TV.jpg",
+        "alt": "CITY TV"
+      },
+      {
+        "name": "COSMOVISION",
+        "logo": "logos/COSMOVISION.jpg",
+        "alt": "COSMOVISION"
+      },
+      {
+        "name": "CTV BARRANQUILLA",
+        "logo": "logos/CTV_BARRANQUILLA.jpg",
+        "alt": "CTV BARRANQUILLA"
+      },
+      {
+        "name": "HUILA TV",
+        "logo": "logos/HUILA_TV.jpg",
+        "alt": "HUILA TV"
+      },
+      {
+        "name": "MAS TV",
+        "logo": "logos/MAS_TV.jpg",
+        "alt": "MAS TV"
+      },
+      {
+        "name": "RCN HD",
+        "logo": "logos/RCN_HD.jpg",
+        "alt": "RCN HD"
+      },
+      {
+        "name": "RCN HD2",
+        "logo": "logos/RCN_HD2.jpg",
+        "alt": "RCN HD2"
+      },
+      {
+        "name": "RCN MAS",
+        "logo": "logos/RCN_MAS.jpg",
+        "alt": "RCN MAS"
+      },
+      {
+        "name": "SEÑAL COLOMBIA",
+        "logo": "logos/SEÑAL_COLOMBIA.jpg",
+        "alt": "SEÑAL COLOMBIA"
+      },
+      {
+        "name": "SURAM",
+        "logo": "logos/SURAM.jpg",
+        "alt": "SURAM"
+      },
+      {
+        "name": "TDI",
+        "logo": "logos/TDI.jpg",
+        "alt": "TDI"
+      },
+      {
+        "name": "TELEANTIOQUIA",
+        "logo": "logos/TELEANTIOQUIA.jpg",
+        "alt": "TELEANTIOQUIA"
+      },
+      {
+        "name": "TELECAFÉ",
+        "logo": "logos/TELECAFÉ.jpg",
+        "alt": "TELECAFÉ"
+      },
+      {
+        "name": "TELECARIBE",
+        "logo": "logos/TELECARIBE.jpg",
+        "alt": "TELECARIBE"
+      },
+      {
+        "name": "TELEISLAS",
+        "logo": "logos/TELEISLAS.jpg",
+        "alt": "TELEISLAS"
+      },
+      {
+        "name": "TELEMEDELLIN",
+        "logo": "logos/TELEMEDELLIN.jpg",
+        "alt": "TELEMEDELLIN"
+      },
+      {
+        "name": "TELEPACIFICO",
+        "logo": "logos/TELEPACIFICO.jpg",
+        "alt": "TELEPACIFICO"
+      },
+      {
+        "name": "TELEPACIFICO ORIGEN",
+        "logo": "logos/TELEPACIFICO_ORIGEN.jpg",
+        "alt": "TELEPACIFICO ORIGEN"
+      },
+      {
+        "name": "TRAVESIA AGROPECUARIA",
+        "logo": "logos/TRAVESIA_AGROPECUARIA.jpg",
+        "alt": "TRAVESIA AGROPECUARIA"
+      },
+      {
+        "name": "TRECE",
+        "logo": "logos/TRECE.jpg",
+        "alt": "TRECE"
+      },
+      {
+        "name": "TV AGRO",
+        "logo": "logos/TV_AGRO.jpg",
+        "alt": "TV AGRO"
+      },
+      {
+        "name": "VISION DORADA",
+        "logo": "logos/VISION_DORADA.jpg",
+        "alt": "VISION DORADA"
+      }
+    ]
+  },
+  {
+    "name": "Deportes",
+    "count": 58,
+    "channels": [
+      {
+        "name": "AZTECA DEPORTES ᴴᴰ",
+        "logo": "logos/AZTECA_DEPORTES_HD.jpg",
+        "alt": "AZTECA DEPORTES ᴴᴰ"
+      },
+      {
+        "name": "beIN SPORT",
+        "logo": "logos/beIN_SPORT.jpg",
+        "alt": "beIN SPORT"
+      },
+      {
+        "name": "beIN SPORTS XTRA",
+        "logo": "logos/beIN_SPORTS_XTRA.jpg",
+        "alt": "beIN SPORTS XTRA"
+      },
+      {
+        "name": "beIN SPORTS Ñ ᴴᴰ",
+        "logo": "logos/beIN_SPORTS_Ñ_HD.jpg",
+        "alt": "beIN SPORTS Ñ ᴴᴰ"
+      },
+      {
+        "name": "CDN DEPORTES",
+        "logo": "logos/CDN_DEPORTES.jpg",
+        "alt": "CDN DEPORTES"
+      },
+      {
+        "name": "CLARO SPORTS",
+        "logo": "logos/CLARO_SPORTS.jpg",
+        "alt": "CLARO SPORTS"
+      },
+      {
+        "name": "DAZN 1",
+        "logo": "logos/DAZN_1.jpg",
+        "alt": "DAZN 1"
+      },
+      {
+        "name": "DAZN F1",
+        "logo": "logos/DAZN_F1.jpg",
+        "alt": "DAZN F1"
+      },
+      {
+        "name": "DAZN LA LIGA",
+        "logo": "logos/DAZN_LA_LIGA.jpg",
+        "alt": "DAZN LA LIGA"
+      },
+      {
+        "name": "DAZN LA LIGA TV HIPERMOTION",
+        "logo": "logos/DAZN_LA_LIGA_TV_HIPERMOTION.jpg",
+        "alt": "DAZN LA LIGA TV HIPERMOTION"
+      },
+      {
+        "name": "DIRECTV SPORTS +",
+        "logo": "logos/DIRECTV_SPORTS_PLUS.jpg",
+        "alt": "DIRECTV SPORTS +"
+      },
+      {
+        "name": "DIRECTV SPORTS 2 HD",
+        "logo": "logos/DIRECTV_SPORTS_2_HD.jpg",
+        "alt": "DIRECTV SPORTS 2 HD"
+      },
+      {
+        "name": "DIRECTV SPORTS HD",
+        "logo": "logos/DIRECTV_SPORTS_HD.jpg",
+        "alt": "DIRECTV SPORTS HD"
+      },
+      {
+        "name": "DISNEY + (ESPN 2 HD)",
+        "logo": "logos/DISNEY_PLUS_ESPN_2_HD.jpg",
+        "alt": "DISNEY + (ESPN 2 HD)"
+      },
+      {
+        "name": "DISNEY + (ESPN 3 HD)",
+        "logo": "logos/DISNEY_PLUS_ESPN_3_HD.jpg",
+        "alt": "DISNEY + (ESPN 3 HD)"
+      },
+      {
+        "name": "DISNEY + (ESPN 4 HD)",
+        "logo": "logos/DISNEY_PLUS_ESPN_4_HD.jpg",
+        "alt": "DISNEY + (ESPN 4 HD)"
+      },
+      {
+        "name": "DISNEY + (ESPN 5 HD)",
+        "logo": "logos/DISNEY_PLUS_ESPN_5_HD.jpg",
+        "alt": "DISNEY + (ESPN 5 HD)"
+      },
+      {
+        "name": "DISNEY + (ESPN 6 HD)",
+        "logo": "logos/DISNEY_PLUS_ESPN_6_HD.jpg",
+        "alt": "DISNEY + (ESPN 6 HD)"
+      },
+      {
+        "name": "DISNEY + (ESPN 7 HD)",
+        "logo": "logos/DISNEY_PLUS_ESPN_7_HD.jpg",
+        "alt": "DISNEY + (ESPN 7 HD)"
+      },
+      {
+        "name": "DISNEY + (ESPN HD)",
+        "logo": "logos/DISNEY_PLUS_ESPN_HD.jpg",
+        "alt": "DISNEY + (ESPN HD)"
+      },
+      {
+        "name": "ECDF",
+        "logo": "logos/ECDF.jpg",
+        "alt": "ECDF"
+      },
+      {
+        "name": "ESPN 2 ARG ᴴᴰ",
+        "logo": "logos/ESPN_2_ARG_HD.jpg",
+        "alt": "ESPN 2 ARG ᴴᴰ"
+      },
+      {
+        "name": "ESPN 2 MX ᴴᴰ",
+        "logo": "logos/ESPN_2_MX_HD.jpg",
+        "alt": "ESPN 2 MX ᴴᴰ"
+      },
+      {
+        "name": "ESPN 3 ARG ᴴᴰ",
+        "logo": "logos/ESPN_3_ARG_HD.jpg",
+        "alt": "ESPN 3 ARG ᴴᴰ"
+      },
+      {
+        "name": "ESPN ARG ᴴᴰ",
+        "logo": "logos/ESPN_ARG_HD.jpg",
+        "alt": "ESPN ARG ᴴᴰ"
+      },
+      {
+        "name": "ESPN DEPORTES ᴴᴰ",
+        "logo": "logos/ESPN_DEPORTES_HD.jpg",
+        "alt": "ESPN DEPORTES ᴴᴰ"
+      },
+      {
+        "name": "ESPN MX ᴴᴰ",
+        "logo": "logos/ESPN_MX_HD.jpg",
+        "alt": "ESPN MX ᴴᴰ"
+      },
+      {
+        "name": "ESPN PREMIUM",
+        "logo": "logos/ESPN_PREMIUM.jpg",
+        "alt": "ESPN PREMIUM"
+      },
+      {
+        "name": "EUROSPORT 1",
+        "logo": "logos/EUROSPORT_1.jpg",
+        "alt": "EUROSPORT 1"
+      },
+      {
+        "name": "EUROSPORT 2",
+        "logo": "logos/EUROSPORT_2.jpg",
+        "alt": "EUROSPORT 2"
+      },
+      {
+        "name": "FOX DEPORTES ᴴᴰ",
+        "logo": "logos/FOX_DEPORTES_HD.jpg",
+        "alt": "FOX DEPORTES ᴴᴰ"
+      },
+      {
+        "name": "FOX SPORTS",
+        "logo": "logos/FOX_SPORTS.jpg",
+        "alt": "FOX SPORTS"
+      },
+      {
+        "name": "FOX SPORTS 2",
+        "logo": "logos/FOX_SPORTS_2.jpg",
+        "alt": "FOX SPORTS 2"
+      },
+      {
+        "name": "FOX SPORTS 3",
+        "logo": "logos/FOX_SPORTS_3.jpg",
+        "alt": "FOX SPORTS 3"
+      },
+      {
+        "name": "FOX SPORTS PREMIUM",
+        "logo": "logos/FOX_SPORTS_PREMIUM.jpg",
+        "alt": "FOX SPORTS PREMIUM"
+      },
+      {
+        "name": "GOL PERU ᴴᴰ",
+        "logo": "logos/GOL_PERU_HD.jpg",
+        "alt": "GOL PERU ᴴᴰ"
+      },
+      {
+        "name": "GOL TV",
+        "logo": "logos/GOL_TV.jpg",
+        "alt": "GOL TV"
+      },
+      {
+        "name": "GOLF CHANNEL ᴴᴰ",
+        "logo": "logos/GOLF_CHANNEL_HD.jpg",
+        "alt": "GOLF CHANNEL ᴴᴰ"
+      },
+      {
+        "name": "LIGA 1",
+        "logo": "logos/LIGA_1.jpg",
+        "alt": "LIGA 1"
+      },
+      {
+        "name": "LIGA 1 MAX",
+        "logo": "logos/LIGA_1_MAX.jpg",
+        "alt": "LIGA 1 MAX"
+      },
+      {
+        "name": "MLB",
+        "logo": "logos/MLB.jpg",
+        "alt": "MLB"
+      },
+      {
+        "name": "MOVISTAR +",
+        "logo": "logos/MOVISTAR_PLUS.jpg",
+        "alt": "MOVISTAR +"
+      },
+      {
+        "name": "MOVISTAR DEPORTES",
+        "logo": "logos/MOVISTAR_DEPORTES.jpg",
+        "alt": "MOVISTAR DEPORTES"
+      },
+      {
+        "name": "MOVISTAR LIGA DE CAMPEONES",
+        "logo": "logos/MOVISTAR_LIGA_DE_CAMPEONES.jpg",
+        "alt": "MOVISTAR LIGA DE CAMPEONES"
+      },
+      {
+        "name": "MX | TVC",
+        "logo": "logos/MX___TVC.jpg",
+        "alt": "MX | TVC"
+      },
+      {
+        "name": "NBA SPORT",
+        "logo": "logos/NBA_SPORT.jpg",
+        "alt": "NBA SPORT"
+      },
+      {
+        "name": "RED BULL TV",
+        "logo": "logos/RED_BULL_TV.jpg",
+        "alt": "RED BULL TV"
+      },
+      {
+        "name": "SKY SPORT LA LIGA",
+        "logo": "logos/SKY_SPORT_LA_LIGA.jpg",
+        "alt": "SKY SPORT LA LIGA"
+      },
+      {
+        "name": "TD+ ᴴᴰ",
+        "logo": "logos/TDPLUS_HD.jpg",
+        "alt": "TD+ ᴴᴰ"
+      },
+      {
+        "name": "TIGO SPORT",
+        "logo": "logos/TIGO_SPORT.jpg",
+        "alt": "TIGO SPORT"
+      },
+      {
+        "name": "TNT SPORTS",
+        "logo": "logos/TNT_SPORTS.jpg",
+        "alt": "TNT SPORTS"
+      },
+      {
+        "name": "TNT SPORTS PREMIUM",
+        "logo": "logos/TNT_SPORTS_PREMIUM.jpg",
+        "alt": "TNT SPORTS PREMIUM"
+      },
+      {
+        "name": "TUDN",
+        "logo": "logos/TUDN.jpg",
+        "alt": "TUDN"
+      },
+      {
+        "name": "TYC SPORTS",
+        "logo": "logos/TYC_SPORTS.jpg",
+        "alt": "TYC SPORTS"
+      },
+      {
+        "name": "UFC",
+        "logo": "logos/UFC.jpg",
+        "alt": "UFC"
+      },
+      {
+        "name": "UFC FIGHT PASS",
+        "logo": "logos/UFC_FIGHT_PASS.jpg",
+        "alt": "UFC FIGHT PASS"
+      },
+      {
+        "name": "Win Sports HD",
+        "logo": "logos/Win_Sports_HD.jpg",
+        "alt": "Win Sports HD"
+      },
+      {
+        "name": "Win+ HD",
+        "logo": "logos/WinPLUS_HD.jpg",
+        "alt": "Win+ HD"
+      }
+    ]
+  },
+  {
+    "name": "Series y Entretenimiento",
+    "count": 36,
+    "channels": [
+      {
+        "name": "A&E",
+        "logo": "logos/AANDE.jpg",
+        "alt": "A&E"
+      },
+      {
+        "name": "ADULT SWIN",
+        "logo": "logos/ADULT_SWIN.jpg",
+        "alt": "ADULT SWIN"
+      },
+      {
+        "name": "AMC",
+        "logo": "logos/AMC.jpg",
+        "alt": "AMC"
+      },
+      {
+        "name": "AXN HD",
+        "logo": "logos/AXN_HD.jpg",
+        "alt": "AXN HD"
+      },
+      {
+        "name": "DHE",
+        "logo": "logos/DHE.jpg",
+        "alt": "DHE"
+      },
+      {
+        "name": "FMH FAMILY☆",
+        "logo": "logos/FMH_FAMILY.jpg",
+        "alt": "FMH FAMILY☆"
+      },
+      {
+        "name": "FX",
+        "logo": "logos/FX.jpg",
+        "alt": "FX"
+      },
+      {
+        "name": "GOLDEN",
+        "logo": "logos/GOLDEN.jpg",
+        "alt": "GOLDEN"
+      },
+      {
+        "name": "GOLDEN EDGE",
+        "logo": "logos/GOLDEN_EDGE.jpg",
+        "alt": "GOLDEN EDGE"
+      },
+      {
+        "name": "GOLDEN PLUS",
+        "logo": "logos/GOLDEN_PLUS.jpg",
+        "alt": "GOLDEN PLUS"
+      },
+      {
+        "name": "HBO",
+        "logo": "logos/HBO.jpg",
+        "alt": "HBO"
+      },
+      {
+        "name": "HBO +",
+        "logo": "logos/HBO_PLUS.jpg",
+        "alt": "HBO +"
+      },
+      {
+        "name": "HBO 2",
+        "logo": "logos/HBO_2.jpg",
+        "alt": "HBO 2"
+      },
+      {
+        "name": "HBO Family",
+        "logo": "logos/HBO_Family.jpg",
+        "alt": "HBO Family"
+      },
+      {
+        "name": "HBO Mundi",
+        "logo": "logos/HBO_Mundi.jpg",
+        "alt": "HBO Mundi"
+      },
+      {
+        "name": "HBO POP",
+        "logo": "logos/HBO_POP.jpg",
+        "alt": "HBO POP"
+      },
+      {
+        "name": "HBO Signature",
+        "logo": "logos/HBO_Signature.jpg",
+        "alt": "HBO Signature"
+      },
+      {
+        "name": "HBO Xtreme",
+        "logo": "logos/HBO_Xtreme.jpg",
+        "alt": "HBO Xtreme"
+      },
+      {
+        "name": "PANICO",
+        "logo": "logos/PANICO.jpg",
+        "alt": "PANICO"
+      },
+      {
+        "name": "PARAMOUNT",
+        "logo": "logos/PARAMOUNT.jpg",
+        "alt": "PARAMOUNT"
+      },
+      {
+        "name": "PREMIUM CHANNEL",
+        "logo": "logos/PREMIUM_CHANNEL.jpg",
+        "alt": "PREMIUM CHANNEL"
+      },
+      {
+        "name": "REWIND",
+        "logo": "logos/REWIND.jpg",
+        "alt": "REWIND"
+      },
+      {
+        "name": "SONY",
+        "logo": "logos/SONY.jpg",
+        "alt": "SONY"
+      },
+      {
+        "name": "SPACE",
+        "logo": "logos/SPACE.jpg",
+        "alt": "SPACE"
+      },
+      {
+        "name": "STAR CHANNEL",
+        "logo": "logos/STAR_CHANNEL.jpg",
+        "alt": "STAR CHANNEL"
+      },
+      {
+        "name": "STARZ EDGE LATINO",
+        "logo": "logos/STARZ_EDGE_LATINO.jpg",
+        "alt": "STARZ EDGE LATINO"
+      },
+      {
+        "name": "STARZ ENCORE EN ESPANOL",
+        "logo": "logos/STARZ_ENCORE_EN_ESPANOL.jpg",
+        "alt": "STARZ ENCORE EN ESPANOL"
+      },
+      {
+        "name": "SYFY HD",
+        "logo": "logos/SYFY_HD.jpg",
+        "alt": "SYFY HD"
+      },
+      {
+        "name": "TELECLASICA",
+        "logo": "logos/TELECLASICA.jpg",
+        "alt": "TELECLASICA"
+      },
+      {
+        "name": "TNT",
+        "logo": "logos/TNT.jpg",
+        "alt": "TNT"
+      },
+      {
+        "name": "TNT SERIES",
+        "logo": "logos/TNT_SERIES.jpg",
+        "alt": "TNT SERIES"
+      },
+      {
+        "name": "UNIVERSAL",
+        "logo": "logos/UNIVERSAL.jpg",
+        "alt": "UNIVERSAL"
+      },
+      {
+        "name": "UNIVERSAL CRIME",
+        "logo": "logos/UNIVERSAL_CRIME.jpg",
+        "alt": "UNIVERSAL CRIME"
+      },
+      {
+        "name": "UNIVERSAL REALITY",
+        "logo": "logos/UNIVERSAL_REALITY.jpg",
+        "alt": "UNIVERSAL REALITY"
+      },
+      {
+        "name": "USA",
+        "logo": "logos/USA.jpg",
+        "alt": "USA"
+      },
+      {
+        "name": "WARNER CHANNEL",
+        "logo": "logos/WARNER_CHANNEL.jpg",
+        "alt": "WARNER CHANNEL"
+      }
+    ]
+  },
+  {
+    "name": "Cine",
+    "count": 27,
+    "channels": [
+      {
+        "name": "AZTECA CINEMA",
+        "logo": "logos/AZTECA_CINEMA.jpg",
+        "alt": "AZTECA CINEMA"
+      },
+      {
+        "name": "Cine Adrenalina",
+        "logo": "logos/Cine_Adrenalina.jpg",
+        "alt": "Cine Adrenalina"
+      },
+      {
+        "name": "Cine Clásico",
+        "logo": "logos/Cine_Clásico.jpg",
+        "alt": "Cine Clásico"
+      },
+      {
+        "name": "CINE FAMILIAR",
+        "logo": "logos/CINE_FAMILIAR.jpg",
+        "alt": "CINE FAMILIAR"
+      },
+      {
+        "name": "CINE HISPANO",
+        "logo": "logos/CINE_HISPANO.jpg",
+        "alt": "CINE HISPANO"
+      },
+      {
+        "name": "CINE LATINO",
+        "logo": "logos/CINE_LATINO.jpg",
+        "alt": "CINE LATINO"
+      },
+      {
+        "name": "Cine Premiere",
+        "logo": "logos/Cine_Premiere.jpg",
+        "alt": "Cine Premiere"
+      },
+      {
+        "name": "CINE PREMIUM",
+        "logo": "logos/CINE_PREMIUM.jpg",
+        "alt": "CINE PREMIUM"
+      },
+      {
+        "name": "Cine Terror",
+        "logo": "logos/Cine_Terror.jpg",
+        "alt": "Cine Terror"
+      },
+      {
+        "name": "Cine XOXO",
+        "logo": "logos/Cine_XOXO.jpg",
+        "alt": "Cine XOXO"
+      },
+      {
+        "name": "CINECANAL",
+        "logo": "logos/CINECANAL.jpg",
+        "alt": "CINECANAL"
+      },
+      {
+        "name": "CINEMA DINAMITA",
+        "logo": "logos/CINEMA_DINAMITA.jpg",
+        "alt": "CINEMA DINAMITA"
+      },
+      {
+        "name": "CINEMA PLATINO",
+        "logo": "logos/CINEMA_PLATINO.jpg",
+        "alt": "CINEMA PLATINO"
+      },
+      {
+        "name": "CINEMAX",
+        "logo": "logos/CINEMAX.jpg",
+        "alt": "CINEMAX"
+      },
+      {
+        "name": "DE PELICULA",
+        "logo": "logos/DE_PELICULA.jpg",
+        "alt": "DE PELICULA"
+      },
+      {
+        "name": "DE PELICULA CLASICO",
+        "logo": "logos/DE_PELICULA_CLASICO.jpg",
+        "alt": "DE PELICULA CLASICO"
+      },
+      {
+        "name": "DE PELICULA PLUS",
+        "logo": "logos/DE_PELICULA_PLUS.jpg",
+        "alt": "DE PELICULA PLUS"
+      },
+      {
+        "name": "FMH MOVIE☆",
+        "logo": "logos/FMH_MOVIE.jpg",
+        "alt": "FMH MOVIE☆"
+      },
+      {
+        "name": "GOLDEN PREMIER",
+        "logo": "logos/GOLDEN_PREMIER.jpg",
+        "alt": "GOLDEN PREMIER"
+      },
+      {
+        "name": "GOLDEN PREMIER 2",
+        "logo": "logos/GOLDEN_PREMIER_2.jpg",
+        "alt": "GOLDEN PREMIER 2"
+      },
+      {
+        "name": "MULTICINEMA",
+        "logo": "logos/MULTICINEMA.jpg",
+        "alt": "MULTICINEMA"
+      },
+      {
+        "name": "MULTIPREMIER",
+        "logo": "logos/MULTIPREMIER.jpg",
+        "alt": "MULTIPREMIER"
+      },
+      {
+        "name": "SONY CINE",
+        "logo": "logos/SONY_CINE.jpg",
+        "alt": "SONY CINE"
+      },
+      {
+        "name": "SONY MOVIES",
+        "logo": "logos/SONY_MOVIES.jpg",
+        "alt": "SONY MOVIES"
+      },
+      {
+        "name": "STUDIO UNIVERSAL",
+        "logo": "logos/STUDIO_UNIVERSAL.jpg",
+        "alt": "STUDIO UNIVERSAL"
+      },
+      {
+        "name": "UNIVERSAL CINEMA",
+        "logo": "logos/UNIVERSAL_CINEMA.jpg",
+        "alt": "UNIVERSAL CINEMA"
+      },
+      {
+        "name": "UNIVERSAL PREMIER",
+        "logo": "logos/UNIVERSAL_PREMIER.jpg",
+        "alt": "UNIVERSAL PREMIER"
+      }
+    ]
+  },
+  {
+    "name": "Noticias",
+    "count": 19,
+    "channels": [
+      {
+        "name": "AR | CANAL 26",
+        "logo": "logos/AR___CANAL_26.jpg",
+        "alt": "AR | CANAL 26"
+      },
+      {
+        "name": "Bloomberg TV",
+        "logo": "logos/Bloomberg_TV.jpg",
+        "alt": "Bloomberg TV"
+      },
+      {
+        "name": "CHI | Pura Noticia",
+        "logo": "logos/CHI___Pura_Noticia.jpg",
+        "alt": "CHI | Pura Noticia"
+      },
+      {
+        "name": "CNN CHILE",
+        "logo": "logos/CNN_CHILE.jpg",
+        "alt": "CNN CHILE"
+      },
+      {
+        "name": "CNN En Español",
+        "logo": "logos/CNN_En_Español.jpg",
+        "alt": "CNN En Español"
+      },
+      {
+        "name": "CO | Cable Noticias",
+        "logo": "logos/CO___Cable_Noticias.jpg",
+        "alt": "CO | Cable Noticias"
+      },
+      {
+        "name": "CO | El Tiempo TV",
+        "logo": "logos/CO___El_Tiempo_TV.jpg",
+        "alt": "CO | El Tiempo TV"
+      },
+      {
+        "name": "CO | NTN24",
+        "logo": "logos/CO___NTN24.jpg",
+        "alt": "CO | NTN24"
+      },
+      {
+        "name": "El País TV",
+        "logo": "logos/El_País_TV.jpg",
+        "alt": "El País TV"
+      },
+      {
+        "name": "ES | 24 HORAS",
+        "logo": "logos/ES___24_HORAS.jpg",
+        "alt": "ES | 24 HORAS"
+      },
+      {
+        "name": "Euronews",
+        "logo": "logos/Euronews.jpg",
+        "alt": "Euronews"
+      },
+      {
+        "name": "Hispan TV Iran",
+        "logo": "logos/Hispan_TV_Iran.jpg",
+        "alt": "Hispan TV Iran"
+      },
+      {
+        "name": "MX | ADN 40",
+        "logo": "logos/MX___ADN_40.jpg",
+        "alt": "MX | ADN 40"
+      },
+      {
+        "name": "MX | Foro Tv",
+        "logo": "logos/MX___Foro_Tv.jpg",
+        "alt": "MX | Foro Tv"
+      },
+      {
+        "name": "MX | Milenio",
+        "logo": "logos/MX___Milenio.jpg",
+        "alt": "MX | Milenio"
+      },
+      {
+        "name": "NEWS | DW",
+        "logo": "logos/NEWS___DW.jpg",
+        "alt": "NEWS | DW"
+      },
+      {
+        "name": "RED+",
+        "logo": "logos/REDPLUS.jpg",
+        "alt": "RED+"
+      },
+      {
+        "name": "RT",
+        "logo": "logos/RT.jpg",
+        "alt": "RT"
+      },
+      {
+        "name": "TELESUR",
+        "logo": "logos/TELESUR.jpg",
+        "alt": "TELESUR"
+      }
+    ]
+  },
+  {
+    "name": "Infantil",
+    "count": 18,
+    "channels": [
+      {
+        "name": "Baby First",
+        "logo": "logos/Baby_First.jpg",
+        "alt": "Baby First"
+      },
+      {
+        "name": "Baby TV",
+        "logo": "logos/Baby_TV.jpg",
+        "alt": "Baby TV"
+      },
+      {
+        "name": "BITME",
+        "logo": "logos/BITME.jpg",
+        "alt": "BITME"
+      },
+      {
+        "name": "CANAL INFANTIL",
+        "logo": "logos/CANAL_INFANTIL.jpg",
+        "alt": "CANAL INFANTIL"
+      },
+      {
+        "name": "Cartoon Network",
+        "logo": "logos/Cartoon_Network.jpg",
+        "alt": "Cartoon Network"
+      },
+      {
+        "name": "Cartoonito",
+        "logo": "logos/Cartoonito.jpg",
+        "alt": "Cartoonito"
+      },
+      {
+        "name": "Dios Te Ve Kids",
+        "logo": "logos/Dios_Te_Ve_Kids.jpg",
+        "alt": "Dios Te Ve Kids"
+      },
+      {
+        "name": "Discovery Kids",
+        "logo": "logos/Discovery_Kids.jpg",
+        "alt": "Discovery Kids"
+      },
+      {
+        "name": "Disney Channel",
+        "logo": "logos/Disney_Channel.jpg",
+        "alt": "Disney Channel"
+      },
+      {
+        "name": "Disney Junior",
+        "logo": "logos/Disney_Junior.jpg",
+        "alt": "Disney Junior"
+      },
+      {
+        "name": "DREAMWORKS",
+        "logo": "logos/DREAMWORKS.jpg",
+        "alt": "DREAMWORKS"
+      },
+      {
+        "name": "FMH KIDS☆",
+        "logo": "logos/FMH_KIDS.jpg",
+        "alt": "FMH KIDS☆"
+      },
+      {
+        "name": "Nick JR",
+        "logo": "logos/Nick_JR.jpg",
+        "alt": "Nick JR"
+      },
+      {
+        "name": "Nickelodeon",
+        "logo": "logos/Nickelodeon.jpg",
+        "alt": "Nickelodeon"
+      },
+      {
+        "name": "NickMusic",
+        "logo": "logos/NickMusic.jpg",
+        "alt": "NickMusic"
+      },
+      {
+        "name": "PLIM PLIM",
+        "logo": "logos/PLIM_PLIM.jpg",
+        "alt": "PLIM PLIM"
+      },
+      {
+        "name": "TEENNICK",
+        "logo": "logos/TEENNICK.jpg",
+        "alt": "TEENNICK"
+      },
+      {
+        "name": "Tooncast",
+        "logo": "logos/Tooncast.jpg",
+        "alt": "Tooncast"
+      }
+    ]
+  },
+  {
+    "name": "Música",
+    "count": 27,
+    "channels": [
+      {
+        "name": "BANDAMAX",
+        "logo": "logos/BANDAMAX.jpg",
+        "alt": "BANDAMAX"
+      },
+      {
+        "name": "CANTINA DE MEMORIAS",
+        "logo": "logos/CANTINA_DE_MEMORIAS.jpg",
+        "alt": "CANTINA DE MEMORIAS"
+      },
+      {
+        "name": "CMC TV ᴴᴰ",
+        "logo": "logos/CMC_TV_HD.jpg",
+        "alt": "CMC TV ᴴᴰ"
+      },
+      {
+        "name": "CONECTA TV",
+        "logo": "logos/CONECTA_TV.jpg",
+        "alt": "CONECTA TV"
+      },
+      {
+        "name": "CORAZON DE MEMORIAS",
+        "logo": "logos/CORAZON_DE_MEMORIAS.jpg",
+        "alt": "CORAZON DE MEMORIAS"
+      },
+      {
+        "name": "LA KALLE",
+        "logo": "logos/LA_KALLE.jpg",
+        "alt": "LA KALLE"
+      },
+      {
+        "name": "LATINO MUSIC",
+        "logo": "logos/LATINO_MUSIC.jpg",
+        "alt": "LATINO MUSIC"
+      },
+      {
+        "name": "MI MUSICA POPULAR",
+        "logo": "logos/MI_MUSICA_POPULAR.jpg",
+        "alt": "MI MUSICA POPULAR"
+      },
+      {
+        "name": "MI MUSICA REGAETON",
+        "logo": "logos/MI_MUSICA_REGAETON.jpg",
+        "alt": "MI MUSICA REGAETON"
+      },
+      {
+        "name": "MI MUSICA REGGAETON",
+        "logo": "logos/MI_MUSICA_REGGAETON.jpg",
+        "alt": "MI MUSICA REGGAETON"
+      },
+      {
+        "name": "MI MUSICA ROMANTICA",
+        "logo": "logos/MI_MUSICA_ROMANTICA.jpg",
+        "alt": "MI MUSICA ROMANTICA"
+      },
+      {
+        "name": "MI MUSICA SALSA",
+        "logo": "logos/MI_MUSICA_SALSA.jpg",
+        "alt": "MI MUSICA SALSA"
+      },
+      {
+        "name": "MTV",
+        "logo": "logos/MTV.jpg",
+        "alt": "MTV"
+      },
+      {
+        "name": "MTV 00S",
+        "logo": "logos/MTV_00S.jpg",
+        "alt": "MTV 00S"
+      },
+      {
+        "name": "MTV 80S",
+        "logo": "logos/MTV_80S.jpg",
+        "alt": "MTV 80S"
+      },
+      {
+        "name": "MTV 90S",
+        "logo": "logos/MTV_90S.jpg",
+        "alt": "MTV 90S"
+      },
+      {
+        "name": "MTV CLASSIC",
+        "logo": "logos/MTV_CLASSIC.jpg",
+        "alt": "MTV CLASSIC"
+      },
+      {
+        "name": "MTV HITS",
+        "logo": "logos/MTV_HITS.jpg",
+        "alt": "MTV HITS"
+      },
+      {
+        "name": "MUZZIK ELECTRO",
+        "logo": "logos/MUZZIK_ELECTRO.jpg",
+        "alt": "MUZZIK ELECTRO"
+      },
+      {
+        "name": "RUMBA TV",
+        "logo": "logos/RUMBA_TV.jpg",
+        "alt": "RUMBA TV"
+      },
+      {
+        "name": "SIN LÍMITES",
+        "logo": "logos/SIN_LÍMITES.jpg",
+        "alt": "SIN LÍMITES"
+      },
+      {
+        "name": "TELEHIT",
+        "logo": "logos/TELEHIT.jpg",
+        "alt": "TELEHIT"
+      },
+      {
+        "name": "TELENOSTALGIA",
+        "logo": "logos/TELENOSTALGIA.jpg",
+        "alt": "TELENOSTALGIA"
+      },
+      {
+        "name": "TELERITMO",
+        "logo": "logos/TELERITMO.jpg",
+        "alt": "TELERITMO"
+      },
+      {
+        "name": "URBANO TV",
+        "logo": "logos/URBANO_TV.jpg",
+        "alt": "URBANO TV"
+      },
+      {
+        "name": "VH1",
+        "logo": "logos/VH1.jpg",
+        "alt": "VH1"
+      },
+      {
+        "name": "ZONA LATINA",
+        "logo": "logos/ZONA_LATINA.jpg",
+        "alt": "ZONA LATINA"
+      }
+    ]
+  },
+  {
+    "name": "Telenovelas",
+    "count": 29,
+    "channels": [
+      {
+        "name": "A3S",
+        "logo": "logos/A3S.jpg",
+        "alt": "A3S"
+      },
+      {
+        "name": "ANTENA 3 INTERNACIONAL",
+        "logo": "logos/ANTENA_3_INTERNACIONAL.jpg",
+        "alt": "ANTENA 3 INTERNACIONAL"
+      },
+      {
+        "name": "AZ CORAZON ᴴᴰ",
+        "logo": "logos/AZ_CORAZON_HD.jpg",
+        "alt": "AZ CORAZON ᴴᴰ"
+      },
+      {
+        "name": "Canal De Las Estrellas",
+        "logo": "logos/Canal_De_Las_Estrellas.jpg",
+        "alt": "Canal De Las Estrellas"
+      },
+      {
+        "name": "CLOVER",
+        "logo": "logos/CLOVER.jpg",
+        "alt": "CLOVER"
+      },
+      {
+        "name": "Comedy Central",
+        "logo": "logos/Comedy_Central.jpg",
+        "alt": "Comedy Central"
+      },
+      {
+        "name": "DISTRITO COMEDIA",
+        "logo": "logos/DISTRITO_COMEDIA.jpg",
+        "alt": "DISTRITO COMEDIA"
+      },
+      {
+        "name": "ES:CLAN TVE",
+        "logo": "logos/ES_CLAN_TVE.jpg",
+        "alt": "ES:CLAN TVE"
+      },
+      {
+        "name": "KANAL D DRAMA",
+        "logo": "logos/KANAL_D_DRAMA.jpg",
+        "alt": "KANAL D DRAMA"
+      },
+      {
+        "name": "LA 1",
+        "logo": "logos/LA_1.jpg",
+        "alt": "LA 1"
+      },
+      {
+        "name": "MAS CHIC",
+        "logo": "logos/MAS_CHIC.jpg",
+        "alt": "MAS CHIC"
+      },
+      {
+        "name": "MOVISTAR PLUS ORIGINALES ᴴᴰ",
+        "logo": "logos/MOVISTAR_PLUS_ORIGINALES_HD.jpg",
+        "alt": "MOVISTAR PLUS ORIGINALES ᴴᴰ"
+      },
+      {
+        "name": "NOVELISIMA",
+        "logo": "logos/NOVELISIMA.jpg",
+        "alt": "NOVELISIMA"
+      },
+      {
+        "name": "PASIONES",
+        "logo": "logos/PASIONES.jpg",
+        "alt": "PASIONES"
+      },
+      {
+        "name": "RCN Novelas",
+        "logo": "logos/RCN_Novelas.jpg",
+        "alt": "RCN Novelas"
+      },
+      {
+        "name": "SONY NOVELAS",
+        "logo": "logos/SONY_NOVELAS.jpg",
+        "alt": "SONY NOVELAS"
+      },
+      {
+        "name": "STAR TVE ᴴᴰ",
+        "logo": "logos/STAR_TVE_HD.jpg",
+        "alt": "STAR TVE ᴴᴰ"
+      },
+      {
+        "name": "TELEMUNDO 51 ᴴᴰ",
+        "logo": "logos/TELEMUNDO_51_HD.jpg",
+        "alt": "TELEMUNDO 51 ᴴᴰ"
+      },
+      {
+        "name": "TELEMUNDO INTERNACIONAL",
+        "logo": "logos/TELEMUNDO_INTERNACIONAL.jpg",
+        "alt": "TELEMUNDO INTERNACIONAL"
+      },
+      {
+        "name": "TELEMUNDO ᴴᴰ",
+        "logo": "logos/TELEMUNDO_HD.jpg",
+        "alt": "TELEMUNDO ᴴᴰ"
+      },
+      {
+        "name": "TELENOVELAS",
+        "logo": "logos/TELENOVELAS.jpg",
+        "alt": "TELENOVELAS"
+      },
+      {
+        "name": "TNT NOVELAS",
+        "logo": "logos/TNT_NOVELAS.jpg",
+        "alt": "TNT NOVELAS"
+      },
+      {
+        "name": "U FIESTA",
+        "logo": "logos/U_FIESTA.jpg",
+        "alt": "U FIESTA"
+      },
+      {
+        "name": "U MEX",
+        "logo": "logos/U_MEX.jpg",
+        "alt": "U MEX"
+      },
+      {
+        "name": "Unicable",
+        "logo": "logos/Unicable.jpg",
+        "alt": "Unicable"
+      },
+      {
+        "name": "UNIVERSAL COMEDY",
+        "logo": "logos/UNIVERSAL_COMEDY.jpg",
+        "alt": "UNIVERSAL COMEDY"
+      },
+      {
+        "name": "UNIVISION",
+        "logo": "logos/UNIVISION.jpg",
+        "alt": "UNIVISION"
+      },
+      {
+        "name": "UNIVISION TELENOVELAS",
+        "logo": "logos/UNIVISION_TELENOVELAS.jpg",
+        "alt": "UNIVISION TELENOVELAS"
+      },
+      {
+        "name": "Veplus HD",
+        "logo": "logos/Veplus_HD.jpg",
+        "alt": "Veplus HD"
+      }
+    ]
+  },
+  {
+    "name": "Adultos",
+    "count": 4,
+    "channels": [
+      {
+        "name": "Brazzers",
+        "logo": "logos/Brazzers.jpg",
+        "alt": "Brazzers"
+      },
+      {
+        "name": "Playboy",
+        "logo": "logos/Playboy.jpg",
+        "alt": "Playboy"
+      },
+      {
+        "name": "SEXTREME",
+        "logo": "logos/SEXTREME.jpg",
+        "alt": "SEXTREME"
+      },
+      {
+        "name": "Venus",
+        "logo": "logos/Venus.jpg",
+        "alt": "Venus"
+      }
+    ]
+  },
+  {
+    "name": "Otros",
+    "count": 0,
+    "channels": []
+  },
+  {
+    "name": "Mundo y Cultura",
+    "count": 30,
+    "channels": [
+      {
+        "name": "Animal Planet",
+        "logo": "logos/Animal_Planet.jpg",
+        "alt": "Animal Planet"
+      },
+      {
+        "name": "Canal Cocina",
+        "logo": "logos/Canal_Cocina.jpg",
+        "alt": "Canal Cocina"
+      },
+      {
+        "name": "CONCIENCIA TV",
+        "logo": "logos/CONCIENCIA_TV.jpg",
+        "alt": "CONCIENCIA TV"
+      },
+      {
+        "name": "Discovery Channel",
+        "logo": "logos/Discovery_Channel.jpg",
+        "alt": "Discovery Channel"
+      },
+      {
+        "name": "Discovery Familia Español",
+        "logo": "logos/Discovery_Familia_Español.jpg",
+        "alt": "Discovery Familia Español"
+      },
+      {
+        "name": "Discovery Home and Health",
+        "logo": "logos/Discovery_Home_and_Health.jpg",
+        "alt": "Discovery Home and Health"
+      },
+      {
+        "name": "Discovery Investigation",
+        "logo": "logos/Discovery_Investigation.jpg",
+        "alt": "Discovery Investigation"
+      },
+      {
+        "name": "Discovery Science",
+        "logo": "logos/Discovery_Science.jpg",
+        "alt": "Discovery Science"
+      },
+      {
+        "name": "Discovery Theater",
+        "logo": "logos/Discovery_Theater.jpg",
+        "alt": "Discovery Theater"
+      },
+      {
+        "name": "Discovery Turbo",
+        "logo": "logos/Discovery_Turbo.jpg",
+        "alt": "Discovery Turbo"
+      },
+      {
+        "name": "Discovery World",
+        "logo": "logos/Discovery_World.jpg",
+        "alt": "Discovery World"
+      },
+      {
+        "name": "E! Entertainment",
+        "logo": "logos/E_Entertainment.jpg",
+        "alt": "E! Entertainment"
+      },
+      {
+        "name": "El Gourmet",
+        "logo": "logos/El_Gourmet.jpg",
+        "alt": "El Gourmet"
+      },
+      {
+        "name": "EUROPA EUROPA",
+        "logo": "logos/EUROPA_EUROPA.jpg",
+        "alt": "EUROPA EUROPA"
+      },
+      {
+        "name": "FILM & ARTS",
+        "logo": "logos/FILM_AND_ARTS.jpg",
+        "alt": "FILM & ARTS"
+      },
+      {
+        "name": "Food Network",
+        "logo": "logos/Food_Network.jpg",
+        "alt": "Food Network"
+      },
+      {
+        "name": "HGTV HD",
+        "logo": "logos/HGTV_HD.jpg",
+        "alt": "HGTV HD"
+      },
+      {
+        "name": "HISTORY",
+        "logo": "logos/HISTORY.jpg",
+        "alt": "HISTORY"
+      },
+      {
+        "name": "HISTORY 2",
+        "logo": "logos/HISTORY_2.jpg",
+        "alt": "HISTORY 2"
+      },
+      {
+        "name": "HOLA TV",
+        "logo": "logos/HOLA_TV.jpg",
+        "alt": "HOLA TV"
+      },
+      {
+        "name": "Imagen TV",
+        "logo": "logos/Imagen_TV.jpg",
+        "alt": "Imagen TV"
+      },
+      {
+        "name": "LIFETIME ᴴᴰ",
+        "logo": "logos/LIFETIME_HD.jpg",
+        "alt": "LIFETIME ᴴᴰ"
+      },
+      {
+        "name": "LOVE NATURE",
+        "logo": "logos/LOVE_NATURE.jpg",
+        "alt": "LOVE NATURE"
+      },
+      {
+        "name": "LOVE THEPLANET",
+        "logo": "logos/LOVE_THEPLANET.jpg",
+        "alt": "LOVE THEPLANET"
+      },
+      {
+        "name": "NATGEO",
+        "logo": "logos/NATGEO.jpg",
+        "alt": "NATGEO"
+      },
+      {
+        "name": "NATGEO MUNDO ᴴᴰ",
+        "logo": "logos/NATGEO_MUNDO_HD.jpg",
+        "alt": "NATGEO MUNDO ᴴᴰ"
+      },
+      {
+        "name": "NATGEO WILD HD",
+        "logo": "logos/NATGEO_WILD_HD.jpg",
+        "alt": "NATGEO WILD HD"
+      },
+      {
+        "name": "TCM",
+        "logo": "logos/TCM.jpg",
+        "alt": "TCM"
+      },
+      {
+        "name": "TLC",
+        "logo": "logos/TLC.jpg",
+        "alt": "TLC"
+      },
+      {
+        "name": "U DOCUMENTALES",
+        "logo": "logos/U_DOCUMENTALES.jpg",
+        "alt": "U DOCUMENTALES"
+      }
+    ]
+  },
+  {
+    "name": "Religión",
+    "count": 36,
+    "channels": [
+      {
+        "name": "3ABN LATINO",
+        "logo": "logos/3ABN_LATINO.jpg",
+        "alt": "3ABN LATINO"
+      },
+      {
+        "name": "ALCANCE",
+        "logo": "logos/ALCANCE.jpg",
+        "alt": "ALCANCE"
+      },
+      {
+        "name": "ALELUYA TV",
+        "logo": "logos/ALELUYA_TV.jpg",
+        "alt": "ALELUYA TV"
+      },
+      {
+        "name": "ALIENTO VISION",
+        "logo": "logos/ALIENTO_VISION.jpg",
+        "alt": "ALIENTO VISION"
+      },
+      {
+        "name": "AVIVAMIENTO",
+        "logo": "logos/AVIVAMIENTO.jpg",
+        "alt": "AVIVAMIENTO"
+      },
+      {
+        "name": "BETHEL COLOMBIA",
+        "logo": "logos/BETHEL_COLOMBIA.jpg",
+        "alt": "BETHEL COLOMBIA"
+      },
+      {
+        "name": "BETHEL INTERNACIONAL",
+        "logo": "logos/BETHEL_INTERNACIONAL.jpg",
+        "alt": "BETHEL INTERNACIONAL"
+      },
+      {
+        "name": "CADENA DEL MILAGRO",
+        "logo": "logos/CADENA_DEL_MILAGRO.jpg",
+        "alt": "CADENA DEL MILAGRO"
+      },
+      {
+        "name": "CBN ESPAÑOL",
+        "logo": "logos/CBN_ESPAÑOL.jpg",
+        "alt": "CBN ESPAÑOL"
+      },
+      {
+        "name": "CCD",
+        "logo": "logos/CCD.jpg",
+        "alt": "CCD"
+      },
+      {
+        "name": "CCI CHANNEL",
+        "logo": "logos/CCI_CHANNEL.jpg",
+        "alt": "CCI CHANNEL"
+      },
+      {
+        "name": "CIELO TV",
+        "logo": "logos/CIELO_TV.jpg",
+        "alt": "CIELO TV"
+      },
+      {
+        "name": "CMB TELEVISIÓN",
+        "logo": "logos/CMB_TELEVISIÓN.jpg",
+        "alt": "CMB TELEVISIÓN"
+      },
+      {
+        "name": "CRISTOVISION",
+        "logo": "logos/CRISTOVISION.jpg",
+        "alt": "CRISTOVISION"
+      },
+      {
+        "name": "DIOS TE VE",
+        "logo": "logos/DIOS_TE_VE.jpg",
+        "alt": "DIOS TE VE"
+      },
+      {
+        "name": "ENLACE ᴴᴰ",
+        "logo": "logos/ENLACE_HD.jpg",
+        "alt": "ENLACE ᴴᴰ"
+      },
+      {
+        "name": "EWTN",
+        "logo": "logos/EWTN.jpg",
+        "alt": "EWTN"
+      },
+      {
+        "name": "IGLESIA DEL CAMINO",
+        "logo": "logos/IGLESIA_DEL_CAMINO.jpg",
+        "alt": "IGLESIA DEL CAMINO"
+      },
+      {
+        "name": "INFORTECR TELEVISIÓN",
+        "logo": "logos/INFORTECR_TELEVISIÓN.jpg",
+        "alt": "INFORTECR TELEVISIÓN"
+      },
+      {
+        "name": "LA HORA TV",
+        "logo": "logos/LA_HORA_TV.jpg",
+        "alt": "LA HORA TV"
+      },
+      {
+        "name": "LIFE CHRISTIAN TV",
+        "logo": "logos/LIFE_CHRISTIAN_TV.jpg",
+        "alt": "LIFE CHRISTIAN TV"
+      },
+      {
+        "name": "MARIA VISION",
+        "logo": "logos/MARIA_VISION.jpg",
+        "alt": "MARIA VISION"
+      },
+      {
+        "name": "MISION TV",
+        "logo": "logos/MISION_TV.jpg",
+        "alt": "MISION TV"
+      },
+      {
+        "name": "OASIS TV",
+        "logo": "logos/OASIS_TV.jpg",
+        "alt": "OASIS TV"
+      },
+      {
+        "name": "RED ADVENIR",
+        "logo": "logos/RED_ADVENIR.jpg",
+        "alt": "RED ADVENIR"
+      },
+      {
+        "name": "REFORMA TV",
+        "logo": "logos/REFORMA_TV.jpg",
+        "alt": "REFORMA TV"
+      },
+      {
+        "name": "REFORMADA TV",
+        "logo": "logos/REFORMADA_TV.jpg",
+        "alt": "REFORMADA TV"
+      },
+      {
+        "name": "SUBLIME GRACIA",
+        "logo": "logos/SUBLIME_GRACIA.jpg",
+        "alt": "SUBLIME GRACIA"
+      },
+      {
+        "name": "TBN",
+        "logo": "logos/TBN.jpg",
+        "alt": "TBN"
+      },
+      {
+        "name": "TELEAMIGA",
+        "logo": "logos/TELEAMIGA.jpg",
+        "alt": "TELEAMIGA"
+      },
+      {
+        "name": "TELEFAMILIA",
+        "logo": "logos/TELEFAMILIA.jpg",
+        "alt": "TELEFAMILIA"
+      },
+      {
+        "name": "TU UNIVERSO TV",
+        "logo": "logos/TU_UNIVERSO_TV.jpg",
+        "alt": "TU UNIVERSO TV"
+      },
+      {
+        "name": "TZADIKYAHU",
+        "logo": "logos/TZADIKYAHU.jpg",
+        "alt": "TZADIKYAHU"
+      },
+      {
+        "name": "V+ ALTAR TV",
+        "logo": "logos/VPLUS_ALTAR_TV.jpg",
+        "alt": "V+ ALTAR TV"
+      },
+      {
+        "name": "V+ VIDA TV",
+        "logo": "logos/VPLUS_VIDA_TV.jpg",
+        "alt": "V+ VIDA TV"
+      },
+      {
+        "name": "VIDA TELEVISIÓN",
+        "logo": "logos/VIDA_TELEVISIÓN.jpg",
+        "alt": "VIDA TELEVISIÓN"
+      }
+    ]
+  },
+  {
+    "name": "Netflix Premium",
+    "count": 10,
+    "channels": [
+      {
+        "name": "NETFLIX TV 01",
+        "logo": "logos/NETFLIX_TV_01.jpg",
+        "alt": "NETFLIX TV 01"
+      },
+      {
+        "name": "NETFLIX TV 02",
+        "logo": "logos/NETFLIX_TV_02.jpg",
+        "alt": "NETFLIX TV 02"
+      },
+      {
+        "name": "NETFLIX TV 03",
+        "logo": "logos/NETFLIX_TV_03.jpg",
+        "alt": "NETFLIX TV 03"
+      },
+      {
+        "name": "NETFLIX TV 04",
+        "logo": "logos/NETFLIX_TV_04.jpg",
+        "alt": "NETFLIX TV 04"
+      },
+      {
+        "name": "NETFLIX TV 05",
+        "logo": "logos/NETFLIX_TV_05.jpg",
+        "alt": "NETFLIX TV 05"
+      },
+      {
+        "name": "NETFLIX TV 06",
+        "logo": "logos/NETFLIX_TV_06.jpg",
+        "alt": "NETFLIX TV 06"
+      },
+      {
+        "name": "NETFLIX TV 07",
+        "logo": "logos/NETFLIX_TV_07.jpg",
+        "alt": "NETFLIX TV 07"
+      },
+      {
+        "name": "NETFLIX TV 08",
+        "logo": "logos/NETFLIX_TV_08.jpg",
+        "alt": "NETFLIX TV 08"
+      },
+      {
+        "name": "NETFLIX TV 09",
+        "logo": "logos/NETFLIX_TV_09.jpg",
+        "alt": "NETFLIX TV 09"
+      },
+      {
+        "name": "NETFLIX TV 10",
+        "logo": "logos/NETFLIX_TV_10.jpg",
+        "alt": "NETFLIX TV 10"
+      }
+    ]
+  }
+]

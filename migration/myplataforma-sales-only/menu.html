@@ -1,0 +1,143 @@
+<style>
+  .portal-brand {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    height: 60px;
+    padding: 7px 14px;
+  }
+  .portal-brand img { height: 44px; width: 44px; object-fit: contain; }
+  .portal-brand strong { color: #fff; font-size: 14px; letter-spacing: .08em; line-height: 1.05; }
+  .portal-brand small { color: #7b8798; display: block; font-size: 8px; letter-spacing: .12em; margin-top: 4px; }
+  .pcoded-navbar .pcoded-navigation-label { color: #667085; font-size: 10px; letter-spacing: .12em; }
+  .portal-role-badge { background: rgba(0, 205, 114, .12); border: 1px solid rgba(0, 205, 114, .28); border-radius: 999px; color: #38d98c; display: inline-block; font-size: 10px; padding: 3px 8px; }
+  @media (max-width: 575px) {
+    .portal-brand strong { font-size: 12px; }
+  }
+</style>
+
+<nav class="navbar header-navbar pcoded-header">
+  <div class="navbar-wrapper">
+    <div class="navbar-logo">
+      <a href="{% url 'index' %}" class="portal-brand">
+        <img src="/static/images/brand/myplataforma-mark.png" alt="MyPlataforma Digital">
+        <span>
+          <strong>MYPLATAFORMA</strong>
+          <small>VENTAS MAYORISTAS</small>
+        </span>
+      </a>
+    </div>
+
+    <div class="navbar-container container-fluid">
+      <ul class="nav-left">
+        <li>
+          <a class="mobile-menu waves-effect waves-light" id="mobile-collapse" href="#!">
+            <i class="ti-menu"></i>
+          </a>
+        </li>
+      </ul>
+      <ul class="nav-right">
+        <li class="user-profile header-notification text-white">
+          <span class="portal-role-badge">
+            {% if user_type == 'superuser' %}SUPERADMIN{% else %}MAYORISTA{% endif %}
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="pcoded-main-container">
+  <div class="pcoded-wrapper">
+    <nav class="pcoded-navbar">
+      <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
+      <div class="pcoded-inner-navbar main-menu">
+        {% include 'user_zone.html' %}
+
+        <div class="pcoded-navigation-label">Portal</div>
+        <ul class="pcoded-item pcoded-left-item">
+          <li>
+            <a href="{% url 'index' %}" class="waves-effect waves-dark">
+              <span class="pcoded-micon"><i class="ti-home"></i></span>
+              <span class="pcoded-mtext">Inicio</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'portal-section' 'catalog' %}" class="waves-effect waves-dark">
+              <span class="pcoded-micon"><i class="ti-shopping-cart-full"></i></span>
+              <span class="pcoded-mtext">Catálogo</span>
+            </a>
+          </li>
+        </ul>
+
+        {% if user_type == 'superuser' %}
+          <div class="pcoded-navigation-label">Administración</div>
+          <ul class="pcoded-item pcoded-left-item">
+            <li>
+              <a href="{% url 'wholesale-partners' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-user"></i></span>
+                <span class="pcoded-mtext">Mayoristas</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'orders' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-receipt"></i></span>
+                <span class="pcoded-mtext">Ventas y órdenes</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'balances' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-wallet"></i></span>
+                <span class="pcoded-mtext">Saldos</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'integration' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-link"></i></span>
+                <span class="pcoded-mtext">Integración Control</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'audit' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-shield"></i></span>
+                <span class="pcoded-mtext">Auditoría</span>
+              </a>
+            </li>
+          </ul>
+        {% else %}
+          <div class="pcoded-navigation-label">Mi cuenta</div>
+          <ul class="pcoded-item pcoded-left-item">
+            <li>
+              <a href="{% url 'portal-section' 'services' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-package"></i></span>
+                <span class="pcoded-mtext">Mis servicios</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'renewals' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-reload"></i></span>
+                <span class="pcoded-mtext">Renovaciones</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'purchases' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-shopping-cart"></i></span>
+                <span class="pcoded-mtext">Compras</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'balance' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-wallet"></i></span>
+                <span class="pcoded-mtext">Saldo y movimientos</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal-section' 'support' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-comment"></i></span>
+                <span class="pcoded-mtext">Soporte</span>
+              </a>
+            </li>
+          </ul>
+        {% endif %}
+      </div>
+    </nav>

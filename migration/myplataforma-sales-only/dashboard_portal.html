@@ -1,0 +1,102 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+  .portal-shell { color: #f8fafc; }
+  .portal-hero {
+    background: linear-gradient(120deg, rgba(10, 25, 28, .98), rgba(27, 24, 34, .98));
+    border: 1px solid #273444;
+    border-radius: 18px;
+    overflow: hidden;
+    padding: 30px;
+    position: relative;
+  }
+  .portal-hero:after {
+    background: linear-gradient(90deg, #00c96f 0 58%, #fff 58% 72%, #e31b35 72%);
+    bottom: 0;
+    content: '';
+    height: 3px;
+    left: 0;
+    position: absolute;
+    right: 0;
+  }
+  .portal-eyebrow { color: #21d783; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .portal-hero h2 { color: #fff; font-size: clamp(26px, 4vw, 42px); font-weight: 750; margin: 8px 0 10px; }
+  .portal-hero p { color: #98a2b3; font-size: 15px; margin: 0; max-width: 760px; }
+  .portal-status { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .status-pill { border-radius: 999px; display: inline-flex; font-size: 12px; gap: 7px; padding: 8px 12px; }
+  .status-pill.ready { background: rgba(0, 205, 114, .12); color: #3fe397; }
+  .status-pill.pending { background: rgba(245, 158, 11, .12); color: #f7bd51; }
+  .portal-grid { display: grid; gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 20px 0; }
+  .metric-card { background: #171d27; border: 1px solid #293240; border-radius: 16px; min-height: 148px; padding: 22px; }
+  .metric-icon { align-items: center; background: #222b38; border-radius: 12px; color: #4ad99a; display: flex; height: 40px; justify-content: center; width: 40px; }
+  .metric-label { color: #98a2b3; display: block; font-size: 13px; margin-top: 16px; }
+  .metric-value { color: #fff; display: block; font-size: 30px; font-weight: 750; margin-top: 2px; }
+  .portal-panel { background: #171d27; border: 1px solid #293240; border-radius: 16px; padding: 24px; }
+  .portal-panel h4 { color: #fff; font-size: 20px; margin-bottom: 8px; }
+  .portal-panel p { color: #98a2b3; margin-bottom: 20px; }
+  .flow-list { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .flow-step { background: #111720; border: 1px solid #25303e; border-radius: 13px; padding: 16px; }
+  .flow-step span { align-items: center; background: rgba(0, 205, 114, .12); border-radius: 50%; color: #3fe397; display: inline-flex; font-size: 12px; font-weight: 700; height: 28px; justify-content: center; margin-bottom: 10px; width: 28px; }
+  .flow-step strong { color: #fff; display: block; font-size: 14px; }
+  .flow-step small { color: #7f8a9b; display: block; margin-top: 4px; }
+  .portal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .portal-actions .btn { border-radius: 10px; font-weight: 600; padding: 10px 16px; }
+  @media (max-width: 1100px) { .portal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) {
+    .portal-hero { padding: 22px 18px; }
+    .portal-grid, .flow-list { grid-template-columns: 1fr; }
+    .metric-card { min-height: 126px; }
+  }
+</style>
+
+<div class="portal-shell">
+  <section class="portal-hero">
+    <span class="portal-eyebrow">MyPlataforma Digital · {{ portal_role }}</span>
+    <h2>Bienvenido, {{ user.username }}</h2>
+    {% if user_type == 'superuser' %}
+      <p>El portal comenzó desde cero. El inventario, las cuentas y las ventas nuevas se administrarán desde Control como única fuente de información.</p>
+    {% else %}
+      <p>Tu cuenta mayorista está lista. El catálogo aparecerá cuando el administrador publique inventario desde Control.</p>
+    {% endif %}
+    <div class="portal-status">
+      <span class="status-pill ready"><i class="ti-check"></i> Base limpia y cuentas protegidas</span>
+      <span class="status-pill pending"><i class="ti-link"></i> Integración con Control en preparación</span>
+    </div>
+  </section>
+
+  <section class="portal-grid">
+    {% if user_type == 'superuser' %}
+      <article class="metric-card"><div class="metric-icon"><i class="ti-user"></i></div><span class="metric-label">Mayoristas activos</span><strong class="metric-value">{{ wholesalers_active }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-layout-grid2-alt"></i></div><span class="metric-label">Productos publicados</span><strong class="metric-value">{{ published_catalog }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-package"></i></div><span class="metric-label">Servicios en el portal</span><strong class="metric-value">{{ services_total }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-shopping-cart"></i></div><span class="metric-label">Ventas de hoy</span><strong class="metric-value">{{ sales_today }}</strong></article>
+    {% else %}
+      <article class="metric-card"><div class="metric-icon"><i class="ti-wallet"></i></div><span class="metric-label">Saldo disponible</span><strong class="metric-value">${{ my_balance|default:0|intcomma }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-layout-grid2-alt"></i></div><span class="metric-label">Productos disponibles</span><strong class="metric-value">{{ published_catalog }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-package"></i></div><span class="metric-label">Mis servicios</span><strong class="metric-value">{{ my_services_total }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-reload"></i></div><span class="metric-label">Renovaciones solicitadas</span><strong class="metric-value">{{ my_renewals }}</strong></article>
+    {% endif %}
+  </section>
+
+  <section class="portal-panel">
+    <h4>Nuevo flujo de operación</h4>
+    <p>La información ya no se duplicará entre plataformas.</p>
+    <div class="flow-list">
+      <div class="flow-step"><span>1</span><strong>Control publica</strong><small>Plataforma, plan, precio y disponibilidad.</small></div>
+      <div class="flow-step"><span>2</span><strong>El mayorista compra</strong><small>MyPlataforma reserva y confirma la operación.</small></div>
+      <div class="flow-step"><span>3</span><strong>Control asigna</strong><small>Entrega el servicio y registra toda la trazabilidad.</small></div>
+    </div>
+    <div class="portal-actions">
+      <a class="btn btn-success" href="{% url 'portal-section' 'catalog' %}"><i class="ti-shopping-cart-full"></i> Ver catálogo</a>
+      {% if user_type == 'superuser' %}
+        <a class="btn btn-outline-light" href="{% url 'wholesale-partners' %}"><i class="ti-user"></i> Ver mayoristas</a>
+        <a class="btn btn-outline-light" href="{% url 'portal-section' 'integration' %}"><i class="ti-link"></i> Integración Control</a>
+      {% else %}
+        <a class="btn btn-outline-light" href="{% url 'portal-section' 'services' %}"><i class="ti-package"></i> Mis servicios</a>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

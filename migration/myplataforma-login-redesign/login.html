@@ -1,0 +1,629 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Iniciar sesión | My Plataforma Digital</title>
+  <meta name="theme-color" content="#090d17">
+  <meta name="description" content="Acceso seguro a My Plataforma Digital.">
+  <link rel="icon" type="image/png" href="{% static 'images/brand/myplataforma-mark.png' %}">
+</head>
+
+<body class="mpd-login-page">
+  <main class="mpd-auth-shell" aria-labelledby="login-title">
+    <section class="mpd-showcase" aria-label="Presentación de My Plataforma Digital">
+      <div class="mpd-showcase__glow mpd-showcase__glow--one"></div>
+      <div class="mpd-showcase__glow mpd-showcase__glow--two"></div>
+
+      <div class="mpd-brand mpd-brand--light">
+        <img src="{% static 'images/brand/myplataforma-mark.png' %}" alt="" class="mpd-brand__mark">
+        <span class="mpd-brand__copy">
+          <strong>MY PLATAFORMA</strong>
+          <b>DIGITAL</b>
+        </span>
+      </div>
+
+      <div class="mpd-showcase__content">
+        <span class="mpd-eyebrow">TU NEGOCIO, EN UN SOLO LUGAR</span>
+        <h1>Conecta, administra<br>y haz crecer tus ventas.</h1>
+        <p>Una plataforma diseñada para distribuidores que necesitan velocidad, control y una operación más sencilla.</p>
+
+        <div class="mpd-benefits" aria-label="Beneficios de la plataforma">
+          <article class="mpd-benefit">
+            <span class="mpd-benefit__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 19V9m8 10V5m8 14V11M2 19h20"/></svg>
+            </span>
+            <span><strong>Control total</strong><small>Ventas y servicios en tiempo real</small></span>
+          </article>
+          <article class="mpd-benefit">
+            <span class="mpd-benefit__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+            </span>
+            <span><strong>Acceso seguro</strong><small>Tu información siempre protegida</small></span>
+          </article>
+          <article class="mpd-benefit">
+            <span class="mpd-benefit__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h6"/></svg>
+            </span>
+            <span><strong>Todo organizado</strong><small>Clientes, cuentas y renovaciones</small></span>
+          </article>
+        </div>
+      </div>
+
+      <p class="mpd-showcase__footer">Tecnología para impulsar tu operación digital.</p>
+    </section>
+
+    <section class="mpd-login-panel">
+      <div class="mpd-login-card">
+        <div class="mpd-brand mpd-brand--mobile">
+          <img src="{% static 'images/brand/myplataforma-mark.png' %}" alt="" class="mpd-brand__mark">
+          <span class="mpd-brand__copy">
+            <strong>MY PLATAFORMA</strong>
+            <b>DIGITAL</b>
+          </span>
+        </div>
+
+        <div class="mpd-login-card__heading">
+          <span class="mpd-eyebrow">PORTAL DE DISTRIBUIDORES</span>
+          <h2 id="login-title">Bienvenido de nuevo</h2>
+          <p>Ingresa tus datos para continuar a tu panel.</p>
+        </div>
+
+        {% if form.errors %}
+          <div class="mpd-alert" role="alert">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 4.4L2.8 17.3A1.8 1.8 0 004.4 20h15.2a1.8 1.8 0 001.6-2.7L13.7 4.4a2 2 0 00-3.4 0z"/></svg>
+            <span>El usuario o la contraseña no son correctos. Inténtalo nuevamente.</span>
+          </div>
+        {% endif %}
+
+        <form id="login-form" method="POST">
+          {% csrf_token %}
+
+          <div class="mpd-field">
+            <label for="username">Usuario</label>
+            <div class="mpd-input-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>
+              <input id="username" name="username" type="text" autocomplete="username" inputmode="email" placeholder="Escribe tu usuario" required autofocus>
+            </div>
+          </div>
+
+          <div class="mpd-field">
+            <label for="password">Contraseña</label>
+            <div class="mpd-input-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+              <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Escribe tu contraseña" required>
+              <button type="button" class="mpd-password-toggle" id="password-toggle" aria-label="Mostrar contraseña" aria-pressed="false">
+                <svg class="mpd-eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                <svg class="mpd-eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 6.2A10.4 10.4 0 0112 6c6 0 9.5 6 9.5 6a16 16 0 01-2.3 3M6.2 6.2C3.8 8 2.5 12 2.5 12s3.5 6 9.5 6a9 9 0 003.1-.5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="mpd-form-options">
+            <label class="mpd-check">
+              <input name="remember" class="check" type="checkbox">
+              <span aria-hidden="true"></span>
+              Recordarme
+            </label>
+            <a href="{% url 'password_reset_own' %}">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <button id="login" type="submit" class="mpd-submit">
+            <span>Ingresar a mi cuenta</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5l5 5-5 5"/></svg>
+          </button>
+        </form>
+
+        <div class="mpd-register">
+          <span>Portal privado de distribución</span>
+          <strong>Acceso exclusivo para mayoristas autorizados</strong>
+        </div>
+
+        <p class="mpd-secure-note">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0110 0v3"/><rect x="5" y="10" width="14" height="11" rx="2"/></svg>
+          Acceso protegido y conexión segura
+        </p>
+
+        <div class="mpd-owner-brand" aria-label="Una plataforma de El Gamer MX">
+          <span>UNA PLATAFORMA DE</span>
+          <img src="{% static 'images/brand/el-gamer-horizontal.png' %}" alt="El Gamer MX — La revolución del entretenimiento">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <style>
+    :root {
+      --mpd-bg: #080c15;
+      --mpd-panel: #101622;
+      --mpd-panel-soft: #151d2b;
+      --mpd-line: #273246;
+      --mpd-text: #f7f8fc;
+      --mpd-muted: #97a3b6;
+      --mpd-orange: #ff7849;
+      --mpd-magenta: #ee2f84;
+      --mpd-purple: #7c3aed;
+      --mpd-cyan: #11c8e6;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body.mpd-login-page {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--mpd-text);
+      background: var(--mpd-bg);
+      font-family: Inter, Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mpd-auth-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(440px, .92fr);
+      overflow: hidden;
+    }
+
+    .mpd-showcase {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+      padding: clamp(34px, 5vw, 74px);
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(255,120,73,.11), transparent 30%),
+        radial-gradient(circle at 82% 20%, rgba(124,58,237,.22), transparent 34%),
+        linear-gradient(155deg, #0b101b 0%, #0c1220 54%, #111827 100%);
+      border-right: 1px solid rgba(255,255,255,.07);
+    }
+
+    .mpd-showcase::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      opacity: .32;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 88%);
+    }
+
+    .mpd-showcase::after {
+      content: "";
+      position: absolute;
+      width: min(36vw, 560px);
+      aspect-ratio: 1;
+      right: -12%;
+      bottom: -22%;
+      z-index: -1;
+      border: 70px solid rgba(17,200,230,.10);
+      border-radius: 50%;
+      transform: rotate(-18deg);
+    }
+
+    .mpd-showcase__glow {
+      position: absolute;
+      z-index: -1;
+      border-radius: 999px;
+      filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .mpd-showcase__glow--one {
+      width: 310px; height: 310px;
+      top: 28%; left: -190px;
+      background: rgba(238,47,132,.14);
+    }
+
+    .mpd-showcase__glow--two {
+      width: 260px; height: 260px;
+      top: 58%; right: 4%;
+      background: rgba(255,120,73,.08);
+    }
+
+    .mpd-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 13px;
+      width: max-content;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mpd-brand__mark {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      filter: drop-shadow(0 14px 25px rgba(238,47,132,.2));
+    }
+
+    .mpd-brand__copy { display: grid; line-height: .9; }
+    .mpd-brand__copy strong { font-size: 12px; letter-spacing: .13em; color: #c6cedb; }
+    .mpd-brand__copy b { margin-top: 6px; font-size: 25px; letter-spacing: .025em; color: #fff; }
+    .mpd-brand--mobile { display: none; }
+
+    .mpd-showcase__content {
+      width: min(700px, 100%);
+      margin: clamp(44px, 7vh, 90px) 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mpd-eyebrow {
+      display: inline-block;
+      color: #ff9c72;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+    }
+
+    .mpd-showcase h1 {
+      margin: 18px 0 20px;
+      max-width: 760px;
+      color: #fff;
+      font-size: clamp(44px, 5vw, 76px);
+      line-height: 1.02;
+      letter-spacing: -.052em;
+      font-weight: 800;
+    }
+
+    .mpd-showcase__content > p {
+      width: min(620px, 92%);
+      margin: 0;
+      color: #aab4c5;
+      font-size: clamp(16px, 1.35vw, 20px);
+      line-height: 1.65;
+    }
+
+    .mpd-benefits {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: clamp(38px, 6vh, 72px);
+    }
+
+    .mpd-benefit {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 15px;
+      background: rgba(255,255,255,.045);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+    }
+
+    .mpd-benefit__icon {
+      display: grid;
+      place-items: center;
+      flex: 0 0 40px;
+      width: 40px; height: 40px;
+      color: #ff8f65;
+      background: rgba(255,120,73,.10);
+      border: 1px solid rgba(255,120,73,.20);
+      border-radius: 12px;
+    }
+
+    .mpd-benefit__icon svg,
+    .mpd-alert svg,
+    .mpd-secure-note svg,
+    .mpd-input-wrap > svg,
+    .mpd-password-toggle svg,
+    .mpd-submit svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .mpd-benefit__icon svg { width: 21px; height: 21px; }
+    .mpd-benefit span:last-child { display: grid; min-width: 0; }
+    .mpd-benefit strong { color: #f7f8fc; font-size: 13px; white-space: nowrap; }
+    .mpd-benefit small { margin-top: 3px; color: #8995a8; font-size: 10px; line-height: 1.3; }
+
+    .mpd-showcase__footer {
+      margin: 32px 0 0;
+      color: #657188;
+      font-size: 12px;
+      letter-spacing: .05em;
+    }
+
+    .mpd-login-panel {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: clamp(28px, 5vw, 76px);
+      background:
+        radial-gradient(circle at 100% 0, rgba(17,200,230,.06), transparent 30%),
+        #090e18;
+    }
+
+    .mpd-login-card { width: min(480px, 100%); }
+
+    .mpd-login-card__heading { margin-bottom: 32px; }
+    .mpd-login-card__heading .mpd-eyebrow { color: #43d4eb; }
+    .mpd-login-card__heading h2 {
+      margin: 13px 0 9px;
+      color: #f8f9fd;
+      font-size: clamp(32px, 3.2vw, 46px);
+      line-height: 1.08;
+      letter-spacing: -.035em;
+      font-weight: 800;
+    }
+    .mpd-login-card__heading p { margin: 0; color: var(--mpd-muted); font-size: 15px; }
+
+    .mpd-alert {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: -12px 0 22px;
+      padding: 13px 14px;
+      color: #ffbdc8;
+      background: rgba(238,47,91,.10);
+      border: 1px solid rgba(255,82,119,.25);
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .mpd-alert svg { flex: 0 0 19px; width: 19px; height: 19px; }
+
+    .mpd-field { margin-bottom: 20px; }
+    .mpd-field > label { display: block; margin-bottom: 9px; color: #d7ddea; font-size: 13px; font-weight: 700; }
+
+    .mpd-input-wrap { position: relative; }
+    .mpd-input-wrap > svg {
+      position: absolute;
+      top: 50%; left: 17px;
+      width: 20px; height: 20px;
+      color: #6f7b90;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .mpd-input-wrap input {
+      width: 100%;
+      height: 58px;
+      padding: 0 52px 0 50px;
+      color: #f5f7fb;
+      caret-color: #43d4eb;
+      background: #0d131e;
+      border: 1px solid #2a3548;
+      border-radius: 14px;
+      outline: none;
+      font-size: 15px;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .mpd-input-wrap input::placeholder { color: #657188; }
+    .mpd-input-wrap input:focus {
+      background: #101722;
+      border-color: #3bc8df;
+      box-shadow: 0 0 0 4px rgba(17,200,230,.10);
+    }
+
+    .mpd-password-toggle {
+      position: absolute;
+      top: 50%; right: 12px;
+      display: grid;
+      place-items: center;
+      width: 38px; height: 38px;
+      padding: 0;
+      color: #7f8aa0;
+      background: transparent;
+      border: 0;
+      border-radius: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+    .mpd-password-toggle:hover, .mpd-password-toggle:focus { color: #d6dce8; background: #172031; outline: none; }
+    .mpd-password-toggle svg { width: 20px; height: 20px; }
+    .mpd-eye-closed { display: none; }
+    .mpd-password-toggle[aria-pressed="true"] .mpd-eye-open { display: none; }
+    .mpd-password-toggle[aria-pressed="true"] .mpd-eye-closed { display: block; }
+
+    .mpd-form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 6px 0 27px;
+      font-size: 13px;
+    }
+
+    .mpd-check { display: inline-flex; align-items: center; gap: 9px; margin: 0; color: #aeb7c7; cursor: pointer; }
+    .mpd-check input { position: absolute; opacity: 0; pointer-events: none; }
+    .mpd-check span {
+      display: grid;
+      place-items: center;
+      width: 18px; height: 18px;
+      background: #0d131e;
+      border: 1px solid #344156;
+      border-radius: 5px;
+      transition: all .18s ease;
+    }
+    .mpd-check span::after { content: ""; width: 8px; height: 5px; border: solid #fff; border-width: 0 0 2px 2px; transform: rotate(-45deg) translate(1px,-1px) scale(0); transition: transform .16s ease; }
+    .mpd-check input:checked + span { background: linear-gradient(135deg, var(--mpd-cyan), #2685f5); border-color: transparent; }
+    .mpd-check input:checked + span::after { transform: rotate(-45deg) translate(1px,-1px) scale(1); }
+    .mpd-check input:focus-visible + span { box-shadow: 0 0 0 4px rgba(17,200,230,.13); }
+
+    .mpd-form-options a { color: #6ddbed; text-decoration: none; font-weight: 700; }
+    .mpd-form-options a:hover { color: #a2edf7; text-decoration: none; }
+
+    .mpd-submit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      height: 58px;
+      padding: 0 24px;
+      color: #fff;
+      background: linear-gradient(110deg, #ff7047 0%, #ef307e 48%, #7744e8 100%);
+      border: 0;
+      border-radius: 14px;
+      box-shadow: 0 14px 34px rgba(238,47,132,.18);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .mpd-submit:hover { transform: translateY(-2px); box-shadow: 0 18px 38px rgba(238,47,132,.24); filter: saturate(1.08); }
+    .mpd-submit:focus-visible { outline: 3px solid rgba(67,212,235,.45); outline-offset: 3px; }
+    .mpd-submit svg { width: 22px; height: 22px; transition: transform .18s ease; }
+    .mpd-submit:hover svg { transform: translateX(3px); }
+
+    .mpd-register {
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      margin-top: 28px;
+      padding-top: 26px;
+      color: #8792a6;
+      border-top: 1px solid #202a3a;
+      font-size: 13px;
+      text-align: center;
+    }
+    .mpd-register strong { color: #6ddbed; font-size: 13px; font-weight: 700; }
+
+    .mpd-secure-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin: 28px 0 0;
+      color: #5f6d83;
+      font-size: 11px;
+    }
+    .mpd-secure-note svg { width: 15px; height: 15px; }
+
+    .mpd-owner-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: max-content;
+      max-width: 100%;
+      margin: 18px auto 0;
+      padding: 8px 13px 8px 15px;
+      background: rgba(0,0,0,.34);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px;
+    }
+    .mpd-owner-brand span {
+      color: #5e6a7e;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: .13em;
+      white-space: nowrap;
+    }
+    .mpd-owner-brand img {
+      display: block;
+      width: 148px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    @media (max-width: 1180px) {
+      .mpd-auth-shell { grid-template-columns: minmax(0, 1fr) minmax(420px, .9fr); }
+      .mpd-benefits { grid-template-columns: 1fr; width: min(400px, 100%); }
+      .mpd-benefit small { font-size: 11px; }
+    }
+
+    @media (max-width: 900px) {
+      .mpd-auth-shell { display: block; min-height: 100vh; }
+      .mpd-showcase { display: none; }
+      .mpd-login-panel {
+        min-height: 100vh;
+        padding: 34px 22px;
+        background:
+          radial-gradient(circle at 12% 0, rgba(238,47,132,.12), transparent 30%),
+          radial-gradient(circle at 100% 28%, rgba(17,200,230,.09), transparent 30%),
+          #090e18;
+      }
+      .mpd-brand--mobile { display: inline-flex; margin-bottom: clamp(42px, 8vh, 76px); }
+      .mpd-brand__mark { width: 52px; height: 52px; }
+      .mpd-brand__copy b { font-size: 22px; }
+      .mpd-login-card { width: min(500px, 100%); }
+    }
+
+    @media (max-width: 520px) {
+      .mpd-login-panel { place-items: start center; padding: 24px 18px 32px; }
+      .mpd-brand--mobile { margin-bottom: 42px; }
+      .mpd-login-card__heading { margin-bottom: 28px; }
+      .mpd-login-card__heading h2 { font-size: 34px; }
+      .mpd-form-options { align-items: flex-start; }
+      .mpd-form-options a { max-width: 160px; text-align: right; line-height: 1.35; }
+      .mpd-register { margin-top: 24px; }
+      .mpd-owner-brand { gap: 9px; padding: 7px 10px 7px 12px; }
+      .mpd-owner-brand img { width: 132px; }
+    }
+
+    @media (max-height: 720px) and (min-width: 901px) {
+      .mpd-showcase, .mpd-login-panel { padding-top: 28px; padding-bottom: 28px; }
+      .mpd-showcase__content { margin-top: 30px; }
+      .mpd-benefits { margin-top: 28px; }
+      .mpd-login-card__heading { margin-bottom: 22px; }
+      .mpd-field { margin-bottom: 14px; }
+      .mpd-register { margin-top: 20px; padding-top: 18px; }
+      .mpd-secure-note { margin-top: 16px; }
+      .mpd-owner-brand { margin-top: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+
+  <script>
+    (function () {
+      var usernameInput = document.getElementById('username');
+      var passwordInput = document.getElementById('password');
+      var rememberInput = document.querySelector('input[name="remember"]');
+      var toggleButton = document.getElementById('password-toggle');
+      var loginForm = document.getElementById('login-form');
+
+      function getCookie(name) {
+        var prefix = encodeURIComponent(name) + '=';
+        var cookies = document.cookie ? document.cookie.split('; ') : [];
+        for (var i = 0; i < cookies.length; i += 1) {
+          if (cookies[i].indexOf(prefix) === 0) {
+            return decodeURIComponent(cookies[i].slice(prefix.length));
+          }
+        }
+        return '';
+      }
+
+      var rememberedUsername = getCookie('username');
+      if (rememberedUsername) {
+        usernameInput.value = rememberedUsername;
+        rememberInput.checked = true;
+      }
+
+      toggleButton.addEventListener('click', function () {
+        var showPassword = passwordInput.type === 'password';
+        passwordInput.type = showPassword ? 'text' : 'password';
+        toggleButton.setAttribute('aria-pressed', showPassword ? 'true' : 'false');
+        toggleButton.setAttribute('aria-label', showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        passwordInput.focus();
+      });
+
+      loginForm.addEventListener('submit', function () {
+        if (rememberInput.checked && usernameInput.value.trim()) {
+          document.cookie = 'username=' + encodeURIComponent(usernameInput.value.trim()) + '; Max-Age=2592000; Path=/; SameSite=Lax';
+        } else {
+          document.cookie = 'username=; Max-Age=0; Path=/; SameSite=Lax';
+        }
+      });
+    }());
+  </script>
+</body>
+</html>
