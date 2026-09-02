@@ -74,7 +74,7 @@ def customer_queryset_for_segment(segment, now=None):
     """Return only the selected customer segment without annotating every row."""
     now = now or django_timezone.now()
     segment = normalize_customer_segment(segment)
-    customers = Customer.objects.filter(active=True)
+    customers = Customer.objects.all()
     # A disabled portal account is still a wholesale customer. Keep the
     # classification even when access to MyPlataforma is temporarily paused.
     wholesale_customer_ids = WholesalePartner.objects.values("customer_id")
@@ -86,9 +86,15 @@ def customer_queryset_for_segment(segment, now=None):
     customers = customers.exclude(id__in=wholesale_customer_ids)
 
     if segment == "active":
-        return customers.filter(id__in=active_customer_ids_queryset(now))
+        return customers.filter(
+            active=True,
+            id__in=active_customer_ids_queryset(now),
+        )
     if segment == "inactive":
-        return customers.exclude(id__in=active_customer_ids_queryset(now))
+        active_customer_ids = active_customer_ids_queryset(now)
+        return customers.filter(
+            Q(active=False) | ~Q(id__in=active_customer_ids)
+        )
     if segment == "vip":
         return customers.filter(id__in=vip_customer_ids_queryset(now))
     if segment == "never":
@@ -652,7 +658,7 @@ class CustomerJson(BaseDatatableView):
         ).values_list("customer_id", flat=True))
 
         for item in customers:
-            has_active_service = item.id in active_customer_ids
+            has_active_service = item.active and item.id in active_customer_ids
             recent_purchase_count = recent_purchase_counts.get(item.id, 0)
             has_purchases = item.id in customers_with_sales
             status_badges = [
