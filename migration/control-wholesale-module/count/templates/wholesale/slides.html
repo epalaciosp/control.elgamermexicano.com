@@ -68,7 +68,17 @@
           <span class="slide-state {% if slide.active %}on{% else %}off{% endif %}">{% if slide.active %}Publicado{% else %}Oculto{% endif %}</span>
           <h4>{{ slide.title }}</h4><p>{{ slide.subtitle|default:'Sin descripción' }}</p>
           <div class="slide-meta">Orden {{ slide.sort_order }} · Actualizado {{ slide.updated_at|date:'d/m/Y H:i' }}</div>
-          <div class="slides-actions"><a class="slides-btn slides-btn-secondary" href="{% url 'wholesale-slide-edit' slide.pk %}">Editar</a><form method="post" action="{% url 'wholesale-slide-toggle' slide.pk %}">{% csrf_token %}<button class="slides-btn {% if slide.active %}slides-btn-danger{% else %}slides-btn-warning{% endif %}" type="submit">{% if slide.active %}Ocultar{% else %}Publicar{% endif %}</button></form></div>
+          <div class="slides-actions">
+            <a class="slides-btn slides-btn-secondary" href="{% url 'wholesale-slide-edit' slide.pk %}">Editar</a>
+            <form method="post" action="{% url 'wholesale-slide-toggle' slide.pk %}">
+              {% csrf_token %}
+              <button class="slides-btn {% if slide.active %}slides-btn-danger{% else %}slides-btn-warning{% endif %}" type="submit">{% if slide.active %}Ocultar{% else %}Publicar{% endif %}</button>
+            </form>
+            <form method="post" action="{% url 'wholesale-slide-delete' slide.pk %}" onsubmit="return confirm('¿Eliminar definitivamente este anuncio y su imagen?');">
+              {% csrf_token %}
+              <button class="slides-btn slides-btn-danger" type="submit">Eliminar</button>
+            </form>
+          </div>
         </div>
       </article>
       {% empty %}<div class="slides-muted">Todavía no hay anuncios. El dashboard mostrará su encabezado institucional.</div>{% endfor %}

@@ -2215,6 +2215,34 @@ class WholesaleSlideToggleView(WholesaleSuperuserMixin, View):
         return redirect("wholesale-slides")
 
 
+class WholesaleSlideDeleteView(WholesaleSuperuserMixin, View):
+
+    def post(self, request, *args, **kwargs):
+        slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])
+        title = slide.title
+        image_name = slide.image.name
+        image_storage = slide.image.storage
+
+        with transaction.atomic():
+            slide.delete()
+            Action.action_register(
+                request.user,
+                "Anuncio de MyPlataforma eliminado: " + title,
+            )
+
+        if image_name:
+            try:
+                image_storage.delete(image_name)
+            except OSError:
+                logger.exception(
+                    "El anuncio fue eliminado, pero no se pudo retirar su imagen: %s",
+                    image_name,
+                )
+
+        messages.success(request, "El anuncio fue eliminado definitivamente.")
+        return redirect("wholesale-slides")
+
+
 def _wholesale_api_authorized(request):
     try:
         expected_token = WholesaleServicesApiView.token_file.read_text(
