@@ -38,6 +38,10 @@ urlpatterns = [
         path('wholesale/inventory', views.WholesaleInventoryView.as_view(), name='wholesale-inventory'),
         path('wholesale/publication/<int:pk>/edit', views.WholesalePublicationEditView.as_view(), name='wholesale-publication-edit'),
         path('wholesale/publication/<int:pk>/toggle', views.WholesalePublicationToggleView.as_view(), name='wholesale-publication-toggle'),
+        path('wholesale/slides', views.WholesaleSlidesView.as_view(), name='wholesale-slides'),
+        path('wholesale/slide/<int:pk>/edit', views.WholesaleSlideEditView.as_view(), name='wholesale-slide-edit'),
+        path('wholesale/slide/<int:pk>/toggle', views.WholesaleSlideToggleView.as_view(), name='wholesale-slide-toggle'),
+        path('api/wholesale/portal/<str:username>', views.WholesalePortalApiView.as_view(), name='wholesale-portal-api'),
         path('api/wholesale/services/<str:username>', views.WholesaleServicesApiView.as_view(), name='wholesale-services-api'),
 
 

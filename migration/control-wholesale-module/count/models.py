@@ -436,6 +436,29 @@ class WholesalePublication(models.Model):
         verbose_name="Límite de inventario",
         help_text="Use 0 para publicar toda la disponibilidad real del plan.",
     )
+    catalog_title = models.CharField(
+        max_length=150,
+        blank=True,
+        default="",
+        verbose_name="Título en catálogo",
+        help_text="Si se deja vacío se usa el nombre de la plataforma.",
+    )
+    catalog_description = models.CharField(
+        max_length=300,
+        blank=True,
+        default="",
+        verbose_name="Descripción en catálogo",
+    )
+    catalog_image = models.ImageField(
+        upload_to="wholesale/catalog/",
+        blank=True,
+        null=True,
+        validators=[valid_image_extension],
+        verbose_name="Imagen del catálogo",
+        help_text="Si se deja vacía se usa el logo de la plataforma.",
+    )
+    featured = models.BooleanField(default=False, verbose_name="Destacado")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="Orden")
     active = models.BooleanField(default=True, verbose_name="Publicado")
     created_by = models.ForeignKey(
         User,
@@ -468,6 +491,73 @@ class WholesalePublication(models.Model):
         if self.stock_limit:
             units = min(units, self.stock_limit)
         return units
+
+    @property
+    def display_title(self):
+        return self.catalog_title.strip() or self.plan.platform.name
+
+    @property
+    def display_description(self):
+        return self.catalog_description.strip() or self.plan.description
+
+
+class WholesaleSlide(models.Model):
+    """Anuncio que Control publica en el dashboard de MyPlataforma."""
+
+    title = models.CharField(max_length=150, verbose_name="Título")
+    subtitle = models.CharField(
+        max_length=300,
+        blank=True,
+        default="",
+        verbose_name="Descripción",
+    )
+    image = models.ImageField(
+        upload_to="wholesale/slides/",
+        validators=[valid_image_extension],
+        verbose_name="Imagen",
+    )
+    button_text = models.CharField(
+        max_length=60,
+        blank=True,
+        default="",
+        verbose_name="Texto del botón",
+    )
+    button_url = models.URLField(
+        max_length=500,
+        blank=True,
+        default="",
+        verbose_name="Enlace del botón",
+    )
+    active = models.BooleanField(default=True, verbose_name="Publicado")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="Orden")
+    starts_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name="Publicar desde",
+    )
+    ends_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name="Publicar hasta",
+    )
+    created_by = models.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        related_name="wholesale_slides_created",
+        verbose_name="Creado por",
+        on_delete=models.SET_NULL,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("sort_order", "-updated_at")
+        verbose_name = "Anuncio de MyPlataforma"
+        verbose_name_plural = "Anuncios de MyPlataforma"
+
+    def __str__(self):
+        return self.title
 
 
 

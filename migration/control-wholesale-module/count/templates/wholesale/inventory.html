@@ -17,7 +17,8 @@
   .wholesale-panel { background: #191e27; border: 1px solid #2a3240; border-radius: 12px; padding: 22px; margin-bottom: 22px; }
   .wholesale-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
   .wholesale-panel-title h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
-  .wholesale-form { display: grid; grid-template-columns: 1fr 1.3fr .7fr .75fr .55fr auto; gap: 14px; align-items: end; }
+  .wholesale-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: end; }
+  .wholesale-field.wide { grid-column: span 2; }
   .wholesale-field label { display: block; color: #aeb7c5; font-size: .78rem; font-weight: 600; margin-bottom: 7px; }
   .wholesale-control { min-height: 42px; background: #11161e !important; border: 1px solid #354052 !important; color: #eef2f7 !important; border-radius: 7px; }
   .wholesale-check { min-height: 42px; display: flex; align-items: center; gap: 8px; }
@@ -34,6 +35,8 @@
   .wholesale-table td { color: #cbd3df; border-top: 1px solid #2d3541; padding: 14px 13px; vertical-align: middle; }
   .wholesale-table strong { color: #f4f7fa; }
   .wholesale-platform { display: flex; flex-direction: column; gap: 2px; }
+  .catalog-preview { align-items: center; display: flex; gap: 10px; }
+  .catalog-preview img { background: #11161e; border: 1px solid #354052; border-radius: 9px; height: 46px; object-fit: contain; padding: 4px; width: 62px; }
   .wholesale-badge { display: inline-flex; align-items: center; border-radius: 999px; font-size: .72rem; font-weight: 700; padding: 5px 9px; }
   .wholesale-badge-on { color: #5be6a4; background: rgba(0, 200, 117, .13); }
   .wholesale-badge-off { color: #ff8589; background: rgba(229, 72, 77, .14); }
@@ -67,8 +70,9 @@
   <div class="wholesale-heading">
     <div>
       <h2>Inventario mayorista</h2>
-      <div class="wholesale-muted">Publica planes y precios para Yehoshua y arojas7 sin duplicar cuentas ni credenciales.</div>
+      <div class="wholesale-muted">Publica cuentas completas con precio, disponibilidad e imagen directamente en el catálogo de MyPlataforma.</div>
     </div>
+    <a href="{% url 'wholesale-slides' %}" class="wholesale-btn wholesale-btn-secondary">Administrar anuncios</a>
   </div>
 
   <div class="wholesale-grid">
@@ -83,12 +87,35 @@
       <h3>{% if editing_publication %}Editar publicación{% else %}Publicar un plan{% endif %}</h3>
       <span class="wholesale-muted">La disponibilidad se calcula desde el inventario real.</span>
     </div>
-    <form method="post" class="wholesale-form">
+    <form method="post" enctype="multipart/form-data" class="wholesale-form">
       {% csrf_token %}
       <div class="wholesale-field">
         <label for="{{ form.partner.id_for_label }}">Mayorista</label>
         {{ form.partner }}
         {% for error in form.partner.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field wide">
+        <label for="{{ form.catalog_title.id_for_label }}">Título en catálogo</label>
+        {{ form.catalog_title }}
+        {% for error in form.catalog_title.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field wide">
+        <label for="{{ form.catalog_description.id_for_label }}">Descripción</label>
+        {{ form.catalog_description }}
+        {% for error in form.catalog_description.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field wide">
+        <label for="{{ form.catalog_image.id_for_label }}">Imagen para MyPlataforma</label>
+        {{ form.catalog_image }}
+        {% for error in form.catalog_image.errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
+      </div>
+      <div class="wholesale-field">
+        <label for="{{ form.sort_order.id_for_label }}">Orden</label>
+        {{ form.sort_order }}
+      </div>
+      <div class="wholesale-field">
+        <label>Presentación</label>
+        <div class="wholesale-check">{{ form.featured }} <span>Destacado</span></div>
       </div>
       <div class="wholesale-field">
         <label for="{{ form.plan.id_for_label }}">Plataforma y plan</label>
@@ -138,12 +165,12 @@
 
     <div class="wholesale-table-wrap">
       <table class="wholesale-table">
-        <thead><tr><th>Mayorista</th><th>Plataforma / plan</th><th>Precio</th><th>Disponible</th><th>Límite</th><th>Estado</th><th>Actualización</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>Mayorista</th><th>Catálogo</th><th>Precio</th><th>Disponible</th><th>Límite</th><th>Estado</th><th>Actualización</th><th>Acciones</th></tr></thead>
         <tbody>
           {% for publication in publications %}
           <tr>
             <td data-label="Mayorista"><strong>{{ publication.partner.username }}</strong><br><small>{{ publication.partner.customer.name }}</small></td>
-            <td data-label="Plataforma / plan"><div class="wholesale-platform"><strong>{{ publication.plan.platform.name }}</strong><span>{{ publication.plan.name }}</span></div></td>
+            <td data-label="Catálogo"><div class="catalog-preview">{% if publication.catalog_image %}<img src="{{ publication.catalog_image.url }}" alt="">{% elif publication.plan.platform.logo %}<img src="{{ publication.plan.platform.logo.url }}" alt="">{% endif %}<div class="wholesale-platform"><strong>{{ publication.display_title }}</strong><span>{{ publication.plan.name }}{% if publication.featured %} · Destacado{% endif %}</span></div></div></td>
             <td data-label="Precio"><strong>${{ publication.wholesale_price|floatformat:2 }}</strong></td>
             <td data-label="Disponible"><span class="wholesale-stock">{{ publication.available_units }}</span></td>
             <td data-label="Límite">{% if publication.stock_limit %}{{ publication.stock_limit }}{% else %}Sin límite extra{% endif %}</td>

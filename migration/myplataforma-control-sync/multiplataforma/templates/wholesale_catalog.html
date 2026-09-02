@@ -1,0 +1,57 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+  .catalog-page { color: #f8fafc; }
+  .catalog-hero { background: linear-gradient(125deg,#101923,#182128); border: 1px solid #293645; border-radius: 18px; overflow: hidden; padding: 28px; position: relative; }
+  .catalog-hero:after { background: linear-gradient(90deg,#00ca74 0 56%,#fff 56% 70%,#e31b35 70%); bottom: 0; content: ''; height: 3px; left: 0; position: absolute; right: 0; }
+  .catalog-eyebrow { color: #28dc8b; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .catalog-hero h2 { color: #fff; font-size: clamp(28px,4vw,42px); margin: 7px 0; }
+  .catalog-hero p { color: #96a3b5; margin: 0; max-width: 760px; }
+  .catalog-summary { display: flex; gap: 10px; margin-top: 18px; }
+  .summary-pill { background: rgba(0,202,116,.11); border: 1px solid rgba(0,202,116,.22); border-radius: 999px; color: #59e3a5; font-size: 11px; padding: 8px 12px; }
+  .catalog-tools { background: #151d27; border: 1px solid #293645; border-radius: 14px; display: grid; gap: 10px; grid-template-columns: 1fr 230px; margin: 18px 0; padding: 13px; }
+  .catalog-input,.catalog-select { background: #0d141c; border: 1px solid #303c4b; border-radius: 9px; color: #dce4ed; min-height: 43px; padding: 0 13px; width: 100%; }
+  .catalog-grid { display: grid; gap: 16px; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .catalog-card { background: #151d27; border: 1px solid #293645; border-radius: 16px; display: flex; flex-direction: column; min-width: 0; overflow: hidden; transition: border-color .2s,transform .2s; }
+  .catalog-card:hover { border-color: #3d5366; transform: translateY(-2px); }
+  .catalog-media { aspect-ratio: 16/8; background: radial-gradient(circle at 25% 15%,rgba(0,202,116,.14),transparent 45%),#0b1118; overflow: hidden; position: relative; }
+  .catalog-media img { height: 100%; object-fit: contain; padding: 22px; width: 100%; }
+  .featured-badge { background: #ef8f22; border-radius: 999px; color: #16100a; font-size: 9px; font-weight: 850; left: 12px; padding: 6px 9px; position: absolute; top: 12px; }
+  .stock-badge { background: rgba(0,202,116,.88); border-radius: 999px; bottom: 12px; color: #06150e; font-size: 9px; font-weight: 850; padding: 6px 9px; position: absolute; right: 12px; }
+  .catalog-copy { display: flex; flex: 1; flex-direction: column; padding: 18px; }
+  .catalog-platform { color: #4be09f; font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+  .catalog-copy h3 { color: #fff; font-size: 18px; margin: 6px 0 3px; }
+  .catalog-plan { color: #7f8ca0; font-size: 11px; }
+  .catalog-description { color: #9ca8b8; font-size: 12px; line-height: 1.55; margin: 12px 0 18px; }
+  .catalog-footer { align-items: flex-end; border-top: 1px solid #26313e; display: flex; justify-content: space-between; margin-top: auto; padding-top: 14px; }
+  .catalog-price span { color: #6e7b8f; display: block; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+  .catalog-price strong { color: #fff; font-size: 22px; }
+  .catalog-state { background: #20303a; border-radius: 8px; color: #55dea1; font-size: 10px; font-weight: 750; padding: 8px 10px; }
+  .catalog-empty,.catalog-error { background: #171d27; border: 1px solid #293645; border-radius: 14px; color: #98a2b3; margin-top: 18px; padding: 38px; text-align: center; }
+  .catalog-error { border-color: rgba(239,68,68,.35); color: #ff9c9c; }
+  @media(max-width:1100px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  @media(max-width:680px){.catalog-hero{padding:22px 18px}.catalog-tools,.catalog-grid{grid-template-columns:1fr}.catalog-summary{flex-wrap:wrap}.catalog-media{aspect-ratio:16/7}.catalog-media img{padding:17px}}
+</style>
+
+<div class="catalog-page">
+  <section class="catalog-hero"><span class="catalog-eyebrow">Inventario en tiempo real · Control</span><h2>Catálogo mayorista</h2><p>Compra cuentas completas para administrarlas y revender sus perfiles a tus clientes. La existencia se calcula directamente desde Control.</p><div class="catalog-summary"><span class="summary-pill">{{ catalog_total }} productos publicados</span><span class="summary-pill">{{ available_units }} cuentas disponibles</span></div></section>
+  {% if integration_error %}<div class="catalog-error"><i class="ti-alert"></i> {{ integration_error }}</div>{% endif %}
+  {% if catalog %}
+  <section class="catalog-tools"><input id="catalogSearch" class="catalog-input" type="search" placeholder="Buscar plataforma, cuenta o plan"><select id="catalogPlatform" class="catalog-select"><option value="">Todas las plataformas</option>{% for platform in platform_names %}<option value="{{ platform|lower }}">{{ platform }}</option>{% endfor %}</select></section>
+  <section id="catalogGrid" class="catalog-grid">
+    {% for item in catalog %}
+    <article class="catalog-card" data-catalog-card data-platform="{{ item.platform|lower }}">
+      <div class="catalog-media">{% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">{% endif %}{% if item.featured %}<span class="featured-badge">Destacado</span>{% endif %}<span class="stock-badge">{{ item.available_units }} disponibles</span></div>
+      <div class="catalog-copy"><span class="catalog-platform">{{ item.platform }}</span><h3>{{ item.title }}</h3><span class="catalog-plan">{{ item.plan }}</span><p class="catalog-description">{{ item.description|default:'Cuenta completa disponible para venta mayorista.' }}</p><footer class="catalog-footer"><div class="catalog-price"><span>Precio mayorista</span><strong>${{ item.price|intcomma }}</strong></div><span class="catalog-state">Cuenta completa</span></footer></div>
+    </article>
+    {% endfor %}
+  </section>
+  <div id="catalogNoResults" class="catalog-empty" style="display:none">No se encontraron productos con esos filtros.</div>
+  {% elif not integration_error %}<div class="catalog-empty"><i class="ti-package"></i><h4>El catálogo está listo</h4><p>Cuando publiques inventario desde Control aparecerá aquí con su imagen, precio y disponibilidad.</p></div>{% endif %}
+</div>
+<script>
+(function(){var cards=[].slice.call(document.querySelectorAll('[data-catalog-card]')),search=document.getElementById('catalogSearch'),platform=document.getElementById('catalogPlatform'),empty=document.getElementById('catalogNoResults');if(!cards.length||!search||!platform)return;function filter(){var q=search.value.toLowerCase().trim(),p=platform.value,visible=0;cards.forEach(function(card){var show=(!q||card.textContent.toLowerCase().indexOf(q)!==-1)&&(!p||card.dataset.platform===p);card.style.display=show?'':'none';if(show)visible++;});empty.style.display=visible?'none':'';}search.addEventListener('input',filter);platform.addEventListener('change',filter);})();
+</script>
+{% endblock %}

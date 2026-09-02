@@ -8,6 +8,7 @@ from .models import (
     Country,
     WholesalePartner,
     WholesalePublication,
+    WholesaleSlide,
 )
 from .libraries import is_chatgpt_plus_platform
 
@@ -249,7 +250,7 @@ class WholesalePublicationForm(forms.ModelForm):
         )
 
         for name, field in self.fields.items():
-            if name == "active":
+            if name in ("active", "featured"):
                 field.widget.attrs.update({"class": "form-check-input"})
             else:
                 field.widget.attrs.update({"class": "form-control wholesale-control"})
@@ -260,6 +261,16 @@ class WholesalePublicationForm(forms.ModelForm):
         self.fields["stock_limit"].widget.attrs.update(
             {"min": "0", "placeholder": "0 = disponibilidad completa"}
         )
+        self.fields["catalog_title"].widget.attrs.update(
+            {"placeholder": "Ej. Netflix cuenta completa"}
+        )
+        self.fields["catalog_description"].widget.attrs.update(
+            {"placeholder": "Descripción breve para el mayorista"}
+        )
+        self.fields["catalog_image"].widget.attrs.update(
+            {"accept": "image/png,image/jpeg,image/webp"}
+        )
+        self.fields["sort_order"].widget.attrs.update({"min": "0"})
 
     class Meta:
         model = WholesalePublication
@@ -268,5 +279,53 @@ class WholesalePublicationForm(forms.ModelForm):
             "plan",
             "wholesale_price",
             "stock_limit",
+            "catalog_title",
+            "catalog_description",
+            "catalog_image",
+            "featured",
+            "sort_order",
             "active",
         ]
+
+
+class WholesaleSlideForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            if name == "active":
+                field.widget.attrs.update({"class": "form-check-input"})
+            else:
+                field.widget.attrs.update({"class": "form-control wholesale-control"})
+        self.fields["image"].widget.attrs.update(
+            {"accept": "image/png,image/jpeg,image/webp"}
+        )
+        self.fields["sort_order"].widget.attrs.update({"min": "0"})
+        for name in ("starts_at", "ends_at"):
+            self.fields[name].widget = forms.DateTimeInput(
+                attrs={"class": "form-control wholesale-control", "type": "datetime-local"},
+                format="%Y-%m-%dT%H:%M",
+            )
+            self.fields[name].input_formats = ["%Y-%m-%dT%H:%M"]
+
+    class Meta:
+        model = WholesaleSlide
+        fields = [
+            "title",
+            "subtitle",
+            "image",
+            "button_text",
+            "button_url",
+            "sort_order",
+            "starts_at",
+            "ends_at",
+            "active",
+        ]
+
+    def clean(self):
+        cleaned = super().clean()
+        starts_at = cleaned.get("starts_at")
+        ends_at = cleaned.get("ends_at")
+        if starts_at and ends_at and ends_at <= starts_at:
+            self.add_error("ends_at", "La fecha final debe ser posterior a la inicial.")
+        return cleaned

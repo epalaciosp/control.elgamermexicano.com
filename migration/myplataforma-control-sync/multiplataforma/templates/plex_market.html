@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  .plex-page{color:#f8fafc}.plex-hero{background:linear-gradient(125deg,#1a0f22,#111b26);border:1px solid #313947;border-radius:18px;padding:28px}.plex-eyebrow{color:#e78cff;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.plex-hero h2{color:#fff;font-size:clamp(28px,4vw,42px);margin:7px 0}.plex-hero p{color:#99a5b6;margin:0;max-width:760px}.plex-status{background:#171d27;border:1px solid #2d3846;border-radius:14px;margin-top:18px;padding:18px}.plex-status.ready{border-color:rgba(0,202,116,.35)}.plex-status.pending{border-color:rgba(245,158,11,.35)}.plex-status strong{color:#fff;display:block;margin-bottom:4px}.plex-status span{color:#98a4b5;font-size:12px}.plex-grid{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:18px}.plex-card{background:#171d27;border:1px solid #2d3846;border-radius:15px;padding:20px}.plex-card h3{color:#fff;font-size:18px;margin:0 0 7px}.plex-card p{color:#8794a7;font-size:12px}.plex-price{color:#df83ff;font-size:24px;font-weight:800}.plex-note{background:#111720;border-radius:10px;color:#8f9bad;font-size:11px;margin-top:14px;padding:12px}@media(max-width:900px){.plex-grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){.plex-hero{padding:21px 18px}.plex-grid{grid-template-columns:1fr}}
+</style>
+<div class="plex-page">
+  <section class="plex-hero"><span class="plex-eyebrow">Streaming · API Partner oficial</span><h2>Plex para mayoristas</h2><p>El módulo está preparado para consultar planes y, en la siguiente fase, crear cuentas mediante la API oficial sin guardar credenciales del proveedor en el código.</p></section>
+  <section class="plex-status {% if plex_error %}pending{% else %}ready{% endif %}"><strong>{% if plex_error %}Integración preparada, activación pendiente{% else %}Conexión API activa{% endif %}</strong><span>{% if plex_error %}{{ plex_error }}{% else %}Los planes se consultan en tiempo real desde Multiplataforma.{% endif %}</span></section>
+  {% if plex_plans %}<section class="plex-grid">{% for plan in plex_plans %}<article class="plex-card"><h3>{{ plan.name|default:plan.plan }}</h3><p>{{ plan.description|default:'Cuenta Plex creada mediante API Partner.' }}</p><span class="plex-price">${{ plan.price }}</span><div class="plex-note">La compra automática se habilitará después de validar la IP y los movimientos de saldo.</div></article>{% endfor %}</section>{% endif %}
+</div>
+{% endblock %}

@@ -20,6 +20,7 @@ from .models import (
     PromotionSale,
     WholesalePartner,
     WholesalePublication,
+    WholesaleSlide,
 )
 from user.models import Customer, Action
 from django.http import HttpResponse, JsonResponse
@@ -1738,7 +1739,7 @@ class WholesaleInventoryView(WholesaleSuperuserMixin, View):
         return render(request, self.template_name, wholesale_inventory_context(request))
 
     def post(self, request, *args, **kwargs):
-        form = WholesalePublicationForm(request.POST)
+        form = WholesalePublicationForm(request.POST, request.FILES)
         if form.is_valid():
             publication = form.save(commit=False)
             publication.created_by = request.user
@@ -1776,7 +1777,11 @@ class WholesalePublicationEditView(WholesaleSuperuserMixin, View):
 
     def post(self, request, *args, **kwargs):
         publication = get_object_or_404(WholesalePublication, pk=kwargs["pk"])
-        form = WholesalePublicationForm(request.POST, instance=publication)
+        form = WholesalePublicationForm(
+            request.POST,
+            request.FILES,
+            instance=publication,
+        )
         if form.is_valid():
             publication = form.save()
             Action.action_register(
@@ -1813,28 +1818,226 @@ class WholesalePublicationToggleView(WholesaleSuperuserMixin, View):
         return redirect("wholesale-inventory")
 
 
+def wholesale_slides_context(form=None, editing_slide=None):
+    return {
+        "form": form or WholesaleSlideForm(),
+        "editing_slide": editing_slide,
+        "slides": WholesaleSlide.objects.select_related("created_by").all(),
+        "active_slides": WholesaleSlide.objects.filter(active=True).count(),
+    }
+
+
+class WholesaleSlidesView(WholesaleSuperuserMixin, View):
+    template_name = "wholesale/slides.html"
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, wholesale_slides_context())
+
+    def post(self, request, *args, **kwargs):
+        form = WholesaleSlideForm(request.POST, request.FILES)
+        if form.is_valid():
+            slide = form.save(commit=False)
+            slide.created_by = request.user
+            slide.save()
+            Action.action_register(
+                request.user,
+                "Anuncio de MyPlataforma publicado: " + slide.title,
+            )
+            messages.success(request, "El anuncio ya está disponible en MyPlataforma.")
+            return redirect("wholesale-slides")
+        messages.error(request, "Revisa los datos del anuncio antes de guardar.")
+        return render(request, self.template_name, wholesale_slides_context(form=form))
+
+
+class WholesaleSlideEditView(WholesaleSuperuserMixin, View):
+    template_name = "wholesale/slides.html"
+
+    def get(self, request, *args, **kwargs):
+        slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])
+        return render(
+            request,
+            self.template_name,
+            wholesale_slides_context(
+                form=WholesaleSlideForm(instance=slide),
+                editing_slide=slide,
+            ),
+        )
+
+    def post(self, request, *args, **kwargs):
+        slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])
+        form = WholesaleSlideForm(request.POST, request.FILES, instance=slide)
+        if form.is_valid():
+            slide = form.save()
+            Action.action_register(
+                request.user,
+                "Anuncio de MyPlataforma actualizado: " + slide.title,
+            )
+            messages.success(request, "El anuncio fue actualizado.")
+            return redirect("wholesale-slides")
+        messages.error(request, "Revisa los datos del anuncio antes de guardar.")
+        return render(
+            request,
+            self.template_name,
+            wholesale_slides_context(form=form, editing_slide=slide),
+        )
+
+
+class WholesaleSlideToggleView(WholesaleSuperuserMixin, View):
+
+    def post(self, request, *args, **kwargs):
+        slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])
+        slide.active = not slide.active
+        slide.save(update_fields=["active", "updated_at"])
+        state = "publicado" if slide.active else "ocultado"
+        Action.action_register(
+            request.user,
+            "Anuncio de MyPlataforma " + state + ": " + slide.title,
+        )
+        messages.success(request, "El anuncio fue " + state + ".")
+        return redirect("wholesale-slides")
+
+
+def _wholesale_api_authorized(request):
+    try:
+        expected_token = WholesaleServicesApiView.token_file.read_text(
+            encoding="utf-8"
+        ).strip()
+    except OSError:
+        return False, JsonResponse(
+            {"error": "Integración no configurada"},
+            status=503,
+        )
+    authorization = request.META.get("HTTP_AUTHORIZATION", "")
+    supplied_token = (
+        authorization[7:].strip()
+        if authorization.lower().startswith("bearer ")
+        else ""
+    )
+    authorized = bool(expected_token) and secrets.compare_digest(
+        supplied_token,
+        expected_token,
+    )
+    return authorized, None if authorized else JsonResponse(
+        {"error": "No autorizado"},
+        status=401,
+    )
+
+
+def _public_media_url(field):
+    if not field:
+        return ""
+    try:
+        url = field.url
+    except (ValueError, AttributeError):
+        return ""
+    if url.startswith("http://") or url.startswith("https://"):
+        return url
+    return "https://control.elgamermexicano.com" + url
+
+
+class WholesalePortalApiView(View):
+    """Catálogo, anuncios y métricas que MyPlataforma consume desde Control."""
+
+    def get(self, request, *args, **kwargs):
+        authorized, error_response = _wholesale_api_authorized(request)
+        if not authorized:
+            return error_response
+
+        partner = get_object_or_404(
+            WholesalePartner.objects.select_related("customer"),
+            username__iexact=kwargs["username"],
+            active=True,
+        )
+        publications = WholesalePublication.objects.filter(
+            partner=partner,
+            active=True,
+            plan__active=True,
+            plan__platform__active=True,
+        ).select_related("plan", "plan__platform").order_by(
+            "sort_order",
+            "plan__platform__name",
+            "plan__name",
+        )
+        catalog = []
+        for publication in publications:
+            available = publication.available_units
+            image = publication.catalog_image or publication.plan.platform.logo
+            catalog.append({
+                "publication_id": publication.id,
+                "platform_id": publication.plan.platform_id,
+                "platform": publication.plan.platform.name,
+                "plan_id": publication.plan_id,
+                "plan": publication.plan.name,
+                "title": publication.display_title,
+                "description": publication.display_description,
+                "price": str(publication.wholesale_price),
+                "available_units": available,
+                "image_url": _public_media_url(image),
+                "featured": publication.featured,
+                "sort_order": publication.sort_order,
+            })
+
+        now = django_timezone.now()
+        slides = WholesaleSlide.objects.filter(active=True).filter(
+            Q(starts_at__isnull=True) | Q(starts_at__lte=now),
+            Q(ends_at__isnull=True) | Q(ends_at__gte=now),
+        )
+        slide_rows = [{
+            "id": slide.id,
+            "title": slide.title,
+            "subtitle": slide.subtitle,
+            "image_url": _public_media_url(slide.image),
+            "button_text": slide.button_text,
+            "button_url": slide.button_url,
+        } for slide in slides]
+
+        sales = Sale.objects.filter(bill__customer_id=partner.customer_id)
+        active_sales = sales.filter(
+            renovated=False,
+            cutted=False,
+            date_limit__gte=now,
+        )
+        today = django_timezone.localdate()
+        last_30 = now - datetime.timedelta(days=30)
+        in_48_hours = now + datetime.timedelta(hours=48)
+        metrics = {
+            "catalog_products": len(catalog),
+            "available_units": sum(item["available_units"] for item in catalog),
+            "active_accounts": active_sales.values(
+                "profile__count_id"
+            ).distinct().count(),
+            "purchases_30_days": sales.filter(date__gte=last_30).values(
+                "profile__count_id"
+            ).distinct().count(),
+            "purchases_today": sales.filter(date__date=today).values(
+                "profile__count_id"
+            ).distinct().count(),
+            "expiring_48_hours": active_sales.filter(
+                date_limit__lte=in_48_hours
+            ).values("profile__count_id").distinct().count(),
+        }
+        return JsonResponse({
+            "partner": {
+                "username": partner.username,
+                "customer_id": partner.customer_id,
+                "customer_name": partner.customer.name,
+            },
+            "generated_at": now.isoformat(),
+            "catalog": catalog,
+            "slides": slide_rows,
+            "metrics": metrics,
+        })
+
+
 class WholesaleServicesApiView(View):
     """Private server-to-server view of a wholesaler's active purchases."""
 
     token_file = Path("/etc/wholesale-integration.token")
 
     def get(self, request, *args, **kwargs):
-        try:
-            expected_token = self.token_file.read_text(encoding="utf-8").strip()
-        except OSError:
-            return JsonResponse({"error": "Integración no configurada"}, status=503)
-
-        authorization = request.META.get("HTTP_AUTHORIZATION", "")
-        supplied_token = (
-            authorization[7:].strip()
-            if authorization.lower().startswith("bearer ")
-            else ""
-        )
-        if not expected_token or not secrets.compare_digest(
-            supplied_token,
-            expected_token,
-        ):
-            return JsonResponse({"error": "No autorizado"}, status=401)
+        authorized, error_response = _wholesale_api_authorized(request)
+        if not authorized:
+            return error_response
 
         partner = get_object_or_404(
             WholesalePartner.objects.select_related("customer"),

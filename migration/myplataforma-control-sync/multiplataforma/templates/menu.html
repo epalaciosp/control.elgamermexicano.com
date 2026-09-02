@@ -160,6 +160,12 @@
                 <span class="pcoded-mtext">Mis cuentas</span>
               </a>
             </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'plex' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'plex' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-video-camera"></i></span>
+                <span class="pcoded-mtext">Plex</span>
+              </a>
+            </li>
             <li class="{% if request.resolver_match.kwargs.section == 'renewals' %}active{% endif %}">
               <a href="{% url 'portal-section' 'renewals' %}" class="waves-effect waves-dark">
                 <span class="pcoded-micon"><i class="ti-reload"></i></span>

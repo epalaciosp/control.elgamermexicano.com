@@ -1,0 +1,78 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  .slides-page { color: #eef2f7; }
+  .slides-heading { align-items: flex-start; display: flex; gap: 18px; justify-content: space-between; margin-bottom: 22px; }
+  .slides-heading h2 { font-size: 1.45rem; margin: 0 0 6px; }
+  .slides-muted { color: #8f99aa; }
+  .slides-panel { background: #191e27; border: 1px solid #2a3240; border-radius: 12px; margin-bottom: 22px; padding: 22px; }
+  .slides-panel h3 { font-size: 1.05rem; margin: 0 0 18px; }
+  .slides-form { align-items: end; display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .slides-field.wide { grid-column: span 2; }
+  .slides-field label { color: #aeb7c5; display: block; font-size: .78rem; font-weight: 600; margin-bottom: 7px; }
+  .wholesale-control { background: #11161e !important; border: 1px solid #354052 !important; border-radius: 7px; color: #eef2f7 !important; min-height: 42px; }
+  .slides-check { align-items: center; display: flex; gap: 8px; min-height: 42px; }
+  .slides-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .slides-btn { border: 0; border-radius: 7px; cursor: pointer; font-weight: 600; padding: 10px 15px; text-decoration: none; }
+  .slides-btn-primary { background: #0799e5; color: #fff; }
+  .slides-btn-secondary { background: #293241; color: #d9e0e9; }
+  .slides-btn-danger { background: #e5484d; color: #fff; }
+  .slides-btn-warning { background: #f2b01e; color: #17120a; }
+  .slides-errors { color: #ff8589; font-size: .76rem; margin-top: 6px; }
+  .slides-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .slide-card { background: #11161e; border: 1px solid #2d3745; border-radius: 12px; overflow: hidden; }
+  .slide-card img { aspect-ratio: 16 / 5; background: #0c1118; display: block; object-fit: cover; width: 100%; }
+  .slide-copy { padding: 16px; }
+  .slide-copy h4 { color: #fff; margin: 0 0 5px; }
+  .slide-copy p { color: #8f99aa; margin: 0 0 12px; }
+  .slide-meta { color: #728096; font-size: .75rem; margin-bottom: 12px; }
+  .slide-state { border-radius: 999px; display: inline-flex; font-size: .72rem; font-weight: 700; padding: 5px 9px; }
+  .slide-state.on { background: rgba(0,200,117,.13); color: #5be6a4; }
+  .slide-state.off { background: rgba(229,72,77,.14); color: #ff8589; }
+  @media (max-width: 900px) { .slides-form, .slides-grid { grid-template-columns: 1fr; } .slides-field.wide { grid-column: auto; } }
+  @media (max-width: 600px) { .slides-heading { display: block; } .slides-heading .slides-btn { display: inline-block; margin-top: 12px; } .slides-panel { padding: 16px; } }
+</style>
+
+<div class="slides-page">
+  <div class="slides-heading">
+    <div><h2>Anuncios de MyPlataforma</h2><div class="slides-muted">Sube banners responsivos para el dashboard de todos los mayoristas.</div></div>
+    <a href="{% url 'wholesale-inventory' %}" class="slides-btn slides-btn-secondary">Regresar al inventario</a>
+  </div>
+
+  <section class="slides-panel">
+    <h3>{% if editing_slide %}Editar anuncio{% else %}Nuevo anuncio{% endif %}</h3>
+    <form method="post" enctype="multipart/form-data" class="slides-form">
+      {% csrf_token %}
+      <div class="slides-field"><label>Título</label>{{ form.title }}{% for error in form.title.errors %}<div class="slides-errors">{{ error }}</div>{% endfor %}</div>
+      <div class="slides-field wide"><label>Descripción</label>{{ form.subtitle }}{% for error in form.subtitle.errors %}<div class="slides-errors">{{ error }}</div>{% endfor %}</div>
+      <div class="slides-field wide"><label>Imagen (recomendado 1600 × 500 px)</label>{{ form.image }}{% for error in form.image.errors %}<div class="slides-errors">{{ error }}</div>{% endfor %}</div>
+      <div class="slides-field"><label>Orden</label>{{ form.sort_order }}</div>
+      <div class="slides-field"><label>Texto del botón</label>{{ form.button_text }}</div>
+      <div class="slides-field wide"><label>Enlace del botón</label>{{ form.button_url }}</div>
+      <div class="slides-field"><label>Publicar desde</label>{{ form.starts_at }}</div>
+      <div class="slides-field"><label>Publicar hasta</label>{{ form.ends_at }}{% for error in form.ends_at.errors %}<div class="slides-errors">{{ error }}</div>{% endfor %}</div>
+      <div class="slides-field"><label>Estado</label><div class="slides-check">{{ form.active }} <span>Publicado</span></div></div>
+      <div class="slides-actions"><button class="slides-btn slides-btn-primary" type="submit">{% if editing_slide %}Guardar cambios{% else %}Publicar anuncio{% endif %}</button>{% if editing_slide %}<a class="slides-btn slides-btn-secondary" href="{% url 'wholesale-slides' %}">Cancelar</a>{% endif %}</div>
+      {% for error in form.non_field_errors %}<div class="slides-errors">{{ error }}</div>{% endfor %}
+    </form>
+  </section>
+
+  <section class="slides-panel">
+    <h3>Anuncios cargados · {{ active_slides }} activos</h3>
+    <div class="slides-grid">
+      {% for slide in slides %}
+      <article class="slide-card">
+        <img src="{{ slide.image.url }}" alt="{{ slide.title }}">
+        <div class="slide-copy">
+          <span class="slide-state {% if slide.active %}on{% else %}off{% endif %}">{% if slide.active %}Publicado{% else %}Oculto{% endif %}</span>
+          <h4>{{ slide.title }}</h4><p>{{ slide.subtitle|default:'Sin descripción' }}</p>
+          <div class="slide-meta">Orden {{ slide.sort_order }} · Actualizado {{ slide.updated_at|date:'d/m/Y H:i' }}</div>
+          <div class="slides-actions"><a class="slides-btn slides-btn-secondary" href="{% url 'wholesale-slide-edit' slide.pk %}">Editar</a><form method="post" action="{% url 'wholesale-slide-toggle' slide.pk %}">{% csrf_token %}<button class="slides-btn {% if slide.active %}slides-btn-danger{% else %}slides-btn-warning{% endif %}" type="submit">{% if slide.active %}Ocultar{% else %}Publicar{% endif %}</button></form></div>
+        </div>
+      </article>
+      {% empty %}<div class="slides-muted">Todavía no hay anuncios. El dashboard mostrará su encabezado institucional.</div>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

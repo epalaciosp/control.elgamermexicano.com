@@ -23,11 +23,13 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+from .plex_partner import get_plex_market, plex_api_configured
 
 
 
 PERCENT_COMISSION = 4
 CONTROL_SERVICES_URL = "http://127.0.0.1:8000/count/api/wholesale/services/"
+CONTROL_PORTAL_URL = "http://127.0.0.1:8000/count/api/wholesale/portal/"
 CONTROL_TOKEN_FILE = Path("/etc/wholesale-integration.token")
 # if PercentCommission and PercentCommission.objects.all():
 #    PERCENT_COMISSION = PercentCommission.objects.all().first().percent
@@ -59,6 +61,32 @@ def get_control_services(username):
         return [], "No fue posible consultar Control en este momento."
 
     return payload.get("services", []), None
+
+
+def get_control_portal(username):
+    """Read the personalized catalog, slides and dashboard metrics from Control."""
+    try:
+        token = CONTROL_TOKEN_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return {}, "La integración con Control todavía no está configurada."
+
+    request = Request(
+        CONTROL_PORTAL_URL + quote(username),
+        headers={
+            "Authorization": "Bearer " + token,
+            "Accept": "application/json",
+            "User-Agent": "MyPlataforma-ControlPortal/1.0",
+            "Host": "control.elgamermexicano.com",
+            "X-Forwarded-Proto": "https",
+        },
+    )
+    try:
+        with urlopen(request, timeout=8) as response:
+            return json.loads(response.read().decode("utf-8")), None
+    except HTTPError as exc:
+        return {}, "Control rechazó temporalmente el catálogo ({}).".format(exc.code)
+    except (URLError, TimeoutError, ValueError):
+        return {}, "No fue posible consultar el catálogo de Control en este momento."
 
 
 def group_control_services_by_account(services):
@@ -258,7 +286,9 @@ def IndexView(request):
         })
     else:
         my_services, integration_error = get_control_services(request.user.username)
+        portal_feed, portal_error = get_control_portal(request.user.username)
         my_accounts = group_control_services_by_account(my_services)
+        portal_metrics = portal_feed.get("metrics", {})
         context.update({
             "my_services_total": len(my_accounts),
             "my_profiles_total": sum(
@@ -268,8 +298,14 @@ def IndexView(request):
                 1 for account in my_accounts if account["days_remaining"] <= 7
             ),
             "my_balance": request.user.get_my_money(),
-            "integration_ready": integration_error is None,
-            "integration_error": integration_error,
+            "published_catalog": portal_metrics.get("catalog_products", 0),
+            "available_units": portal_metrics.get("available_units", 0),
+            "activity_30_days": portal_metrics.get("purchases_30_days", 0),
+            "activity_today": portal_metrics.get("purchases_today", 0),
+            "expiring_48_hours": portal_metrics.get("expiring_48_hours", 0),
+            "portal_slides": portal_feed.get("slides", []),
+            "integration_ready": integration_error is None and portal_error is None,
+            "integration_error": integration_error or portal_error,
         })
 
     return render(request, "dashboard_portal.html", context)
@@ -295,6 +331,12 @@ def PortalSectionView(request, section):
             "eyebrow": "Ayuda y seguimiento",
             "description": "Los reportes y solicitudes de soporte quedarán vinculados a cada servicio vendido.",
             "icon": "ti-comment",
+        },
+        "plex": {
+            "title": "Plex",
+            "eyebrow": "Integración API Partner",
+            "description": "Consulta los planes Plex disponibles mediante la conexión oficial de Multiplataforma.",
+            "icon": "ti-video-camera",
         },
     }
     admin_sections = {
@@ -383,6 +425,31 @@ def PortalSectionView(request, section):
             "expiring_accounts": expiring_accounts,
             "expiring_services": expiring_accounts,
             "integration_error": integration_error,
+            "balance": request.user.get_my_money(),
+        })
+
+    if user_type == "vendedor" and section == "catalog":
+        portal_feed, integration_error = get_control_portal(request.user.username)
+        catalog = portal_feed.get("catalog", [])
+        return render(request, "wholesale_catalog.html", {
+            "section": section,
+            "section_data": section_data,
+            "catalog": catalog,
+            "catalog_total": len(catalog),
+            "available_units": portal_feed.get("metrics", {}).get("available_units", 0),
+            "platform_names": sorted({item.get("platform", "") for item in catalog if item.get("platform")}),
+            "integration_error": integration_error,
+            "balance": request.user.get_my_money(),
+        })
+
+    if user_type == "vendedor" and section == "plex":
+        plans, plex_error = get_plex_market()
+        return render(request, "plex_market.html", {
+            "section": section,
+            "section_data": section_data,
+            "plex_plans": plans,
+            "plex_error": plex_error,
+            "plex_configured": plex_api_configured(),
             "balance": request.user.get_my_money(),
         })
 

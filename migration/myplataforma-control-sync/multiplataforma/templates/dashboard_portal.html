@@ -43,15 +43,42 @@
   .flow-step small { color: #7f8a9b; display: block; margin-top: 4px; }
   .portal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
   .portal-actions .btn { border-radius: 10px; font-weight: 600; padding: 10px 16px; }
+  .portal-slider { background: #101720; border: 1px solid #293645; border-radius: 18px; margin-bottom: 18px; min-height: 280px; overflow: hidden; position: relative; }
+  .portal-slide { display: none; min-height: 280px; position: relative; }
+  .portal-slide.active { display: block; }
+  .portal-slide img { height: 100%; inset: 0; object-fit: cover; position: absolute; width: 100%; }
+  .portal-slide:after { background: linear-gradient(90deg,rgba(7,12,18,.93),rgba(7,12,18,.45) 58%,rgba(7,12,18,.08)); content: ''; inset: 0; position: absolute; }
+  .portal-slide-copy { max-width: 650px; padding: 52px 44px; position: relative; z-index: 2; }
+  .portal-slide-copy span { color: #43e09c; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .portal-slide-copy h2 { color: #fff; font-size: clamp(28px,4vw,44px); margin: 8px 0; }
+  .portal-slide-copy p { color: #c0c9d4; font-size: 14px; max-width: 560px; }
+  .portal-slide-copy .btn { border-radius: 9px; font-weight: 700; margin-top: 10px; }
+  .portal-slide-dots { bottom: 16px; display: flex; gap: 6px; left: 44px; position: absolute; z-index: 3; }
+  .portal-slide-dot { background: rgba(255,255,255,.38); border: 0; border-radius: 999px; cursor: pointer; height: 6px; padding: 0; width: 18px; }
+  .portal-slide-dot.active { background: #3fe397; width: 30px; }
+  .balance-strip { align-items: center; background: #111920; border: 1px solid #293645; border-radius: 15px; display: flex; justify-content: space-between; margin-bottom: 18px; padding: 17px 20px; }
+  .balance-strip span { color: #7f8c9e; display: block; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .balance-strip strong { color: #4be3a1; font-size: 22px; }
+  .activity-grid { display: grid; gap: 12px; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .activity-card { background: #111720; border: 1px solid #25303e; border-radius: 13px; padding: 17px; }
+  .activity-card span { color: #7f8b9d; display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+  .activity-card strong { color: #fff; display: block; font-size: 26px; margin-top: 5px; }
   @media (max-width: 1100px) { .portal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 700px) {
     .portal-hero { padding: 22px 18px; }
-    .portal-grid, .flow-list { grid-template-columns: 1fr; }
+    .portal-grid, .flow-list, .activity-grid { grid-template-columns: 1fr; }
     .metric-card { min-height: 126px; }
+    .portal-slider,.portal-slide{min-height:240px}.portal-slide-copy{padding:35px 20px}.portal-slide-dots{left:20px}.balance-strip{align-items:flex-start;flex-direction:column;gap:10px}
   }
 </style>
 
 <div class="portal-shell">
+  {% if user_type != 'superuser' and portal_slides %}
+  <section class="portal-slider" id="portalSlider">
+    {% for slide in portal_slides %}<article class="portal-slide {% if forloop.first %}active{% endif %}" data-portal-slide>{% if slide.image_url %}<img src="{{ slide.image_url }}" alt="{{ slide.title }}">{% endif %}<div class="portal-slide-copy"><span>Anuncio de Control</span><h2>{{ slide.title }}</h2><p>{{ slide.subtitle }}</p>{% if slide.button_url and slide.button_text %}<a class="btn btn-success" href="{{ slide.button_url }}">{{ slide.button_text }}</a>{% endif %}</div></article>{% endfor %}
+    {% if portal_slides|length > 1 %}<div class="portal-slide-dots">{% for slide in portal_slides %}<button class="portal-slide-dot {% if forloop.first %}active{% endif %}" type="button" data-slide-index="{{ forloop.counter0 }}" aria-label="Anuncio {{ forloop.counter }}"></button>{% endfor %}</div>{% endif %}
+  </section>
+  {% endif %}
   <section class="portal-hero">
     <span class="portal-eyebrow">MyPlataforma Digital · {{ portal_role }}</span>
     <h2>Bienvenido, {{ user.username }}</h2>
@@ -70,6 +97,8 @@
     </div>
   </section>
 
+  {% if user_type != 'superuser' %}<section class="balance-strip"><div><span>Saldo disponible</span><strong>${{ my_balance|default:0|intcomma }}</strong></div><div class="portal-actions" style="margin:0"><a class="btn btn-success" href="{% url 'portal-section' 'catalog' %}">Ver catálogo</a><a class="btn btn-outline-light" href="{% url 'portal-section' 'balance' %}">Movimientos</a></div></section>{% endif %}
+
   <section class="portal-grid">
     {% if user_type == 'superuser' %}
       <article class="metric-card"><div class="metric-icon"><i class="ti-user"></i></div><span class="metric-label">Mayoristas activos</span><strong class="metric-value">{{ wholesalers_active }}</strong></article>
@@ -77,12 +106,14 @@
       <article class="metric-card"><div class="metric-icon"><i class="ti-package"></i></div><span class="metric-label">Servicios en el portal</span><strong class="metric-value">{{ services_total }}</strong></article>
       <article class="metric-card"><div class="metric-icon"><i class="ti-shopping-cart"></i></div><span class="metric-label">Ventas de hoy</span><strong class="metric-value">{{ sales_today }}</strong></article>
     {% else %}
-      <article class="metric-card"><div class="metric-icon"><i class="ti-wallet"></i></div><span class="metric-label">Saldo disponible</span><strong class="metric-value">${{ my_balance|default:0|intcomma }}</strong></article>
-      <article class="metric-card"><div class="metric-icon"><i class="ti-layout-grid2-alt"></i></div><span class="metric-label">Productos disponibles</span><strong class="metric-value">{{ published_catalog }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-layout-grid2-alt"></i></div><span class="metric-label">Productos publicados</span><strong class="metric-value">{{ published_catalog }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-layers"></i></div><span class="metric-label">Cuentas disponibles</span><strong class="metric-value">{{ available_units }}</strong></article>
       <article class="metric-card"><div class="metric-icon"><i class="ti-package"></i></div><span class="metric-label">Cuentas completas</span><strong class="metric-value">{{ my_services_total }}</strong></article>
       <article class="metric-card"><div class="metric-icon"><i class="ti-reload"></i></div><span class="metric-label">Vencen en 7 días</span><strong class="metric-value">{{ my_renewals }}</strong></article>
     {% endif %}
   </section>
+
+  {% if user_type != 'superuser' %}<section class="portal-panel" style="margin-bottom:20px"><h4>Tu actividad</h4><p>Resumen de las compras registradas en Control.</p><div class="activity-grid"><article class="activity-card"><span>Compras · 30 días</span><strong>{{ activity_30_days }}</strong></article><article class="activity-card"><span>Compras de hoy</span><strong>{{ activity_today }}</strong></article><article class="activity-card"><span>Por vencer · 48 horas</span><strong>{{ expiring_48_hours }}</strong></article></div></section>{% endif %}
 
   <section class="portal-panel">
     <h4>Nuevo flujo de operación</h4>
@@ -103,4 +134,7 @@
     </div>
   </section>
 </div>
+<script>
+(function(){var slides=[].slice.call(document.querySelectorAll('[data-portal-slide]')),dots=[].slice.call(document.querySelectorAll('[data-slide-index]'));if(slides.length<2)return;var current=0,timer;function show(index){current=index;slides.forEach(function(el,i){el.classList.toggle('active',i===index)});dots.forEach(function(el,i){el.classList.toggle('active',i===index)});}function start(){timer=setInterval(function(){show((current+1)%slides.length)},6500)}dots.forEach(function(dot){dot.addEventListener('click',function(){clearInterval(timer);show(Number(dot.dataset.slideIndex));start()})});start();})();
+</script>
 {% endblock %}
