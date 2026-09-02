@@ -918,21 +918,21 @@ class CountModulesView(View):
     template_name = "count/modules.html"
 
     def get(self, request, *args, **kwargs):
-        now = django_timezone.now()
-        next_three_days = now + datetime.timedelta(days=3)
+        today = django_timezone.localdate()
+        third_day = today + datetime.timedelta(days=3)
         accounts = Count.objects.all()
         stats = {
             "total": accounts.count(),
             "active": accounts.filter(active=True).filter(
-                Q(date_limit__isnull=True) | Q(date_limit__gte=now)
+                Q(date_limit__isnull=True) | Q(date_limit__date__gte=today)
             ).count(),
             "inactive": accounts.filter(active=False).count(),
             "expiring": accounts.filter(
                 active=True,
-                date_limit__gte=now,
-                date_limit__lte=next_three_days,
+                date_limit__date__gte=today,
+                date_limit__date__lte=third_day,
             ).count(),
-            "expired": accounts.filter(date_limit__lt=now).count(),
+            "expired": accounts.filter(date_limit__date__lt=today).count(),
         }
         platforms = Platform.objects.annotate(
             account_total=Count_("count"),
@@ -940,7 +940,7 @@ class CountModulesView(View):
                 "count",
                 filter=Q(count__active=True) & (
                     Q(count__date_limit__isnull=True)
-                    | Q(count__date_limit__gte=now)
+                    | Q(count__date_limit__date__gte=today)
                 ),
             ),
         ).filter(account_total__gt=0).order_by("name")
@@ -971,21 +971,21 @@ class CountListAjax(BaseDatatableView):
         status = self.request.GET.get("status", "all").strip().lower()
         platform_id = self.request.GET.get("platform", "").strip()
         days = self.request.GET.get("days", "3").strip()
-        now = django_timezone.now()
+        today = django_timezone.localdate()
 
         if platform_id.isdigit():
             qs = qs.filter(platform_id=int(platform_id))
         if status == "active":
             qs = qs.filter(active=True).filter(
-                Q(date_limit__isnull=True) | Q(date_limit__gte=now)
+                Q(date_limit__isnull=True) | Q(date_limit__date__gte=today)
             )
         elif status == "inactive":
             qs = qs.filter(active=False)
         elif status == "expired":
-            qs = qs.filter(date_limit__lt=now)
+            qs = qs.filter(date_limit__date__lt=today)
         elif status == "expiring":
             day_number = int(days) if days in ("0", "1", "2", "3") else 3
-            target_date = django_timezone.localdate() + datetime.timedelta(days=day_number)
+            target_date = today + datetime.timedelta(days=day_number)
             qs = qs.filter(active=True, date_limit__date=target_date)
         return qs
 
@@ -1013,7 +1013,7 @@ class CountListAjax(BaseDatatableView):
         can_change = 'change_count' in permissions or '*' in permissions
         can_delete = 'delete_count' in permissions or '*' in permissions
         for item in qs:
-            now = django_timezone.now()
+            today = django_timezone.localdate()
             rest_days = "Indeterminado"
             len_profiles = item.total_profiles
             profiles_available = item.available_profiles
@@ -1023,7 +1023,8 @@ class CountListAjax(BaseDatatableView):
             link_update = ''
             link_delete = ''
             if item.date_limit:
-                rest_days = getDifference(now, item.date_limit ,  'days')
+                expiration_date = django_timezone.localtime(item.date_limit).date()
+                rest_days = (expiration_date - today).days
                 if rest_days < 0:
                     rest_days = "Vencida"
                 else:
@@ -1039,7 +1040,10 @@ class CountListAjax(BaseDatatableView):
                 link_change_date = ''
             if can_delete:
                 link_delete= f'<button type="button" id_count="{ item.id }" class="btn btn-danger delete-count">Eliminar</button>'
-            is_expired = bool(item.date_limit and item.date_limit < now)
+            is_expired = bool(
+                item.date_limit
+                and django_timezone.localtime(item.date_limit).date() < today
+            )
             state_class = (
                 "badge-danger" if is_expired
                 else "badge-success" if item.active
