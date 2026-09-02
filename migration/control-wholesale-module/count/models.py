@@ -481,17 +481,51 @@ class WholesalePublication(models.Model):
     def __str__(self):
         return f"{self.partner.username} · {self.plan.platform.name} · {self.plan.name}"
 
+    @classmethod
+    def complete_accounts_for_plan(cls, plan):
+        """Return active accounts whose complete profile capacity is available."""
+        if not plan or not plan.num_profiles:
+            return Count.objects.none()
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        active_sale = Sale.objects.filter(
+            profile__count_id=models.OuterRef("pk"),
+            renovated=False,
+            cutted=False,
+            date_limit__gte=now,
+        )
+        return Count.objects.filter(
+            plan=plan,
+            active=True,
+            date_limit__gte=now,
+        ).annotate(
+            total_profiles=models.Count("profile", distinct=True),
+            available_profiles=models.Count(
+                "profile",
+                filter=models.Q(profile__saled=False),
+                distinct=True,
+            ),
+            has_active_sale=models.Exists(active_sale),
+        ).filter(
+            total_profiles=plan.num_profiles,
+            available_profiles=plan.num_profiles,
+            has_active_sale=False,
+        ).order_by("-date_limit", "id")
+
     @property
     def available_units(self):
-        profiles, profiles_per_sale = Profile.search_profiles_no_saled_by_plan(
-            self.plan_id
-        )
-        available_profiles = profiles.count()
-        profiles_per_sale = max(int(profiles_per_sale or 1), 1)
-        units = available_profiles // profiles_per_sale
+        units = self.complete_accounts_for_plan(self.plan).count()
         if self.stock_limit:
             units = min(units, self.stock_limit)
         return units
+
+    @property
+    def next_account_days(self):
+        account = self.complete_accounts_for_plan(self.plan).first()
+        if not account or not account.date_limit:
+            return 0
+        today = datetime.datetime.now(datetime.timezone.utc).date()
+        return max((account.date_limit.date() - today).days, 0)
 
     @property
     def display_title(self):
@@ -500,6 +534,58 @@ class WholesalePublication(models.Model):
     @property
     def display_description(self):
         return self.catalog_description.strip() or self.plan.description
+
+
+class WholesalePurchase(models.Model):
+    """Idempotent purchase of one complete Control account by a wholesaler."""
+
+    partner = models.ForeignKey(
+        WholesalePartner,
+        related_name="purchases",
+        verbose_name="Mayorista",
+        on_delete=models.PROTECT,
+    )
+    publication = models.ForeignKey(
+        WholesalePublication,
+        related_name="purchases",
+        verbose_name="Publicación",
+        on_delete=models.PROTECT,
+    )
+    account = models.ForeignKey(
+        Count,
+        related_name="wholesale_purchases",
+        verbose_name="Cuenta",
+        on_delete=models.PROTECT,
+    )
+    bill = models.OneToOneField(
+        Bill,
+        related_name="wholesale_purchase",
+        verbose_name="Factura",
+        on_delete=models.PROTECT,
+    )
+    external_reference = models.CharField(
+        max_length=64,
+        verbose_name="Referencia externa",
+    )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio",
+    )
+    profiles_count = models.PositiveIntegerField(default=0, verbose_name="Perfiles")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+        unique_together = (("partner", "external_reference"),)
+        verbose_name = "Compra mayorista"
+        verbose_name_plural = "Compras mayoristas"
+
+    def __str__(self):
+        return (
+            f"{self.partner.username} · {self.account.platform.name} · "
+            f"{self.external_reference}"
+        )
 
 
 class WholesaleSlide(models.Model):

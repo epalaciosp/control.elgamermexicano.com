@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.contrib.auth.models import User, Group
 from django.http import HttpResponse, JsonResponse
+from django.db import transaction
 from .decorators import usertype_in_view
 from .forms import  *
 from .models import *
@@ -17,8 +19,11 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.core.exceptions import PermissionDenied
 import json
+import secrets
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -30,6 +35,7 @@ from .plex_partner import get_plex_market, plex_api_configured
 PERCENT_COMISSION = 4
 CONTROL_SERVICES_URL = "http://127.0.0.1:8000/count/api/wholesale/services/"
 CONTROL_PORTAL_URL = "http://127.0.0.1:8000/count/api/wholesale/portal/"
+CONTROL_PURCHASE_URL = "http://127.0.0.1:8000/count/api/wholesale/purchase/"
 CONTROL_TOKEN_FILE = Path("/etc/wholesale-integration.token")
 # if PercentCommission and PercentCommission.objects.all():
 #    PERCENT_COMISSION = PercentCommission.objects.all().first().percent
@@ -87,6 +93,45 @@ def get_control_portal(username):
         return {}, "Control rechazó temporalmente el catálogo ({}).".format(exc.code)
     except (URLError, TimeoutError, ValueError):
         return {}, "No fue posible consultar el catálogo de Control en este momento."
+
+
+def purchase_control_account(username, publication_id, reference, expected_price):
+    """Purchase one complete account through Control's idempotent private API."""
+    try:
+        token = CONTROL_TOKEN_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return {}, "La integración con Control todavía no está configurada."
+
+    body = json.dumps({
+        "publication_id": publication_id,
+        "reference": reference,
+        "expected_price": str(expected_price),
+    }).encode("utf-8")
+    request = Request(
+        CONTROL_PURCHASE_URL + quote(username),
+        data=body,
+        method="POST",
+        headers={
+            "Authorization": "Bearer " + token,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "User-Agent": "MyPlataforma-ControlPurchase/1.0",
+            "Host": "control.elgamermexicano.com",
+            "X-Forwarded-Proto": "https",
+        },
+    )
+    try:
+        with urlopen(request, timeout=15) as response:
+            return json.loads(response.read().decode("utf-8")), None
+    except HTTPError as exc:
+        try:
+            payload = json.loads(exc.read().decode("utf-8"))
+            detail = payload.get("error")
+        except (ValueError, UnicodeDecodeError):
+            detail = None
+        return {}, detail or "Control rechazó la compra ({}).".format(exc.code)
+    except (URLError, TimeoutError, ValueError):
+        return {}, "No fue posible completar la compra en Control. Inténtalo nuevamente."
 
 
 def group_control_services_by_account(services):
@@ -430,7 +475,29 @@ def PortalSectionView(request, section):
 
     if user_type == "vendedor" and section == "catalog":
         portal_feed, integration_error = get_control_portal(request.user.username)
-        catalog = portal_feed.get("catalog", [])
+        balance = Decimal(str(request.user.get_my_money() or 0))
+        catalog = []
+        for source_item in portal_feed.get("catalog", []):
+            item = dict(source_item)
+            try:
+                price = Decimal(str(item.get("price", "0")))
+            except (InvalidOperation, TypeError, ValueError):
+                price = Decimal("0")
+            whole_peso_price = price == price.to_integral_value()
+            item["purchase_reference"] = secrets.token_hex(20)
+            item["can_purchase"] = bool(
+                whole_peso_price
+                and price > 0
+                and int(item.get("available_units") or 0) > 0
+                and balance >= price
+            )
+            if not whole_peso_price:
+                item["purchase_disabled_reason"] = "Precio pendiente de ajuste"
+            elif price <= 0 or int(item.get("available_units") or 0) <= 0:
+                item["purchase_disabled_reason"] = "Sin disponibilidad"
+            elif balance < price:
+                item["purchase_disabled_reason"] = "Saldo insuficiente"
+            catalog.append(item)
         return render(request, "wholesale_catalog.html", {
             "section": section,
             "section_data": section_data,
@@ -439,7 +506,7 @@ def PortalSectionView(request, section):
             "available_units": portal_feed.get("metrics", {}).get("available_units", 0),
             "platform_names": sorted({item.get("platform", "") for item in catalog if item.get("platform")}),
             "integration_error": integration_error,
-            "balance": request.user.get_my_money(),
+            "balance": balance,
         })
 
     if user_type == "vendedor" and section == "plex":
@@ -458,6 +525,108 @@ def PortalSectionView(request, section):
         "section_data": section_data,
         "balance": request.user.get_my_money() if user_type == "vendedor" else 0,
     })
+
+
+@login_required
+@require_POST
+def WholesaleCatalogPurchaseView(request):
+    """Charge MyPlataforma balance and assign one whole Control account."""
+    if check_user_type(request) != "vendedor":
+        raise PermissionDenied
+
+    publication_id = str(request.POST.get("publication_id", "")).strip()
+    reference = str(request.POST.get("reference", "")).strip()
+    if (
+        not publication_id.isdigit()
+        or not reference.isalnum()
+        or not reference
+        or len(reference) > 64
+    ):
+        messages.error(request, "La solicitud de compra no es válida.")
+        return redirect("portal-section", section="catalog")
+
+    portal_feed, integration_error = get_control_portal(request.user.username)
+    if integration_error:
+        messages.error(request, integration_error)
+        return redirect("portal-section", section="catalog")
+
+    item = next(
+        (
+            catalog_item
+            for catalog_item in portal_feed.get("catalog", [])
+            if str(catalog_item.get("publication_id")) == publication_id
+        ),
+        None,
+    )
+    if not item:
+        messages.error(request, "Esta cuenta ya no se encuentra disponible.")
+        return redirect("portal-section", section="catalog")
+
+    try:
+        price = Decimal(str(item.get("price", "0")))
+    except (InvalidOperation, TypeError, ValueError):
+        price = Decimal("0")
+    if price <= 0 or price != price.to_integral_value():
+        messages.error(request, "El precio necesita ajustarse en Control antes de comprar.")
+        return redirect("portal-section", section="catalog")
+
+    amount = int(price)
+    marker = "ref:" + reference
+    with transaction.atomic():
+        buyer = User.objects.select_for_update().get(pk=request.user.pk)
+        previous = MoneysSaler.objects.filter(
+            saler=buyer,
+            detail__contains=marker,
+        ).order_by("-id").first()
+        if previous:
+            messages.info(request, "Esta compra ya había sido procesada.")
+            return redirect("portal-section", section="services")
+
+        latest_movement = MoneysSaler.objects.select_for_update().filter(
+            saler=buyer,
+        ).order_by("-id").first()
+        current_balance = int(latest_movement.money or 0) if latest_movement else 0
+        if current_balance < amount:
+            messages.error(
+                request,
+                "Saldo insuficiente. Necesitas ${} y tienes ${}.".format(
+                    amount,
+                    current_balance,
+                ),
+            )
+            return redirect("portal-section", section="catalog")
+
+        purchase, purchase_error = purchase_control_account(
+            buyer.username,
+            int(publication_id),
+            reference,
+            price,
+        )
+        if purchase_error:
+            messages.error(request, purchase_error)
+            return redirect("portal-section", section="catalog")
+
+        if Decimal(str(purchase.get("price", "0"))) != price:
+            messages.error(request, "Control devolvió un precio diferente; no se descontó saldo.")
+            return redirect("portal-section", section="catalog")
+
+        MoneysSaler.objects.create(
+            saler=buyer,
+            money=current_balance - amount,
+            transaction_money=amount,
+            detail=(
+                "Compra mayorista #{} {}".format(
+                    purchase.get("purchase_id"),
+                    marker,
+                )
+            ),
+        )
+
+    messages.success(
+        request,
+        "Compra completada. La cuenta ya aparece en Mis cuentas.",
+    )
+    return redirect("portal-section", section="services")
 
 
 @login_required

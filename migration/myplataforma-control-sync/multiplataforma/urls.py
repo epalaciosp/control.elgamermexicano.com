@@ -30,6 +30,11 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     path("", views.IndexView, name="index"),
+    path(
+        "portal/catalog/purchase/",
+        views.WholesaleCatalogPurchaseView,
+        name="wholesale-catalog-purchase",
+    ),
     path("portal/<slug:section>/", views.PortalSectionView, name="portal-section"),
     path("mayoristas/", views.WholesalePartnersView, name="wholesale-partners"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(

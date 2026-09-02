@@ -20,6 +20,7 @@ from .models import (
     PromotionSale,
     WholesalePartner,
     WholesalePublication,
+    WholesalePurchase,
     WholesaleSlide,
 )
 from user.models import Customer, Action
@@ -35,6 +36,7 @@ from .libraries import (
 )
 import datetime, json
 import secrets
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from django.contrib import messages
 from count.libraries import CalculateDateLimit
@@ -53,8 +55,10 @@ from django.contrib.auth.mixins import (
 )
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q, Count as Count_, Sum
+from django.db import transaction
 from django.urls import reverse_lazy
 from django.http import Http404
+from django.views.decorators.csrf import csrf_exempt
 
 #class GetValidSalesView(View):
 #    def get(self, request, customer_id):
@@ -1821,7 +1825,51 @@ class WholesaleSuperuserMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser
 
 
+def _sync_default_wholesale_publications(created_by=None):
+    """Publish complete-account plans that already have a configured price."""
+    created = 0
+    partners = list(WholesalePartner.objects.filter(active=True))
+    if not partners:
+        return created
+
+    plans = Plan.objects.filter(
+        active=True,
+        platform__active=True,
+        count__active=True,
+    ).select_related("platform").distinct()
+    for plan in plans:
+        if not WholesalePublication.complete_accounts_for_plan(plan).exists():
+            continue
+        configured_price = Price.objects.filter(
+            platform=plan.platform,
+            num_profiles=plan.num_profiles,
+            price__gt=0,
+        ).order_by("id").first()
+        if not configured_price:
+            continue
+        for partner in partners:
+            _, was_created = WholesalePublication.objects.get_or_create(
+                partner=partner,
+                plan=plan,
+                defaults={
+                    "wholesale_price": configured_price.price,
+                    "catalog_title": plan.platform.name + " · Cuenta completa",
+                    "catalog_description": (
+                        "Cuenta completa con " + str(plan.num_profiles)
+                        + " perfil(es) disponibles."
+                    ),
+                    "created_by": created_by,
+                    "active": True,
+                },
+            )
+            created += int(was_created)
+    return created
+
+
 def wholesale_inventory_context(request, form=None, editing_publication=None):
+    _sync_default_wholesale_publications(
+        request.user if request.user.is_superuser else None
+    )
     all_publications = WholesalePublication.objects.select_related(
         "partner",
         "partner__customer",
@@ -1854,6 +1902,13 @@ def wholesale_inventory_context(request, form=None, editing_publication=None):
         "form": form or WholesalePublicationForm(),
         "editing_publication": editing_publication,
         "publications": publication_rows,
+        "recent_purchases": WholesalePurchase.objects.select_related(
+            "partner",
+            "partner__customer",
+            "publication__plan__platform",
+            "account",
+            "bill",
+        )[:50],
         "partners": WholesalePartner.objects.select_related("customer").order_by(
             "username"
         ),
@@ -1868,6 +1923,7 @@ def wholesale_inventory_context(request, form=None, editing_publication=None):
             .distinct()
             .count(),
             "available": sum(item.available_units for item in active_publications),
+            "purchases": WholesalePurchase.objects.count(),
         },
     }
 
@@ -2088,6 +2144,7 @@ class WholesalePortalApiView(View):
             username__iexact=kwargs["username"],
             active=True,
         )
+        _sync_default_wholesale_publications()
         publications = WholesalePublication.objects.filter(
             partner=partner,
             active=True,
@@ -2101,6 +2158,8 @@ class WholesalePortalApiView(View):
         catalog = []
         for publication in publications:
             available = publication.available_units
+            if available <= 0:
+                continue
             image = publication.catalog_image or publication.plan.platform.logo
             catalog.append({
                 "publication_id": publication.id,
@@ -2112,6 +2171,8 @@ class WholesalePortalApiView(View):
                 "description": publication.display_description,
                 "price": str(publication.wholesale_price),
                 "available_units": available,
+                "profiles_per_account": publication.plan.num_profiles,
+                "next_account_days": publication.next_account_days,
                 "image_url": _public_media_url(image),
                 "featured": publication.featured,
                 "sort_order": publication.sort_order,
@@ -2167,6 +2228,174 @@ class WholesalePortalApiView(View):
             "slides": slide_rows,
             "metrics": metrics,
         })
+
+
+def _wholesale_purchase_payload(purchase, idempotent=False):
+    account = purchase.account
+    return {
+        "ok": True,
+        "idempotent": idempotent,
+        "purchase_id": purchase.id,
+        "external_reference": purchase.external_reference,
+        "price": str(purchase.price),
+        "account_id": account.id,
+        "platform": account.platform.name,
+        "plan": account.plan.name if account.plan_id else "",
+        "profiles_count": purchase.profiles_count,
+        "expires_at": account.date_limit.isoformat() if account.date_limit else "",
+    }
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class WholesalePurchaseApiView(View):
+    """Atomically sell one complete account from Control to a wholesaler."""
+
+    def post(self, request, *args, **kwargs):
+        authorized, error_response = _wholesale_api_authorized(request)
+        if not authorized:
+            return error_response
+
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            return JsonResponse({"error": "Solicitud inválida"}, status=400)
+
+        reference = str(payload.get("reference", "")).strip()
+        publication_id = str(payload.get("publication_id", "")).strip()
+        if (
+            not reference
+            or len(reference) > 64
+            or not reference.isalnum()
+            or not publication_id.isdigit()
+        ):
+            return JsonResponse({"error": "Referencia de compra inválida"}, status=400)
+
+        try:
+            expected_price = Decimal(str(payload.get("expected_price", "")))
+        except (InvalidOperation, TypeError, ValueError):
+            return JsonResponse({"error": "Precio de compra inválido"}, status=400)
+
+        with transaction.atomic():
+            partner = get_object_or_404(
+                WholesalePartner.objects.select_for_update(),
+                username__iexact=kwargs["username"],
+                active=True,
+            )
+            existing = WholesalePurchase.objects.select_related(
+                "account__platform",
+                "account__plan",
+            ).filter(
+                partner=partner,
+                external_reference=reference,
+            ).first()
+            if existing:
+                return JsonResponse(_wholesale_purchase_payload(existing, True))
+
+            publication = get_object_or_404(
+                WholesalePublication.objects.select_for_update().select_related(
+                    "plan__platform",
+                    "created_by",
+                ),
+                pk=int(publication_id),
+                partner=partner,
+                active=True,
+                plan__active=True,
+                plan__platform__active=True,
+            )
+            if publication.wholesale_price != expected_price:
+                return JsonResponse(
+                    {"error": "El precio cambió; actualiza el catálogo antes de comprar"},
+                    status=409,
+                )
+
+            candidate_ids = list(
+                publication.complete_accounts_for_plan(publication.plan)
+                .values_list("id", flat=True)[:50]
+            )
+            selected_account = None
+            selected_profiles = []
+            now = django_timezone.now()
+            for account_id in candidate_ids:
+                account = Count.objects.select_for_update().filter(
+                    pk=account_id,
+                    active=True,
+                    date_limit__gte=now,
+                ).select_related("platform", "plan").first()
+                if not account:
+                    continue
+                profiles = list(
+                    Profile.objects.select_for_update().filter(
+                        count=account,
+                    ).order_by("id")
+                )
+                profile_ids = [profile.id for profile in profiles]
+                occupied = (
+                    len(profiles) != publication.plan.num_profiles
+                    or any(profile.saled for profile in profiles)
+                    or Sale.objects.filter(
+                        profile_id__in=profile_ids,
+                        renovated=False,
+                        cutted=False,
+                        date_limit__gte=now,
+                    ).exists()
+                )
+                if not occupied:
+                    selected_account = account
+                    selected_profiles = profiles
+                    break
+
+            if not selected_account:
+                return JsonResponse(
+                    {"error": "La última cuenta disponible acaba de venderse"},
+                    status=409,
+                )
+
+            saler = publication.created_by or User.objects.filter(
+                username__iexact="epalacios10",
+                is_superuser=True,
+            ).first() or User.objects.filter(is_superuser=True).order_by("id").first()
+            if not saler:
+                return JsonResponse(
+                    {"error": "No hay un administrador disponible para registrar la venta"},
+                    status=503,
+                )
+
+            bill = Bill.objects.create(
+                customer=partner.customer,
+                saler=saler,
+                total=publication.wholesale_price,
+            )
+            remaining_days = max(
+                (selected_account.date_limit.date() - django_timezone.localdate()).days,
+                1,
+            )
+            months = max((remaining_days + 29) // 30, 1)
+            for profile in selected_profiles:
+                saler.sale_profile(
+                    profile,
+                    months,
+                    selected_account.date_limit,
+                    bill,
+                )
+
+            purchase = WholesalePurchase.objects.create(
+                partner=partner,
+                publication=publication,
+                account=selected_account,
+                bill=bill,
+                external_reference=reference,
+                price=publication.wholesale_price,
+                profiles_count=len(selected_profiles),
+            )
+            Action.action_register(
+                saler,
+                "Compra mayorista #" + str(purchase.id)
+                + ": " + partner.username
+                + " adquirió cuenta id = " + str(selected_account.id),
+            )
+            response_payload = _wholesale_purchase_payload(purchase)
+
+        return JsonResponse(response_payload, status=201)
 
 
 class WholesaleServicesApiView(View):

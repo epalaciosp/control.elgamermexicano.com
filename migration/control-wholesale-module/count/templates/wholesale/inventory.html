@@ -6,12 +6,13 @@
   .wholesale-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
   .wholesale-heading h2 { font-size: 1.45rem; font-weight: 700; margin: 0 0 6px; }
   .wholesale-muted { color: #8f99aa; }
-  .wholesale-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .wholesale-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
   .wholesale-card { background: #191e27; border: 1px solid #2a3240; border-radius: 12px; padding: 18px; }
   .wholesale-stat { border-left: 3px solid #00c875; }
   .wholesale-stat:nth-child(2) { border-left-color: #1597e5; }
   .wholesale-stat:nth-child(3) { border-left-color: #8b5cf6; }
   .wholesale-stat:nth-child(4) { border-left-color: #f2b01e; }
+  .wholesale-stat:nth-child(5) { border-left-color: #ef5da8; }
   .wholesale-stat span { color: #929cad; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
   .wholesale-stat strong { display: block; font-size: 1.7rem; line-height: 1.2; margin-top: 7px; }
   .wholesale-panel { background: #191e27; border: 1px solid #2a3240; border-radius: 12px; padding: 22px; margin-bottom: 22px; }
@@ -80,6 +81,7 @@
     <div class="wholesale-card wholesale-stat"><span>Publicaciones activas</span><strong>{{ stats.publications }}</strong></div>
     <div class="wholesale-card wholesale-stat"><span>Planes publicados</span><strong>{{ stats.plans }}</strong></div>
     <div class="wholesale-card wholesale-stat"><span>Unidades disponibles</span><strong>{{ stats.available }}</strong></div>
+    <div class="wholesale-card wholesale-stat"><span>Compras mayoristas</span><strong>{{ stats.purchases }}</strong></div>
   </div>
 
   <section class="wholesale-panel">
@@ -185,6 +187,34 @@
           </tr>
           {% empty %}
           <tr><td colspan="8" class="wholesale-empty">No hay publicaciones con estos filtros.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wholesale-panel">
+    <div class="wholesale-panel-title">
+      <h3>Compras realizadas en MyPlataforma</h3>
+      <span class="wholesale-muted">Cada compra queda ligada al mayorista, la cuenta completa y su factura de Control.</span>
+    </div>
+    <div class="wholesale-table-wrap">
+      <table class="wholesale-table">
+        <thead><tr><th>Compra</th><th>Mayorista</th><th>Cuenta asignada</th><th>Plataforma y plan</th><th>Perfiles</th><th>Importe</th><th>Factura</th><th>Fecha</th></tr></thead>
+        <tbody>
+          {% for purchase in recent_purchases %}
+          <tr>
+            <td data-label="Compra"><strong>#{{ purchase.id }}</strong><br><small>{{ purchase.external_reference }}</small></td>
+            <td data-label="Mayorista"><strong>{{ purchase.partner.username }}</strong><br><small>{{ purchase.partner.customer.name }}</small></td>
+            <td data-label="Cuenta asignada"><strong>{{ purchase.account.email }}</strong><br><small>ID {{ purchase.account_id }}</small></td>
+            <td data-label="Plataforma y plan"><strong>{{ purchase.publication.plan.platform.name }}</strong><br><small>{{ purchase.publication.plan.name }}</small></td>
+            <td data-label="Perfiles">{{ purchase.profiles_count }}</td>
+            <td data-label="Importe"><strong>${{ purchase.price|floatformat:2 }}</strong></td>
+            <td data-label="Factura">#{{ purchase.bill_id }}</td>
+            <td data-label="Fecha">{{ purchase.created_at|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="wholesale-empty">Todavía no hay compras realizadas desde MyPlataforma.</td></tr>
           {% endfor %}
         </tbody>
       </table>

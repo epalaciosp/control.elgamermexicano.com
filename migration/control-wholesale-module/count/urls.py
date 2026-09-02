@@ -42,6 +42,7 @@ urlpatterns = [
         path('wholesale/slide/<int:pk>/edit', views.WholesaleSlideEditView.as_view(), name='wholesale-slide-edit'),
         path('wholesale/slide/<int:pk>/toggle', views.WholesaleSlideToggleView.as_view(), name='wholesale-slide-toggle'),
         path('api/wholesale/portal/<str:username>', views.WholesalePortalApiView.as_view(), name='wholesale-portal-api'),
+        path('api/wholesale/purchase/<str:username>', views.WholesalePurchaseApiView.as_view(), name='wholesale-purchase-api'),
         path('api/wholesale/services/<str:username>', views.WholesaleServicesApiView.as_view(), name='wholesale-services-api'),
 
 

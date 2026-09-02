@@ -29,6 +29,17 @@
   .catalog-price span { color: #6e7b8f; display: block; font-size: 8px; font-weight: 800; text-transform: uppercase; }
   .catalog-price strong { color: #fff; font-size: 22px; }
   .catalog-state { background: #20303a; border-radius: 8px; color: #55dea1; font-size: 10px; font-weight: 750; padding: 8px 10px; }
+  .catalog-meta { display: flex; flex-wrap: wrap; gap: 7px; margin: -6px 0 15px; }
+  .catalog-meta span { background: #1d2834; border: 1px solid #2c3948; border-radius: 999px; color: #a8b4c3; font-size: 9px; font-weight: 700; padding: 6px 9px; }
+  .catalog-purchase { margin-top: 13px; }
+  .catalog-buy { background: #00c875; border: 0; border-radius: 10px; color: #06150e; cursor: pointer; font-size: 12px; font-weight: 850; min-height: 44px; padding: 10px 14px; transition: filter .2s,transform .2s; width: 100%; }
+  .catalog-buy:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+  .catalog-buy:disabled { background: #2b3541; color: #7e8998; cursor: not-allowed; }
+  .catalog-buy-note { color: #7f8ca0; display: block; font-size: 9px; margin-top: 7px; text-align: center; }
+  .catalog-message { border: 1px solid #324051; border-radius: 11px; margin-top: 14px; padding: 12px 15px; }
+  .catalog-message.success { background: rgba(0,200,117,.1); border-color: rgba(0,200,117,.35); color: #62e6aa; }
+  .catalog-message.error { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.35); color: #ff9c9c; }
+  .catalog-message.info { background: rgba(21,151,229,.1); border-color: rgba(21,151,229,.35); color: #83cfff; }
   .catalog-empty,.catalog-error { background: #171d27; border: 1px solid #293645; border-radius: 14px; color: #98a2b3; margin-top: 18px; padding: 38px; text-align: center; }
   .catalog-error { border-color: rgba(239,68,68,.35); color: #ff9c9c; }
   @media(max-width:1100px){.catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
@@ -37,6 +48,7 @@
 
 <div class="catalog-page">
   <section class="catalog-hero"><span class="catalog-eyebrow">Inventario en tiempo real · Control</span><h2>Catálogo mayorista</h2><p>Compra cuentas completas para administrarlas y revender sus perfiles a tus clientes. La existencia se calcula directamente desde Control.</p><div class="catalog-summary"><span class="summary-pill">{{ catalog_total }} productos publicados</span><span class="summary-pill">{{ available_units }} cuentas disponibles</span></div></section>
+  {% for message in messages %}<div class="catalog-message {{ message.tags }}">{{ message }}</div>{% endfor %}
   {% if integration_error %}<div class="catalog-error"><i class="ti-alert"></i> {{ integration_error }}</div>{% endif %}
   {% if catalog %}
   <section class="catalog-tools"><input id="catalogSearch" class="catalog-input" type="search" placeholder="Buscar plataforma, cuenta o plan"><select id="catalogPlatform" class="catalog-select"><option value="">Todas las plataformas</option>{% for platform in platform_names %}<option value="{{ platform|lower }}">{{ platform }}</option>{% endfor %}</select></section>
@@ -44,7 +56,23 @@
     {% for item in catalog %}
     <article class="catalog-card" data-catalog-card data-platform="{{ item.platform|lower }}">
       <div class="catalog-media">{% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.title }}" loading="lazy">{% endif %}{% if item.featured %}<span class="featured-badge">Destacado</span>{% endif %}<span class="stock-badge">{{ item.available_units }} disponibles</span></div>
-      <div class="catalog-copy"><span class="catalog-platform">{{ item.platform }}</span><h3>{{ item.title }}</h3><span class="catalog-plan">{{ item.plan }}</span><p class="catalog-description">{{ item.description|default:'Cuenta completa disponible para venta mayorista.' }}</p><footer class="catalog-footer"><div class="catalog-price"><span>Precio mayorista</span><strong>${{ item.price|intcomma }}</strong></div><span class="catalog-state">Cuenta completa</span></footer></div>
+      <div class="catalog-copy">
+        <span class="catalog-platform">{{ item.platform }}</span>
+        <h3>{{ item.title }}</h3>
+        <span class="catalog-plan">{{ item.plan }}</span>
+        <p class="catalog-description">{{ item.description|default:'Cuenta completa disponible para venta mayorista.' }}</p>
+        <div class="catalog-meta"><span>{{ item.profiles_per_account }} perfiles incluidos</span><span>{{ item.next_account_days }} días de vigencia mínima</span></div>
+        <footer class="catalog-footer"><div class="catalog-price"><span>Precio mayorista</span><strong>${{ item.price|intcomma }}</strong></div><span class="catalog-state">Cuenta completa</span></footer>
+        <form class="catalog-purchase" method="post" action="{% url 'wholesale-catalog-purchase' %}">
+          {% csrf_token %}
+          <input type="hidden" name="publication_id" value="{{ item.publication_id }}">
+          <input type="hidden" name="reference" value="{{ item.purchase_reference }}">
+          <button class="catalog-buy" type="submit" {% if not item.can_purchase %}disabled{% else %}onclick="return confirm('¿Confirmas la compra de esta cuenta completa por ${{ item.price }}?')"{% endif %}>
+            {% if item.can_purchase %}Comprar cuenta completa · ${{ item.price|intcomma }}{% else %}{{ item.purchase_disabled_reason }}{% endif %}
+          </button>
+          {% if not item.can_purchase and item.purchase_disabled_reason == 'Saldo insuficiente' %}<small class="catalog-buy-note">Saldo actual: ${{ balance|intcomma }}</small>{% endif %}
+        </form>
+      </div>
     </article>
     {% endfor %}
   </section>
