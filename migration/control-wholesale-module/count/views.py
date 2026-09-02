@@ -54,7 +54,7 @@ from django.contrib.auth.mixins import (
     UserPassesTestMixin,
 )
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.db.models import Q, Count as Count_, Sum
+from django.db.models import Q, Count as Count_, Sum, Exists, OuterRef
 from django.db import transaction
 from django.urls import reverse_lazy
 from django.http import Http404
@@ -124,15 +124,18 @@ class DashboardView(View):
             next_month_start = month_start.replace(month=month_start.month + 1)
         next_week = now + datetime.timedelta(days=7)
 
+        wholesale_customer_ids = WholesalePartner.objects.values("customer_id")
         active_sales = Sale.objects.filter(
             renovated=False,
             cutted=False,
             date_limit__gte=now,
-        )
+        ).exclude(bill__customer_id__in=wholesale_customer_ids)
         active_customer_count = active_sales.values(
             "bill__customer_id"
         ).distinct().count()
-        total_customers = Customer.objects.count()
+        total_customers = Customer.objects.exclude(
+            id__in=wholesale_customer_ids,
+        ).count()
 
         month_bills = Bill.objects.filter(
             date__gte=month_start,
@@ -226,29 +229,35 @@ class CreatePlan(View):
             return redirect("platform-list")
 
     def post(self, request, *args, **kwargs):
-
-        plan = Plan.objects.create(platform = self.platform,
-                                         name = request.POST['name'],
-                                         num_profiles = request.POST['num_profiles'],
-                                         have_link = request.POST['have_link'],
-                                         active = request.POST['active'],
-                                         description = request.POST['description']
-                                         )
-        return redirect('update-platform', self.platform.id)
+        form = self.form_class(self.platform, request.POST)
+        if form.is_valid():
+            plan = form.save(commit=False)
+            plan.platform = self.platform
+            plan.save()
+            return redirect('update-platform', self.platform.id)
+        return render(request, self.template_name, {'form': form, 'platform': self.platform})
 
 @method_decorator(permissions_in_view, name='dispatch')
 @method_decorator(login_required, name='dispatch')
 class UpdatePlanView(UpdateView):
 
     model = Plan
-    fields = ["name", "num_profiles", "active", "have_link",  "description"]
+    fields = [
+        "name",
+        "num_profiles",
+        "sale_price",
+        "wholesale_price",
+        "active",
+        "have_link",
+        "description",
+    ]
     template_name = "plan/update.html"
 
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        platform = self.get_object()
-        context['platform_name'] = platform.name
+        plan = self.object
+        context['platform_name'] = plan.platform.name
         return context
 
     def get_success_url(self):
@@ -307,6 +316,13 @@ class CreateCount(View):
             platform.name.strip().casefold() == "iptv ibo pro player"
         )
         is_plus_code = is_plus_code_platform(platform.name)
+        try:
+            sale_price = Decimal(request.POST.get("sale_price") or "0")
+            wholesale_price = Decimal(request.POST.get("wholesale_price") or "0")
+        except InvalidOperation:
+            return HttpResponse("Los precios no son válidos.", status=400)
+        if sale_price < 0 or wholesale_price < 0:
+            return HttpResponse("Los precios no pueden ser negativos.", status=400)
         if is_plus_code:
             plus_code = request.POST.get("password", "").strip()
             expiration = request.POST.get("date_limit", "").strip()
@@ -335,6 +351,8 @@ class CreateCount(View):
                 email_password="",
                 link="",
                 date_limit=expiration,
+                sale_price=sale_price,
+                wholesale_price=wholesale_price,
             )
             new_count.email = "Código Plus #" + str(new_count.id)
             new_count.save(update_fields=["email"])
@@ -381,6 +399,8 @@ class CreateCount(View):
                 email_password="",
                 link="",
                 date_limit=expiration,
+                sale_price=sale_price,
+                wholesale_price=wholesale_price,
             )
             for profile_number in range(1, 7):
                 Profile.objects.create(
@@ -409,6 +429,8 @@ class CreateCount(View):
                 password="",
                 email_password="",
                 date_limit=request.POST['date_limit'],
+                sale_price=sale_price,
+                wholesale_price=wholesale_price,
             )
             new_count.email = "Lista IBO #" + str(new_count.id)
             new_count.save(update_fields=["email"])
@@ -428,7 +450,9 @@ class CreateCount(View):
                                          link=request.POST['link'] if 'link' in request.POST else "",
                                          password = request.POST['password'],
                                          email_password="" if is_ibo_player else request.POST['email_password'],
-                                         date_limit = request.POST['date_limit']
+                                         date_limit = request.POST['date_limit'],
+                                         sale_price=sale_price,
+                                         wholesale_price=wholesale_price,
                                          )
 
         for item in request.POST:
@@ -470,6 +494,13 @@ class UpdateCount(UpdateView):
     def post(self, request, id, *args, **kwargs):
 
         count = Count.objects.filter(id=id).first()
+        try:
+            count.sale_price = Decimal(request.POST.get("sale_price") or "0")
+            count.wholesale_price = Decimal(request.POST.get("wholesale_price") or "0")
+        except InvalidOperation:
+            return HttpResponse("Los precios no son válidos.", status=400)
+        if count.sale_price < 0 or count.wholesale_price < 0:
+            return HttpResponse("Los precios no pueden ser negativos.", status=400)
         if is_chatgpt_plus_platform(count.platform.name):
             email = request.POST.get("email", "").strip()
             expiration = request.POST.get("date_limit", "").strip()
@@ -488,7 +519,12 @@ class UpdateCount(UpdateView):
                 )
             count.email = email
             count.date_limit = expiration
-            count.save(update_fields=["email", "date_limit"])
+            count.save(update_fields=[
+                "email",
+                "date_limit",
+                "sale_price",
+                "wholesale_price",
+            ])
             return redirect("count-list")
 
         if is_plus_code_platform(count.platform.name):
@@ -511,7 +547,12 @@ class UpdateCount(UpdateView):
                 )
             count.password = plus_code
             count.date_limit = expiration
-            count.save(update_fields=["password", "date_limit"])
+            count.save(update_fields=[
+                "password",
+                "date_limit",
+                "sale_price",
+                "wholesale_price",
+            ])
             return redirect("count-list")
 
         if count.platform.name.strip().casefold() == "iptv ibo pro player":
@@ -520,7 +561,12 @@ class UpdateCount(UpdateView):
                 return HttpResponse("Ingresa la lista de reproducción.", status=400)
             count.link = playlist
             count.date_limit = request.POST['date_limit']
-            count.save(update_fields=["link", "date_limit"])
+            count.save(update_fields=[
+                "link",
+                "date_limit",
+                "sale_price",
+                "wholesale_price",
+            ])
             existing_numbers = set(
                 Profile.objects.filter(count=count).values_list('profile', flat=True)
             )
@@ -540,6 +586,15 @@ class UpdateCount(UpdateView):
             count.link = request.POST['link']
         count.country = country
         count.date_limit = request.POST['date_limit']
+        selected_plan_id = request.POST.get("plan")
+        if selected_plan_id:
+            selected_plan = Plan.objects.filter(
+                pk=selected_plan_id,
+                platform=count.platform,
+                active=True,
+            ).first()
+            if selected_plan:
+                count.plan = selected_plan
         count.save()
         for item in request.POST:
             if item.isnumeric():
@@ -879,8 +934,8 @@ class CountModulesView(View):
 @method_decorator(login_required, name='dispatch')
 class CountListAjax(BaseDatatableView):
 
-    columns = ['Plataforma', 'Plan', 'Correo', 'Perfiles', 'Disponibles', 'Contraseña de cuenta', 'Contraseña de correo', 'pais', 'Vence', 'Estado', 'link']
-    order_columns = ['platform__name', 'plan__name', 'email', '', '', '', '', 'country__country', 'date_limit', 'active', '']
+    columns = ['Plataforma', 'Plan', 'Correo', 'Perfiles', 'Disponibles', 'Contraseña de cuenta', 'Contraseña de correo', 'pais', 'Vence', 'Estado', 'Precio venta', 'Precio mayoreo', 'link']
+    order_columns = ['platform__name', 'plan__name', 'email', '', '', '', '', 'country__country', 'date_limit', 'active', 'sale_price', 'wholesale_price', '']
     model = Count
     #max_display_length = 500
 
@@ -997,6 +1052,8 @@ class CountListAjax(BaseDatatableView):
                     item.country.country,
                     rest_days,
                     state_html,
+                    str(item.sale_price),
+                    str(item.wholesale_price),
                     item.link,
                     link_change_password,
                     link_change_password_email,
@@ -1016,6 +1073,8 @@ class CountListAjax(BaseDatatableView):
                     item.country.country,
                     rest_days,
                     state_html,
+                    str(item.sale_price),
+                    str(item.wholesale_price),
                     item.link,
                     link_change_password,
                     link_change_password_email,
@@ -1896,7 +1955,15 @@ def wholesale_inventory_context(request, form=None, editing_publication=None):
         )
 
     publication_rows = list(publications)
-    active_publications = list(all_publications.filter(active=True))
+    complete_accounts_count = Count.complete_available().count()
+    available_plan_rows = []
+    for plan in Plan.objects.filter(
+        active=True,
+        platform__active=True,
+    ).select_related("platform"):
+        units = _available_profiles_for_plan(plan).count() // max(plan.num_profiles, 1)
+        if units:
+            available_plan_rows.append((plan, units))
 
     return {
         "form": form or WholesalePublicationForm(),
@@ -1906,7 +1973,9 @@ def wholesale_inventory_context(request, form=None, editing_publication=None):
             "partner",
             "partner__customer",
             "publication__plan__platform",
-            "account",
+            "account__platform",
+            "account__plan",
+            "plan__platform",
             "bill",
         )[:50],
         "partners": WholesalePartner.objects.select_related("customer").order_by(
@@ -1917,12 +1986,11 @@ def wholesale_inventory_context(request, form=None, editing_publication=None):
         "search_query": search,
         "stats": {
             "partners": WholesalePartner.objects.filter(active=True).count(),
-            "publications": all_publications.filter(active=True).count(),
-            "plans": all_publications.filter(active=True)
-            .values("plan_id")
-            .distinct()
-            .count(),
-            "available": sum(item.available_units for item in active_publications),
+            "complete_accounts": complete_accounts_count,
+            "plans": len(available_plan_rows),
+            "available": complete_accounts_count + sum(
+                units for _, units in available_plan_rows
+            ),
             "purchases": WholesalePurchase.objects.count(),
         },
     }
@@ -2131,6 +2199,31 @@ def _public_media_url(field):
     return "https://control.elgamermexicano.com" + url
 
 
+def _available_profiles_for_plan(plan, now=None):
+    """Live, unassigned profiles eligible for one plan purchase."""
+    now = now or django_timezone.now()
+    profiles, _ = Profile.search_profiles_no_saled_by_plan(plan.id)
+    active_sale = Sale.objects.filter(
+        profile_id=OuterRef("pk"),
+        renovated=False,
+        cutted=False,
+        date_limit__gte=now,
+    )
+    return profiles.filter(
+        count__active=True,
+        count__platform__active=True,
+        count__date_limit__gte=now,
+    ).annotate(
+        has_active_sale=Exists(active_sale),
+    ).filter(
+        has_active_sale=False,
+    ).select_related(
+        "count",
+        "count__platform",
+        "count__plan",
+    ).order_by("-count__date_limit", "id")
+
+
 class WholesalePortalApiView(View):
     """Catálogo, anuncios y métricas que MyPlataforma consume desde Control."""
 
@@ -2144,39 +2237,93 @@ class WholesalePortalApiView(View):
             username__iexact=kwargs["username"],
             active=True,
         )
-        _sync_default_wholesale_publications()
-        publications = WholesalePublication.objects.filter(
-            partner=partner,
-            active=True,
-            plan__active=True,
-            plan__platform__active=True,
-        ).select_related("plan", "plan__platform").order_by(
-            "sort_order",
-            "plan__platform__name",
-            "plan__name",
-        )
         catalog = []
-        for publication in publications:
-            available = publication.available_units
-            if available <= 0:
-                continue
-            image = publication.catalog_image or publication.plan.platform.logo
+        today = django_timezone.localdate()
+
+        # Every completely free account is published as its own whole-account
+        # offer. Credentials are never exposed until the purchase succeeds.
+        complete_accounts = Count.complete_available().select_related(
+            "platform",
+            "plan",
+        )
+        for account in complete_accounts:
+            profiles_count = int(account.total_profiles or 0)
             catalog.append({
-                "publication_id": publication.id,
-                "platform_id": publication.plan.platform_id,
-                "platform": publication.plan.platform.name,
-                "plan_id": publication.plan_id,
-                "plan": publication.plan.name,
-                "title": publication.display_title,
-                "description": publication.display_description,
-                "price": str(publication.wholesale_price),
-                "available_units": available,
-                "profiles_per_account": publication.plan.num_profiles,
-                "next_account_days": publication.next_account_days,
-                "image_url": _public_media_url(image),
-                "featured": publication.featured,
-                "sort_order": publication.sort_order,
+                "offer_key": "account-" + str(account.id),
+                "offer_type": "account",
+                "platform_id": account.platform_id,
+                "platform": account.platform.name,
+                "plan_id": account.plan_id,
+                "plan": account.plan.name if account.plan_id else "Cuenta completa",
+                "title": account.platform.name + " · Cuenta completa",
+                "description": "Cuenta completa con {} perfil(es) disponibles.".format(profiles_count),
+                "price": str(account.wholesale_price),
+                "available_units": 1,
+                "profiles_per_account": profiles_count,
+                "next_account_days": max((account.date_limit.date() - today).days, 0),
+                "image_url": _public_media_url(account.platform.logo),
+                "featured": False,
+                "sort_order": 0,
             })
+
+        # Plans are separate offers. A one-profile plan allows the wholesaler
+        # to buy only one profile; larger plans preserve their configured size.
+        plans = Plan.objects.filter(
+            active=True,
+            platform__active=True,
+        ).select_related("platform").order_by("platform__name", "num_profiles", "name")
+        overrides = {
+            publication.plan_id: publication
+            for publication in WholesalePublication.objects.filter(
+                partner=partner,
+            ).select_related("plan", "plan__platform")
+        }
+        now = django_timezone.now()
+        for plan in plans:
+            profiles = _available_profiles_for_plan(plan, now)
+            available_units = profiles.count() // max(plan.num_profiles, 1)
+            if available_units <= 0:
+                continue
+            first_profile = profiles.first()
+            override = overrides.get(plan.id)
+            if override and not override.active:
+                continue
+            image = (
+                override.catalog_image
+                if override and override.catalog_image
+                else plan.platform.logo
+            )
+            catalog.append({
+                "offer_key": "plan-" + str(plan.id),
+                "offer_type": "plan",
+                "platform_id": plan.platform_id,
+                "platform": plan.platform.name,
+                "plan_id": plan.id,
+                "plan": plan.name,
+                "title": override.display_title if override else plan.platform.name + " · " + plan.name,
+                "description": override.display_description if override else (
+                    "Plan mayorista de {} perfil(es).".format(plan.num_profiles)
+                ),
+                "price": str(
+                    override.wholesale_price if override else plan.wholesale_price
+                ),
+                "available_units": available_units,
+                "profiles_per_account": plan.num_profiles,
+                "next_account_days": max(
+                    (first_profile.count.date_limit.date() - today).days,
+                    0,
+                ),
+                "image_url": _public_media_url(image),
+                "featured": bool(override and override.featured),
+                "sort_order": override.sort_order if override else 10,
+            })
+
+        catalog.sort(key=lambda item: (
+            item["sort_order"],
+            item["platform"].casefold(),
+            item["offer_type"],
+            item["title"].casefold(),
+        ))
 
         now = django_timezone.now()
         slides = WholesaleSlide.objects.filter(active=True).filter(
@@ -2231,24 +2378,37 @@ class WholesalePortalApiView(View):
 
 
 def _wholesale_purchase_payload(purchase, idempotent=False):
-    account = purchase.account
+    sales = list(Sale.objects.filter(bill=purchase.bill).select_related(
+        "profile__count__platform",
+        "profile__count__plan",
+    ).order_by("id"))
+    first_sale = sales[0] if sales else None
+    account = purchase.account or (
+        first_sale.profile.count if first_sale else None
+    )
+    plan = purchase.plan or (account.plan if account and account.plan_id else None)
+    expires_at = min(
+        (sale.date_limit for sale in sales if sale.date_limit),
+        default=None,
+    )
     return {
         "ok": True,
         "idempotent": idempotent,
         "purchase_id": purchase.id,
         "external_reference": purchase.external_reference,
+        "purchase_type": purchase.purchase_type,
         "price": str(purchase.price),
-        "account_id": account.id,
-        "platform": account.platform.name,
-        "plan": account.plan.name if account.plan_id else "",
+        "account_id": account.id if account else None,
+        "platform": account.platform.name if account else plan.platform.name,
+        "plan": plan.name if plan else "Cuenta completa",
         "profiles_count": purchase.profiles_count,
-        "expires_at": account.date_limit.isoformat() if account.date_limit else "",
+        "expires_at": expires_at.isoformat() if expires_at else "",
     }
 
 
 @method_decorator(csrf_exempt, name="dispatch")
 class WholesalePurchaseApiView(View):
-    """Atomically sell one complete account from Control to a wholesaler."""
+    """Atomically sell a complete account or a configured plan."""
 
     def post(self, request, *args, **kwargs):
         authorized, error_response = _wholesale_api_authorized(request)
@@ -2261,14 +2421,18 @@ class WholesalePurchaseApiView(View):
             return JsonResponse({"error": "Solicitud inválida"}, status=400)
 
         reference = str(payload.get("reference", "")).strip()
-        publication_id = str(payload.get("publication_id", "")).strip()
+        offer_key = str(payload.get("offer_key", "")).strip()
         if (
             not reference
             or len(reference) > 64
             or not reference.isalnum()
-            or not publication_id.isdigit()
+            or "-" not in offer_key
         ):
             return JsonResponse({"error": "Referencia de compra inválida"}, status=400)
+
+        offer_type, offer_id = offer_key.split("-", 1)
+        if offer_type not in {"account", "plan"} or not offer_id.isdigit():
+            return JsonResponse({"error": "Producto mayorista inválido"}, status=400)
 
         try:
             expected_price = Decimal(str(payload.get("expected_price", "")))
@@ -2284,6 +2448,7 @@ class WholesalePurchaseApiView(View):
             existing = WholesalePurchase.objects.select_related(
                 "account__platform",
                 "account__plan",
+                "plan__platform",
             ).filter(
                 partner=partner,
                 external_reference=reference,
@@ -2291,38 +2456,21 @@ class WholesalePurchaseApiView(View):
             if existing:
                 return JsonResponse(_wholesale_purchase_payload(existing, True))
 
-            publication = get_object_or_404(
-                WholesalePublication.objects.select_for_update().select_related(
-                    "plan__platform",
-                    "created_by",
-                ),
-                pk=int(publication_id),
-                partner=partner,
-                active=True,
-                plan__active=True,
-                plan__platform__active=True,
-            )
-            if publication.wholesale_price != expected_price:
-                return JsonResponse(
-                    {"error": "El precio cambió; actualiza el catálogo antes de comprar"},
-                    status=409,
-                )
-
-            candidate_ids = list(
-                publication.complete_accounts_for_plan(publication.plan)
-                .values_list("id", flat=True)[:50]
-            )
+            now = django_timezone.now()
             selected_account = None
             selected_profiles = []
-            now = django_timezone.now()
-            for account_id in candidate_ids:
+            selected_plan = None
+            publication = None
+
+            if offer_type == "account":
                 account = Count.objects.select_for_update().filter(
-                    pk=account_id,
+                    pk=int(offer_id),
                     active=True,
+                    platform__active=True,
                     date_limit__gte=now,
                 ).select_related("platform", "plan").first()
                 if not account:
-                    continue
+                    return JsonResponse({"error": "La cuenta ya no está disponible"}, status=409)
                 profiles = list(
                     Profile.objects.select_for_update().filter(
                         count=account,
@@ -2330,7 +2478,7 @@ class WholesalePurchaseApiView(View):
                 )
                 profile_ids = [profile.id for profile in profiles]
                 occupied = (
-                    len(profiles) != publication.plan.num_profiles
+                    not profiles
                     or any(profile.saled for profile in profiles)
                     or Sale.objects.filter(
                         profile_id__in=profile_ids,
@@ -2339,18 +2487,91 @@ class WholesalePurchaseApiView(View):
                         date_limit__gte=now,
                     ).exists()
                 )
-                if not occupied:
-                    selected_account = account
-                    selected_profiles = profiles
-                    break
+                if occupied:
+                    return JsonResponse({"error": "La cuenta acaba de venderse"}, status=409)
+                actual_price = account.wholesale_price
+                selected_account = account
+                selected_plan = account.plan
+                selected_profiles = profiles
+                if account.plan_id:
+                    publication = WholesalePublication.objects.filter(
+                        partner=partner,
+                        plan=account.plan,
+                    ).first()
+            else:
+                selected_plan = Plan.objects.select_for_update().filter(
+                    pk=int(offer_id),
+                    active=True,
+                    platform__active=True,
+                ).select_related("platform").first()
+                if not selected_plan:
+                    return JsonResponse({"error": "El plan ya no está disponible"}, status=409)
+                publication = WholesalePublication.objects.filter(
+                    partner=partner,
+                    plan=selected_plan,
+                ).select_related("created_by").first()
+                if publication and not publication.active:
+                    return JsonResponse(
+                        {"error": "Este plan está oculto para el mayorista"},
+                        status=409,
+                    )
+                actual_price = (
+                    publication.wholesale_price
+                    if publication
+                    else selected_plan.wholesale_price
+                )
+                required_profiles = max(selected_plan.num_profiles, 1)
+                candidate_profile_ids = list(
+                    _available_profiles_for_plan(selected_plan, now)
+                    .values_list("id", flat=True)[:max(required_profiles * 20, 100)]
+                )
+                candidate_count_ids = list(Profile.objects.filter(
+                    id__in=candidate_profile_ids,
+                ).values_list("count_id", flat=True).distinct().order_by("count_id"))
+                list(Count.objects.select_for_update().filter(
+                    id__in=candidate_count_ids,
+                ).order_by("id"))
+                locked_profiles = list(Profile.objects.select_for_update().filter(
+                    id__in=candidate_profile_ids,
+                    saled=False,
+                    count__active=True,
+                    count__date_limit__gte=now,
+                ).select_related("count", "count__platform").order_by(
+                    "-count__date_limit",
+                    "id",
+                ))
+                for profile in locked_profiles:
+                    if Sale.objects.filter(
+                        profile=profile,
+                        renovated=False,
+                        cutted=False,
+                        date_limit__gte=now,
+                    ).exists():
+                        continue
+                    selected_profiles.append(profile)
+                    if len(selected_profiles) == required_profiles:
+                        break
+                if len(selected_profiles) != required_profiles:
+                    return JsonResponse(
+                        {"error": "La última existencia de este plan acaba de venderse"},
+                        status=409,
+                    )
+                account_ids = {profile.count_id for profile in selected_profiles}
+                if len(account_ids) == 1:
+                    selected_account = selected_profiles[0].count
 
-            if not selected_account:
+            if actual_price <= 0:
                 return JsonResponse(
-                    {"error": "La última cuenta disponible acaba de venderse"},
+                    {"error": "El precio de mayoreo todavía no está configurado"},
+                    status=422,
+                )
+            if actual_price != expected_price:
+                return JsonResponse(
+                    {"error": "El precio cambió; actualiza el catálogo antes de comprar"},
                     status=409,
                 )
 
-            saler = publication.created_by or User.objects.filter(
+            saler = (publication.created_by if publication else None) or User.objects.filter(
                 username__iexact="epalacios10",
                 is_superuser=True,
             ).first() or User.objects.filter(is_superuser=True).order_by("id").first()
@@ -2363,18 +2584,18 @@ class WholesalePurchaseApiView(View):
             bill = Bill.objects.create(
                 customer=partner.customer,
                 saler=saler,
-                total=publication.wholesale_price,
+                total=actual_price,
             )
-            remaining_days = max(
-                (selected_account.date_limit.date() - django_timezone.localdate()).days,
-                1,
-            )
-            months = max((remaining_days + 29) // 30, 1)
             for profile in selected_profiles:
+                remaining_days = max(
+                    (profile.count.date_limit.date() - django_timezone.localdate()).days,
+                    1,
+                )
+                months = max((remaining_days + 29) // 30, 1)
                 saler.sale_profile(
                     profile,
                     months,
-                    selected_account.date_limit,
+                    profile.count.date_limit,
                     bill,
                 )
 
@@ -2382,16 +2603,18 @@ class WholesalePurchaseApiView(View):
                 partner=partner,
                 publication=publication,
                 account=selected_account,
+                plan=selected_plan,
                 bill=bill,
                 external_reference=reference,
-                price=publication.wholesale_price,
+                price=actual_price,
                 profiles_count=len(selected_profiles),
+                purchase_type=offer_type,
             )
             Action.action_register(
                 saler,
                 "Compra mayorista #" + str(purchase.id)
                 + ": " + partner.username
-                + " adquirió cuenta id = " + str(selected_account.id),
+                + " adquirió " + offer_key,
             )
             response_payload = _wholesale_purchase_payload(purchase)
 

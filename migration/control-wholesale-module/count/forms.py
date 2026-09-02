@@ -63,6 +63,18 @@ class CountForm(forms.Form):
     email = forms.CharField(required=True)
     password = forms.CharField(required=True, label="Contraseña de cuenta")
     email_password = forms.CharField(required=True, label="Contraseña de email")
+    sale_price = forms.DecimalField(
+        required=False,
+        min_value=0,
+        decimal_places=2,
+        label="Precio de venta de cuenta completa",
+    )
+    wholesale_price = forms.DecimalField(
+        required=False,
+        min_value=0,
+        decimal_places=2,
+        label="Precio de mayoreo de cuenta completa",
+    )
 
 
 
@@ -77,7 +89,12 @@ class CountUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CountUpdateForm, self).__init__(*args, **kwargs)
         self.fields['platform'].widget.attrs['disabled'] = 'disabled'
-        self.fields['plan'].widget.attrs['disabled'] = 'disabled'
+        self.fields['plan'].required = False
+        if self.instance and self.instance.platform_id:
+            self.fields['plan'].queryset = Plan.objects.filter(
+                platform_id=self.instance.platform_id,
+                active=True,
+            )
         self.fields['date_limit'].widget = forms.DateTimeInput(
             format='%Y-%m-%d %H:%M:%S',
             attrs={'type': 'datetime-local'}
@@ -85,7 +102,16 @@ class CountUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Count
-        fields = ['platform', 'plan', 'link',  'country', 'email', 'date_limit']
+        fields = [
+            'platform',
+            'plan',
+            'link',
+            'country',
+            'email',
+            'date_limit',
+            'sale_price',
+            'wholesale_price',
+        ]
 
 
 class CountPlanForm(forms.Form):
@@ -125,7 +151,15 @@ class PlanForm(forms.ModelForm):
 
     class Meta:
         model = Plan
-        fields = [ 'name', 'num_profiles', 'have_link', 'active', 'description']
+        fields = [
+            'name',
+            'num_profiles',
+            'sale_price',
+            'wholesale_price',
+            'have_link',
+            'active',
+            'description',
+        ]
 
 
 class ChangeCountDataForm(forms.Form):

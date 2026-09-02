@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block page_header %}
+Crear cuentas
+{% endblock %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Editar cuenta</h4>
+        <p class="card-description">Actualice los datos requeridos</p>
+        <form  method="post" class="forms-sample platforms" >
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="platform">{{ form.platform.label }}</label>
+            {{ form.platform|add_class:'form-control' }}
+          </div>
+          {% if not is_plus_code and not is_chatgpt_plus %}<div class="form-group">
+            <label for="plan">Plan</label>
+             {{ form.plan|add_class:'form-control' }}
+          </div>{% endif %}
+          {% if not is_ibo_player and not is_plus_code and not is_chatgpt_plus %}<div class="form-group">
+            <label for="country">{{ form.country.label }}</label>
+            {{ form.country|add_class:'form-control' }}
+          </div>{% endif %}
+             {% if is_tv_vip or is_ibo_player %}
+              <div class="form-group">
+                <label for="link">{% if is_ibo_player %}Lista de reproducción{% else %}{{ form.link.label }}{% endif %}</label>
+                {{ form.link|add_class:'form-control' }}
+              </div>
+
+          {% endif %}
+          {% if is_plus_code %}
+          <div class="form-group">
+            <label for="plus_code">Código Plus</label>
+            <input type="text" name="plus_code" value="{{ count.password }}" class="form-control" required>
+          </div>
+          {% elif not is_ibo_player %}<div class="form-group">
+            <label for="email">{% if is_chatgpt_plus %}Correo{% else %}{{ form.email.label }}{% endif %}</label>
+             {{ form.email|add_class:'form-control' }}
+          </div>{% endif %}
+          <div class="form-group">
+              <label for="date_limit">{{ form.date_limit.label }}</label>
+               <div class="form-line">
+                  {{ form.date_limit|add_class:'form-control' }}
+              </div>
+          </div>
+          <div class="row">
+            <div class="form-group col-md-6">
+              <label for="sale_price">{{ form.sale_price.label }}</label>
+              {{ form.sale_price|add_class:'form-control' }}
+              <small class="form-text text-muted">Precio de venta de toda la cuenta.</small>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="wholesale_price">{{ form.wholesale_price.label }}</label>
+              {{ form.wholesale_price|add_class:'form-control' }}
+              <small class="form-text text-muted">Precio de la cuenta completa para mayoristas.</small>
+            </div>
+          </div>
+
+      {% if not is_ibo_player and not is_plus_code and not is_chatgpt_plus %}{% for profile in profiles %}
+              {% if is_tv_vip %}
+                <div class="form-group">
+                    <label for="profile">Perfil</label>
+                    <input type="text" name="profile" value="{{ profile.profile }}" class="form-control" required>
+                </div>
+              {% endif %}
+            <div class="form-group">
+                <label for="pin_{{forloop.counter}}">pin {{forloop.counter}}</label>
+                <input type="text" name="{{forloop.counter}}" value="{{ profile.pin }}" class="form-control" required="">
+            </div>
+      {% endfor %}{% endif %}
+          <button type="submit" class="btn btn-primary mr-2 sale">Guardar</button>
+        </form>
+        {{ form.errors }}
+      </div>
+    </div>
+</div>
+
+{% endblock %}

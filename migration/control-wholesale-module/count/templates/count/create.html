@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% block page_header %}
+Crear cuentas
+{% endblock %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="col-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Crear una cuenta</h4>
+        <p class="card-description">Digite los datos de la nueva cuenta</p>
+        <form  method="post" class="forms-sample platforms" data-purpose="inventory">
+          {% csrf_token %}
+          <div class="form-group" id="country-field">
+            <label for="platform">{{ form.platform.label }}</label>
+            {{ form.platform|add_class:'form-control' }}
+          </div>
+          <div id="plans">
+
+          </div>
+          <div class="form-group">
+            <label for="country">{{ form.country.label }}</label>
+            {{ form.country|add_class:'form-control' }}
+          </div>
+          <div class="form-group" id="account-identifier-field">
+            <label for="email">{{ form.email.label }}</label>
+             {{ form.email|add_class:'form-control' }}
+          </div>
+          <div class="form-group" id="account-password-field">
+            <label for="password">{{ form.password.label }}</label>
+             {{ form.password|add_class:'form-control' }}
+          </div>
+           <div class="form-group" id="email-password-field">
+            <label for="email_password">{{ form.email_password.label }}</label>
+             {{ form.email_password|add_class:'form-control' }}
+          </div>
+          <div class="form-group">
+              <label for="date_limit">{{ form.date_limit.label }}</label>
+               <div class="form-line">
+                  {{ form.date_limit|add_class:'form-control' }}
+              </div>
+          </div>
+          <div class="row">
+            <div class="form-group col-md-6">
+              <label for="sale_price">{{ form.sale_price.label }}</label>
+              {{ form.sale_price|add_class:'form-control' }}
+              <small class="form-text text-muted">Precio de venta de toda la cuenta.</small>
+            </div>
+            <div class="form-group col-md-6">
+              <label for="wholesale_price">{{ form.wholesale_price.label }}</label>
+              {{ form.wholesale_price|add_class:'form-control' }}
+              <small class="form-text text-muted">Precio de la cuenta completa en el catálogo mayorista.</small>
+            </div>
+          </div>
+          <div id="profiles">
+
+          </div>
+           <button type="submit" class="btn btn-primary mr-2 sale">Crear cuenta</button>
+        </form>
+        {{ form.errors }}
+      </div>
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+    create_count()
+
+    $('#id_platform').on('change', function() {
+        const platformName = $('#id_platform option:selected').text().trim().toLowerCase();
+        const isIboPlayer = platformName === 'iptv ibo pro player';
+        const isPlusCode = ['youtube plus', 'spotify plus'].includes(platformName);
+        const isChatGptPlus = platformName === 'chatgpt plus';
+
+        $('label[for="email"]').text(isChatGptPlus ? 'Correo' : (isIboPlayer ? 'MAC address' : 'Email'));
+        $('label[for="password"]').text(isPlusCode ? 'Código Plus' : (isIboPlayer ? 'Clave' : 'Contraseña de cuenta'));
+        $('#country-field').toggle(!isIboPlayer && !isPlusCode && !isChatGptPlus);
+        $('#account-identifier-field').toggle(!isIboPlayer && !isPlusCode);
+        $('#account-password-field').toggle((!isIboPlayer && !isPlusCode && !isChatGptPlus) || isPlusCode);
+        $('#email-password-field').toggle(!isIboPlayer && !isPlusCode && !isChatGptPlus);
+        $('#id_country').prop('required', !isIboPlayer && !isPlusCode && !isChatGptPlus);
+        $('#id_email').prop('required', !isIboPlayer && !isPlusCode);
+        $('#id_password').prop('required', (!isIboPlayer && !isPlusCode && !isChatGptPlus) || isPlusCode);
+        $('#id_email_password').prop('required', !isIboPlayer && !isPlusCode && !isChatGptPlus);
+        if (isIboPlayer || isPlusCode) {
+            $('#id_email').val('');
+            $('#id_email_password').val('');
+        }
+        if (isIboPlayer) {
+            $('#id_password').val('');
+        }
+        if (isChatGptPlus) {
+            $('#id_password, #id_email_password').val('');
+        }
+        if (isPlusCode || isChatGptPlus) {
+            $('#profiles').empty();
+        }
+    });
+});
+
+</script>
+
+{% endblock %}

@@ -71,23 +71,23 @@
   <div class="wholesale-heading">
     <div>
       <h2>Inventario mayorista</h2>
-      <div class="wholesale-muted">Publica cuentas completas con precio, disponibilidad e imagen directamente en el catálogo de MyPlataforma.</div>
+      <div class="wholesale-muted">Control publica cuentas completas y planes con existencia real directamente en MyPlataforma.</div>
     </div>
     <a href="{% url 'wholesale-slides' %}" class="wholesale-btn wholesale-btn-secondary">Administrar anuncios</a>
   </div>
 
   <div class="wholesale-grid">
     <div class="wholesale-card wholesale-stat"><span>Mayoristas activos</span><strong>{{ stats.partners }}</strong></div>
-    <div class="wholesale-card wholesale-stat"><span>Publicaciones activas</span><strong>{{ stats.publications }}</strong></div>
-    <div class="wholesale-card wholesale-stat"><span>Planes publicados</span><strong>{{ stats.plans }}</strong></div>
+    <div class="wholesale-card wholesale-stat"><span>Cuentas completas</span><strong>{{ stats.complete_accounts }}</strong></div>
+    <div class="wholesale-card wholesale-stat"><span>Planes con existencia</span><strong>{{ stats.plans }}</strong></div>
     <div class="wholesale-card wholesale-stat"><span>Unidades disponibles</span><strong>{{ stats.available }}</strong></div>
     <div class="wholesale-card wholesale-stat"><span>Compras mayoristas</span><strong>{{ stats.purchases }}</strong></div>
   </div>
 
   <section class="wholesale-panel">
     <div class="wholesale-panel-title">
-      <h3>{% if editing_publication %}Editar publicación{% else %}Publicar un plan{% endif %}</h3>
-      <span class="wholesale-muted">La disponibilidad se calcula desde el inventario real.</span>
+      <h3>{% if editing_publication %}Editar personalización{% else %}Personalizar un plan por mayorista{% endif %}</h3>
+      <span class="wholesale-muted">El precio del plan es el valor predeterminado; aquí puedes asignar una presentación y precio especial.</span>
     </div>
     <form method="post" enctype="multipart/form-data" class="wholesale-form">
       {% csrf_token %}
@@ -139,7 +139,7 @@
         <div class="wholesale-check">{{ form.active }} <span>Publicado</span></div>
       </div>
       <div class="wholesale-actions">
-        <button type="submit" class="wholesale-btn wholesale-btn-primary">{% if editing_publication %}Guardar cambios{% else %}Publicar{% endif %}</button>
+        <button type="submit" class="wholesale-btn wholesale-btn-primary">{% if editing_publication %}Guardar cambios{% else %}Guardar personalización{% endif %}</button>
         {% if editing_publication %}<a href="{% url 'wholesale-inventory' %}" class="wholesale-btn wholesale-btn-secondary">Cancelar</a>{% endif %}
       </div>
       {% for error in form.non_field_errors %}<div class="wholesale-errors">{{ error }}</div>{% endfor %}
@@ -206,8 +206,8 @@
           <tr>
             <td data-label="Compra"><strong>#{{ purchase.id }}</strong><br><small>{{ purchase.external_reference }}</small></td>
             <td data-label="Mayorista"><strong>{{ purchase.partner.username }}</strong><br><small>{{ purchase.partner.customer.name }}</small></td>
-            <td data-label="Cuenta asignada"><strong>{{ purchase.account.email }}</strong><br><small>ID {{ purchase.account_id }}</small></td>
-            <td data-label="Plataforma y plan"><strong>{{ purchase.publication.plan.platform.name }}</strong><br><small>{{ purchase.publication.plan.name }}</small></td>
+            <td data-label="Cuenta asignada">{% if purchase.account %}<strong>{{ purchase.account.email }}</strong><br><small>ID {{ purchase.account_id }}</small>{% else %}<strong>Varios perfiles</strong><br><small>Consulta la factura #{{ purchase.bill_id }}</small>{% endif %}</td>
+            <td data-label="Plataforma y plan">{% if purchase.plan %}<strong>{{ purchase.plan.platform.name }}</strong><br><small>{{ purchase.plan.name }}</small>{% elif purchase.account %}<strong>{{ purchase.account.platform.name }}</strong><br><small>Cuenta completa</small>{% endif %}</td>
             <td data-label="Perfiles">{{ purchase.profiles_count }}</td>
             <td data-label="Importe"><strong>${{ purchase.price|floatformat:2 }}</strong></td>
             <td data-label="Factura">#{{ purchase.bill_id }}</td>

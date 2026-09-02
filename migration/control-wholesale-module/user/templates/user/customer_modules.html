@@ -1,0 +1,204 @@
+{% extends "layout.html" %}
+
+{% block page_header %}Clientes{% endblock %}
+
+{% block content %}
+<style>
+  .customer-module-heading {
+    margin-bottom: 22px;
+  }
+
+  .customer-module-heading h2 {
+    margin-bottom: 7px;
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .customer-module-heading p {
+    margin: 0;
+    color: #8f96a8;
+  }
+
+  .customer-module-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .customer-module {
+    --module-color: #4f7cff;
+    position: relative;
+    display: flex;
+    min-height: 174px;
+    padding: 22px;
+    overflow: hidden;
+    border: 1px solid #2a2f3a;
+    border-radius: 14px;
+    background: #191c24;
+    color: #fff;
+    text-decoration: none;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+
+  .customer-module::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--module-color);
+    content: "";
+  }
+
+  .customer-module:hover,
+  .customer-module:focus {
+    border-color: var(--module-color);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .22);
+    color: #fff;
+    text-decoration: none;
+    transform: translateY(-3px);
+  }
+
+  .customer-module__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .customer-module__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .07);
+    color: var(--module-color);
+    font-size: 25px;
+  }
+
+  .customer-module h3 {
+    margin: 0 0 7px;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .customer-module p {
+    margin: 0;
+    color: #9299aa;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .module-new { --module-color: #00d47b; }
+  .module-all { --module-color: #4f7cff; }
+  .module-active { --module-color: #20d982; }
+  .module-inactive { --module-color: #a1a8b7; }
+  .module-vip { --module-color: #ffb000; }
+  .module-wholesale { --module-color: #9b6dff; }
+  .module-never { --module-color: #ef7094; }
+  .module-expiring { --module-color: #00bfe7; }
+  .module-expired { --module-color: #ff4d5e; }
+
+  @media (max-width: 1199.98px) {
+    .customer-module-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 767.98px) {
+    .customer-module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 479.98px) {
+    .customer-module-heading h2 { font-size: 23px; }
+    .customer-module-grid { grid-template-columns: 1fr; gap: 12px; }
+    .customer-module { min-height: 145px; }
+  }
+</style>
+
+<div class="col-12">
+  <div class="customer-module-heading">
+    <h2>Módulos de clientes</h2>
+    <p>Selecciona el apartado que deseas consultar o administrar.</p>
+  </div>
+
+  <div class="customer-module-grid">
+    {% if 'add_customer' in permissions or '*' in permissions %}
+    <a class="customer-module module-new" href="{% url 'add-customer' %}">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-account-plus"></i></span>
+        <h3>Nuevo cliente</h3>
+        <p>Registra un cliente y continúa directamente con su primera venta.</p>
+      </span>
+    </a>
+    {% endif %}
+
+    <a class="customer-module module-all" href="{% url 'list-customer' %}?segment=all">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-account-multiple"></i></span>
+        <h3>Todos los clientes</h3>
+        <p>Consulta el listado completo de clientes registrados.</p>
+      </span>
+    </a>
+
+    <a class="customer-module module-active" href="{% url 'list-customer' %}?segment=active">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-account-check"></i></span>
+        <h3>Clientes activos</h3>
+        <p>Clientes con al menos un servicio vigente y sin cortar.</p>
+      </span>
+    </a>
+
+    <a class="customer-module module-inactive" href="{% url 'list-customer' %}?segment=inactive">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-account-off"></i></span>
+        <h3>Clientes inactivos</h3>
+        <p>Clientes que actualmente no tienen servicios vigentes.</p>
+      </span>
+    </a>
+
+    <a class="customer-module module-vip" href="{% url 'list-customer' %}?segment=vip">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-crown"></i></span>
+        <h3>Clientes VIP</h3>
+        <p>Clientes con cuatro o más compras durante los últimos 90 días.</p>
+      </span>
+    </a>
+
+    <a class="customer-module module-wholesale" href="{% url 'list-customer' %}?segment=wholesale">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-store"></i></span>
+        <h3>Clientes mayoristas</h3>
+        <p>Clientes conectados con MyPlataforma que compran cuentas o planes para reventa.</p>
+      </span>
+    </a>
+
+    <a class="customer-module module-never" href="{% url 'list-customer' %}?segment=never">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-cart-off"></i></span>
+        <h3>Sin compras</h3>
+        <p>Clientes registrados que todavía no tienen ninguna venta.</p>
+      </span>
+    </a>
+
+    <a class="customer-module module-expiring" href="{% url 'list-to-expire' %}?days=3">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-clock-alert"></i></span>
+        <h3>Próximos a vencer</h3>
+        <p>Servicios que requieren seguimiento y recordatorio de pago.</p>
+      </span>
+    </a>
+
+    <a class="customer-module module-expired" href="{% url 'list-expired' %}">
+      <span class="customer-module__content">
+        <span class="customer-module__icon"><i class="mdi mdi-calendar-remove"></i></span>
+        <h3>Clientes vencidos</h3>
+        <p>Servicios vencidos pendientes de renovación o corte.</p>
+      </span>
+    </a>
+  </div>
+</div>
+{% endblock %}

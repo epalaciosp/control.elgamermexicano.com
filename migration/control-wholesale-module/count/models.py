@@ -56,6 +56,20 @@ class Plan(models.Model):
     have_link = models.BooleanField(default=0, verbose_name="Se envia link?:")
     active = models.BooleanField(default=1, verbose_name="Activo?:")
     description = models.CharField(default="", max_length=250, verbose_name="Descripción")
+    sale_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0"))],
+        verbose_name="Precio de venta",
+    )
+    wholesale_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0"))],
+        verbose_name="Precio de mayoreo",
+    )
 
     def __str__(self):
         return str(self.name)
@@ -102,6 +116,20 @@ class Count(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     date_limit = models.DateTimeField(blank=True,  null=True, verbose_name="Fecha de vencimiento",  auto_now_add=False)#Fecha de vencimiento de la cuenta
     active = models.BooleanField(default=True, verbose_name="Cuenta activa")
+    sale_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0"))],
+        verbose_name="Precio de venta de cuenta completa",
+    )
+    wholesale_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0"))],
+        verbose_name="Precio de mayoreo de cuenta completa",
+    )
 
     class Meta:
         verbose_name = 'Cuenta'
@@ -109,6 +137,34 @@ class Count(models.Model):
 
     def __str__(self):
         return str(self.email)
+
+    @classmethod
+    def complete_available(cls):
+        """Accounts that can be sold whole without touching assigned profiles."""
+        now = datetime.datetime.now(datetime.timezone.utc)
+        active_sale = Sale.objects.filter(
+            profile__count_id=models.OuterRef("pk"),
+            renovated=False,
+            cutted=False,
+            date_limit__gte=now,
+        )
+        return cls.objects.filter(
+            active=True,
+            platform__active=True,
+            date_limit__gte=now,
+        ).annotate(
+            total_profiles=models.Count("profile", distinct=True),
+            available_profiles=models.Count(
+                "profile",
+                filter=models.Q(profile__saled=False),
+                distinct=True,
+            ),
+            has_active_sale=models.Exists(active_sale),
+        ).filter(
+            total_profiles__gt=0,
+            total_profiles=models.F("available_profiles"),
+            has_active_sale=False,
+        ).order_by("platform__name", "-date_limit", "id")
 
 
     def change_count_password(self, new_password):
@@ -487,29 +543,9 @@ class WholesalePublication(models.Model):
         if not plan or not plan.num_profiles:
             return Count.objects.none()
 
-        now = datetime.datetime.now(datetime.timezone.utc)
-        active_sale = Sale.objects.filter(
-            profile__count_id=models.OuterRef("pk"),
-            renovated=False,
-            cutted=False,
-            date_limit__gte=now,
-        )
-        return Count.objects.filter(
+        return Count.complete_available().filter(
             plan=plan,
-            active=True,
-            date_limit__gte=now,
-        ).annotate(
-            total_profiles=models.Count("profile", distinct=True),
-            available_profiles=models.Count(
-                "profile",
-                filter=models.Q(profile__saled=False),
-                distinct=True,
-            ),
-            has_active_sale=models.Exists(active_sale),
-        ).filter(
             total_profiles=plan.num_profiles,
-            available_profiles=plan.num_profiles,
-            has_active_sale=False,
         ).order_by("-date_limit", "id")
 
     @property
@@ -537,7 +573,14 @@ class WholesalePublication(models.Model):
 
 
 class WholesalePurchase(models.Model):
-    """Idempotent purchase of one complete Control account by a wholesaler."""
+    """Idempotent purchase of a full account or plan by a wholesaler."""
+
+    ACCOUNT = "account"
+    PLAN = "plan"
+    PURCHASE_TYPE_CHOICES = (
+        (ACCOUNT, "Cuenta completa"),
+        (PLAN, "Plan o perfil"),
+    )
 
     partner = models.ForeignKey(
         WholesalePartner,
@@ -549,13 +592,25 @@ class WholesalePurchase(models.Model):
         WholesalePublication,
         related_name="purchases",
         verbose_name="Publicación",
-        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     account = models.ForeignKey(
         Count,
         related_name="wholesale_purchases",
         verbose_name="Cuenta",
-        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    plan = models.ForeignKey(
+        Plan,
+        related_name="wholesale_purchases",
+        verbose_name="Plan",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     bill = models.OneToOneField(
         Bill,
@@ -573,6 +628,12 @@ class WholesalePurchase(models.Model):
         verbose_name="Precio",
     )
     profiles_count = models.PositiveIntegerField(default=0, verbose_name="Perfiles")
+    purchase_type = models.CharField(
+        max_length=12,
+        choices=PURCHASE_TYPE_CHOICES,
+        default=ACCOUNT,
+        verbose_name="Tipo de compra",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -582,10 +643,13 @@ class WholesalePurchase(models.Model):
         verbose_name_plural = "Compras mayoristas"
 
     def __str__(self):
-        return (
-            f"{self.partner.username} · {self.account.platform.name} · "
-            f"{self.external_reference}"
-        )
+        if self.account_id:
+            product = self.account.platform.name
+        elif self.plan_id:
+            product = self.plan.platform.name + " · " + self.plan.name
+        else:
+            product = "Compra"
+        return f"{self.partner.username} · {product} · {self.external_reference}"
 
 
 class WholesaleSlide(models.Model):

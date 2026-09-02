@@ -47,7 +47,7 @@
 </style>
 
 <div class="catalog-page">
-  <section class="catalog-hero"><span class="catalog-eyebrow">Inventario en tiempo real · Control</span><h2>Catálogo mayorista</h2><p>Compra cuentas completas para administrarlas y revender sus perfiles a tus clientes. La existencia se calcula directamente desde Control.</p><div class="catalog-summary"><span class="summary-pill">{{ catalog_total }} productos publicados</span><span class="summary-pill">{{ available_units }} cuentas disponibles</span></div></section>
+  <section class="catalog-hero"><span class="catalog-eyebrow">Inventario en tiempo real · Control</span><h2>Catálogo mayorista</h2><p>Compra cuentas completas para dividirlas entre tus clientes o adquiere únicamente los perfiles que necesites. La existencia se calcula directamente desde Control.</p><div class="catalog-summary"><span class="summary-pill">{{ catalog_total }} productos publicados</span><span class="summary-pill">{{ available_units }} unidades disponibles</span></div></section>
   {% for message in messages %}<div class="catalog-message {{ message.tags }}">{{ message }}</div>{% endfor %}
   {% if integration_error %}<div class="catalog-error"><i class="ti-alert"></i> {{ integration_error }}</div>{% endif %}
   {% if catalog %}
@@ -62,13 +62,13 @@
         <span class="catalog-plan">{{ item.plan }}</span>
         <p class="catalog-description">{{ item.description|default:'Cuenta completa disponible para venta mayorista.' }}</p>
         <div class="catalog-meta"><span>{{ item.profiles_per_account }} perfiles incluidos</span><span>{{ item.next_account_days }} días de vigencia mínima</span></div>
-        <footer class="catalog-footer"><div class="catalog-price"><span>Precio mayorista</span><strong>${{ item.price|intcomma }}</strong></div><span class="catalog-state">Cuenta completa</span></footer>
+        <footer class="catalog-footer"><div class="catalog-price"><span>Precio mayorista</span><strong>${{ item.price|intcomma }}</strong></div><span class="catalog-state">{% if item.offer_type == 'account' %}Cuenta completa{% elif item.profiles_per_account == 1 %}Perfil individual{% else %}Plan de {{ item.profiles_per_account }} perfiles{% endif %}</span></footer>
         <form class="catalog-purchase" method="post" action="{% url 'wholesale-catalog-purchase' %}">
           {% csrf_token %}
-          <input type="hidden" name="publication_id" value="{{ item.publication_id }}">
+          <input type="hidden" name="offer_key" value="{{ item.offer_key }}">
           <input type="hidden" name="reference" value="{{ item.purchase_reference }}">
-          <button class="catalog-buy" type="submit" {% if not item.can_purchase %}disabled{% else %}onclick="return confirm('¿Confirmas la compra de esta cuenta completa por ${{ item.price }}?')"{% endif %}>
-            {% if item.can_purchase %}Comprar cuenta completa · ${{ item.price|intcomma }}{% else %}{{ item.purchase_disabled_reason }}{% endif %}
+          <button class="catalog-buy" type="submit" {% if not item.can_purchase %}disabled{% else %}onclick="return confirm('¿Confirmas esta compra mayorista por ${{ item.price }}?')"{% endif %}>
+            {% if item.can_purchase %}{% if item.offer_type == 'account' %}Comprar cuenta completa{% else %}Comprar {{ item.profiles_per_account }} perfil{% if item.profiles_per_account != 1 %}es{% endif %}{% endif %} · ${{ item.price|intcomma }}{% else %}{{ item.purchase_disabled_reason }}{% endif %}
           </button>
           {% if not item.can_purchase and item.purchase_disabled_reason == 'Saldo insuficiente' %}<small class="catalog-buy-note">Saldo actual: ${{ balance|intcomma }}</small>{% endif %}
         </form>

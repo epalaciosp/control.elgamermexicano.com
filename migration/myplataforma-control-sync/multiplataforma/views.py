@@ -95,7 +95,7 @@ def get_control_portal(username):
         return {}, "No fue posible consultar el catálogo de Control en este momento."
 
 
-def purchase_control_account(username, publication_id, reference, expected_price):
+def purchase_control_account(username, offer_key, reference, expected_price):
     """Purchase one complete account through Control's idempotent private API."""
     try:
         token = CONTROL_TOKEN_FILE.read_text(encoding="utf-8").strip()
@@ -103,7 +103,7 @@ def purchase_control_account(username, publication_id, reference, expected_price
         return {}, "La integración con Control todavía no está configurada."
 
     body = json.dumps({
-        "publication_id": publication_id,
+        "offer_key": offer_key,
         "reference": reference,
         "expected_price": str(expected_price),
     }).encode("utf-8")
@@ -491,9 +491,11 @@ def PortalSectionView(request, section):
                 and int(item.get("available_units") or 0) > 0
                 and balance >= price
             )
-            if not whole_peso_price:
+            if price <= 0:
                 item["purchase_disabled_reason"] = "Precio pendiente de ajuste"
-            elif price <= 0 or int(item.get("available_units") or 0) <= 0:
+            elif not whole_peso_price:
+                item["purchase_disabled_reason"] = "Precio pendiente de ajuste"
+            elif int(item.get("available_units") or 0) <= 0:
                 item["purchase_disabled_reason"] = "Sin disponibilidad"
             elif balance < price:
                 item["purchase_disabled_reason"] = "Saldo insuficiente"
@@ -534,10 +536,12 @@ def WholesaleCatalogPurchaseView(request):
     if check_user_type(request) != "vendedor":
         raise PermissionDenied
 
-    publication_id = str(request.POST.get("publication_id", "")).strip()
+    offer_key = str(request.POST.get("offer_key", "")).strip()
     reference = str(request.POST.get("reference", "")).strip()
     if (
-        not publication_id.isdigit()
+        offer_key.count("-") != 1
+        or offer_key.split("-", 1)[0] not in {"account", "plan"}
+        or not offer_key.split("-", 1)[1].isdigit()
         or not reference.isalnum()
         or not reference
         or len(reference) > 64
@@ -554,7 +558,7 @@ def WholesaleCatalogPurchaseView(request):
         (
             catalog_item
             for catalog_item in portal_feed.get("catalog", [])
-            if str(catalog_item.get("publication_id")) == publication_id
+            if str(catalog_item.get("offer_key")) == offer_key
         ),
         None,
     )
@@ -598,7 +602,7 @@ def WholesaleCatalogPurchaseView(request):
 
         purchase, purchase_error = purchase_control_account(
             buyer.username,
-            int(publication_id),
+            offer_key,
             reference,
             price,
         )
