@@ -720,11 +720,8 @@ function send_message_individual(data){
         data: JSON.stringify(data),
         contentType: "application/json",
         headers: {'X-CSRFToken': getCsrfToken()},
-        success: function (response) {
-            button.html('<i class="mdi mdi-check"></i> Enviado');
-            window.setTimeout(function () {
-                button.prop('disabled', false).html(originalButtonHtml);
-            }, 1600);
+        success: function () {
+            button.prop('disabled', false).html(originalButtonHtml);
         },
         error: function (xhr) {
             showWhatsappError(xhr)
