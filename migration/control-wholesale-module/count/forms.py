@@ -211,7 +211,7 @@ class ChangeSaleDataForm(forms.Form):
 
         raw_mac = (cleaned_data.get('device_mac') or '').strip()
         device_key = (cleaned_data.get('device_key') or '').strip()
-        device_mac = normalize_ibo_device_identifier(raw_mac)
+        device_mac = normalize_ibo_device_identifier(raw_mac) or ''
         if raw_mac and not device_mac:
             self.add_error('device_mac', 'Ingresa una MAC address o Device ID válido.')
         if bool(device_mac) != bool(device_key):

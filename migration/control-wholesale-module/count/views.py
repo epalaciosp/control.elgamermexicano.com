@@ -1423,7 +1423,7 @@ class AddSaleView(View):
                         "device_mac_" + str(selected_profile.id),
                         "",
                     ).strip()
-                    device_mac = normalize_ibo_device_identifier(raw_mac)
+                    device_mac = normalize_ibo_device_identifier(raw_mac) or ""
                     device_key = request.POST.get(
                         "device_key_" + str(selected_profile.id),
                         "",
