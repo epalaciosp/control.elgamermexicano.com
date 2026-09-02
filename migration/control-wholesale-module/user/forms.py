@@ -23,7 +23,8 @@ PERMISSIONS_ACTIVES = [
     'add_sale',
     'add_plan',
     'change_plan',
-    'manage_myplataforma',
+    'manage_wholesale_customers',
+    'manage_wholesale_slides',
 ]
 
 PERMISSION_LABELS = {
@@ -43,7 +44,8 @@ PERMISSION_LABELS = {
     'add_sale': 'Registrar ventas',
     'add_plan': 'Crear planes',
     'change_plan': 'Editar planes',
-    'manage_myplataforma': 'Administrar MyPlataforma',
+    'manage_wholesale_customers': 'MyPlataforma: clientes mayoristas',
+    'manage_wholesale_slides': 'MyPlataforma: anuncios',
 }
 
 

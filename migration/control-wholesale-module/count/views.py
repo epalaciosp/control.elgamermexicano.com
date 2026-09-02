@@ -1892,22 +1892,30 @@ class CountDeleteView(View):
         return HttpResponse("La cuenta y sus perfiles fueron eliminados permanentemente.")
 
 
-class WholesaleSuperuserMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Allow superusers and collaborators authorized for MyPlataforma."""
+class WholesalePermissionMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """Allow superusers and collaborators authorized for a module."""
 
     raise_exception = False
+    permission_names = ()
 
     def test_func(self):
         return (
             self.request.user.is_superuser
-            or self.request.user.has_perm("count.manage_myplataforma")
+            or any(
+                self.request.user.has_perm(permission_name)
+                for permission_name in self.permission_names
+            )
         )
 
 
-class WholesaleModulesView(WholesaleSuperuserMixin, View):
+class WholesaleModulesView(WholesalePermissionMixin, View):
     """Landing page for every Control feature connected to MyPlataforma."""
 
     template_name = "wholesale/modules.html"
+    permission_names = (
+        "count.manage_wholesale_customers",
+        "count.manage_wholesale_slides",
+    )
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name)
@@ -2025,8 +2033,9 @@ def wholesale_inventory_context(request, form=None, editing_publication=None):
     }
 
 
-class WholesaleInventoryView(WholesaleSuperuserMixin, View):
+class WholesaleInventoryView(WholesalePermissionMixin, View):
     template_name = "wholesale/inventory.html"
+    permission_names = ("count.manage_wholesale_customers",)
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, wholesale_inventory_context(request))
@@ -2052,8 +2061,9 @@ class WholesaleInventoryView(WholesaleSuperuserMixin, View):
         )
 
 
-class WholesalePublicationEditView(WholesaleSuperuserMixin, View):
+class WholesalePublicationEditView(WholesalePermissionMixin, View):
     template_name = "wholesale/inventory.html"
+    permission_names = ("count.manage_wholesale_customers",)
 
     def get(self, request, *args, **kwargs):
         publication = get_object_or_404(WholesalePublication, pk=kwargs["pk"])
@@ -2096,7 +2106,8 @@ class WholesalePublicationEditView(WholesaleSuperuserMixin, View):
         )
 
 
-class WholesalePublicationToggleView(WholesaleSuperuserMixin, View):
+class WholesalePublicationToggleView(WholesalePermissionMixin, View):
+    permission_names = ("count.manage_wholesale_customers",)
 
     def post(self, request, *args, **kwargs):
         publication = get_object_or_404(WholesalePublication, pk=kwargs["pk"])
@@ -2120,8 +2131,9 @@ def wholesale_slides_context(form=None, editing_slide=None):
     }
 
 
-class WholesaleSlidesView(WholesaleSuperuserMixin, View):
+class WholesaleSlidesView(WholesalePermissionMixin, View):
     template_name = "wholesale/slides.html"
+    permission_names = ("count.manage_wholesale_slides",)
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, wholesale_slides_context())
@@ -2156,8 +2168,9 @@ class WholesaleSlidesView(WholesaleSuperuserMixin, View):
         return render(request, self.template_name, wholesale_slides_context(form=form))
 
 
-class WholesaleSlideEditView(WholesaleSuperuserMixin, View):
+class WholesaleSlideEditView(WholesalePermissionMixin, View):
     template_name = "wholesale/slides.html"
+    permission_names = ("count.manage_wholesale_slides",)
 
     def get(self, request, *args, **kwargs):
         slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])
@@ -2203,7 +2216,8 @@ class WholesaleSlideEditView(WholesaleSuperuserMixin, View):
         )
 
 
-class WholesaleSlideToggleView(WholesaleSuperuserMixin, View):
+class WholesaleSlideToggleView(WholesalePermissionMixin, View):
+    permission_names = ("count.manage_wholesale_slides",)
 
     def post(self, request, *args, **kwargs):
         slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])
@@ -2218,7 +2232,8 @@ class WholesaleSlideToggleView(WholesaleSuperuserMixin, View):
         return redirect("wholesale-slides")
 
 
-class WholesaleSlideDeleteView(WholesaleSuperuserMixin, View):
+class WholesaleSlideDeleteView(WholesalePermissionMixin, View):
+    permission_names = ("count.manage_wholesale_slides",)
 
     def post(self, request, *args, **kwargs):
         slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])

@@ -706,6 +706,14 @@ class WholesaleSlide(models.Model):
         ordering = ("sort_order", "-updated_at")
         permissions = (
             ("manage_myplataforma", "Puede administrar MyPlataforma"),
+            (
+                "manage_wholesale_customers",
+                "Puede administrar clientes mayoristas",
+            ),
+            (
+                "manage_wholesale_slides",
+                "Puede administrar anuncios de MyPlataforma",
+            ),
         )
         verbose_name = "Anuncio de MyPlataforma"
         verbose_name_plural = "Anuncios de MyPlataforma"

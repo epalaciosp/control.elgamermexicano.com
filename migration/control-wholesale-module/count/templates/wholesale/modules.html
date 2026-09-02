@@ -29,18 +29,22 @@
   </section>
 
   <section class="myp-grid">
+    {% if 'manage_wholesale_customers' in permissions or '*' in permissions %}
     <a class="myp-module myp-module-clients" href="{% url 'list-customer' %}?segment=wholesale">
       <span class="myp-icon"><i class="mdi mdi-account-multiple"></i></span>
       <h3>Clientes mayoristas</h3>
       <p>Consulta a Yehoshua, arojas7 y los próximos distribuidores sin mezclarlos con los clientes normales o VIP.</p>
       <i class="mdi mdi-arrow-right myp-arrow"></i>
     </a>
+    {% endif %}
+    {% if 'manage_wholesale_slides' in permissions or '*' in permissions %}
     <a class="myp-module myp-module-slides" href="{% url 'wholesale-slides' %}">
       <span class="myp-icon"><i class="mdi mdi-image-multiple"></i></span>
       <h3>Anuncios</h3>
       <p>Publica y programa los banners que aparecen en el dashboard de los clientes mayoristas.</p>
       <i class="mdi mdi-arrow-right myp-arrow"></i>
     </a>
+    {% endif %}
   </section>
 </div>
 {% endblock %}
