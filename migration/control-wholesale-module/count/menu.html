@@ -260,23 +260,6 @@
               </ul>
             </div>
           </li>
-          {% if '*' in permissions %}
-          <li class="nav-item menu-items">
-            <div class="customer-menu-row">
-              <a class="nav-link customer-menu-main" href="{% url 'wholesale-modules' %}">
-                <span class="menu-icon"><i class="mdi mdi-storefront"></i></span>
-                <span class="menu-title">MyPlataforma</span>
-              </a>
-              <a class="customer-menu-toggle" data-toggle="collapse" href="#myplatform" aria-expanded="false" aria-controls="myplatform" aria-label="Mostrar módulos de MyPlataforma"><i class="mdi mdi-chevron-down"></i></a>
-            </div>
-            <div class="collapse" id="myplatform">
-              <ul class="nav flex-column sub-menu">
-                <li class="nav-item"><a class="nav-link" href="{% url 'list-customer' %}?segment=wholesale">Clientes mayoristas</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'wholesale-slides' %}">Anuncios</a></li>
-              </ul>
-            </div>
-          </li>
-          {% endif %}
            <li class="nav-item menu-items">
             <a class="nav-link" data-toggle="collapse" href="#promotions" aria-expanded="false" aria-controls="promotions">
               <span class="menu-icon">
@@ -329,6 +312,24 @@
                 <li class="nav-item"> <a class="nav-link" href="{% url 'add-user' %}">Nuevo usuario</a></li>
                 {% endif %}
                 <li class="nav-item"> <a class="nav-link" href="{% url 'list-user' %}">Listado</a></li>
+              </ul>
+            </div>
+          </li>
+          {% endif %}
+
+          {% if '*' in permissions %}
+          <li class="nav-item menu-items">
+            <div class="customer-menu-row">
+              <a class="nav-link customer-menu-main" href="{% url 'wholesale-modules' %}">
+                <span class="menu-icon"><i class="mdi mdi-store"></i></span>
+                <span class="menu-title">MyPlataforma</span>
+              </a>
+              <a class="customer-menu-toggle" data-toggle="collapse" href="#myplatform" aria-expanded="false" aria-controls="myplatform" aria-label="Mostrar módulos de MyPlataforma"><i class="mdi mdi-chevron-down"></i></a>
+            </div>
+            <div class="collapse" id="myplatform">
+              <ul class="nav flex-column sub-menu">
+                <li class="nav-item"><a class="nav-link" href="{% url 'list-customer' %}?segment=wholesale">Clientes mayoristas</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'wholesale-slides' %}">Anuncios</a></li>
               </ul>
             </div>
           </li>
