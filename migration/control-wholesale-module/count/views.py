@@ -799,32 +799,130 @@ class CountsListView(ListView):
     template_name = "count/list.html"
 
     def get_queryset(self,  *args, **kwargs):
+        return self.model.objects.none()
 
-        counts = self.model.objects.all()
-        return None
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        status = self.request.GET.get("status", "all").strip().lower()
+        if status not in ("all", "active", "inactive", "expiring", "expired"):
+            status = "all"
+        days = self.request.GET.get("days", "3").strip()
+        if days not in ("0", "1", "2", "3"):
+            days = "3"
+        platform_id = self.request.GET.get("platform", "").strip()
+        selected_platform = Platform.objects.filter(
+            pk=platform_id,
+        ).first() if platform_id.isdigit() else None
+        titles = {
+            "all": "Todas las cuentas",
+            "active": "Cuentas activas",
+            "inactive": "Cuentas inactivas",
+            "expiring": "Cuentas próximas a vencer",
+            "expired": "Cuentas vencidas",
+        }
+        context.update({
+            "account_status": status,
+            "account_days": days,
+            "selected_platform": selected_platform,
+            "platforms": Platform.objects.filter(active=True).order_by("name"),
+            "list_title": (
+                "Cuentas de " + selected_platform.name
+                if selected_platform and status == "all"
+                else titles[status]
+            ),
+        })
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
+class CountModulesView(View):
+    template_name = "count/modules.html"
+
+    def get(self, request, *args, **kwargs):
+        now = django_timezone.now()
+        next_three_days = now + datetime.timedelta(days=3)
+        accounts = Count.objects.all()
+        stats = {
+            "total": accounts.count(),
+            "active": accounts.filter(active=True).filter(
+                Q(date_limit__isnull=True) | Q(date_limit__gte=now)
+            ).count(),
+            "inactive": accounts.filter(active=False).count(),
+            "expiring": accounts.filter(
+                active=True,
+                date_limit__gte=now,
+                date_limit__lte=next_three_days,
+            ).count(),
+            "expired": accounts.filter(date_limit__lt=now).count(),
+        }
+        platforms = Platform.objects.annotate(
+            account_total=Count_("count"),
+            account_active=Count_(
+                "count",
+                filter=Q(count__active=True) & (
+                    Q(count__date_limit__isnull=True)
+                    | Q(count__date_limit__gte=now)
+                ),
+            ),
+        ).filter(account_total__gt=0).order_by("name")
+        return render(
+            request,
+            self.template_name,
+            {"stats": stats, "platforms": platforms},
+        )
 
 
 @method_decorator(login_required, name='dispatch')
 class CountListAjax(BaseDatatableView):
 
-    columns = ['Plataforma', 'Plan', 'Correo', 'Perfiles', 'Disponibles', 'Contraseña de cuenta', 'Contraseña de correo', 'pais',  'Vence', 'link']
-    order_columns = ['date','platform.name', 'email']
+    columns = ['Plataforma', 'Plan', 'Correo', 'Perfiles', 'Disponibles', 'Contraseña de cuenta', 'Contraseña de correo', 'pais', 'Vence', 'Estado', 'link']
+    order_columns = ['platform__name', 'plan__name', 'email', '', '', '', '', 'country__country', 'date_limit', 'active', '']
     model = Count
     #max_display_length = 500
 
     def get_initial_queryset(self):
+        qs = self.model.objects.select_related(
+            "platform",
+            "plan",
+            "country",
+        ).annotate(
+            total_profiles=Count_("profile"),
+            available_profiles=Count_("profile", filter=Q(profile__saled=False)),
+        )
+        status = self.request.GET.get("status", "all").strip().lower()
+        platform_id = self.request.GET.get("platform", "").strip()
+        days = self.request.GET.get("days", "3").strip()
+        now = django_timezone.now()
 
-        counts = self.model.objects.all()
-        return counts
+        if platform_id.isdigit():
+            qs = qs.filter(platform_id=int(platform_id))
+        if status == "active":
+            qs = qs.filter(active=True).filter(
+                Q(date_limit__isnull=True) | Q(date_limit__gte=now)
+            )
+        elif status == "inactive":
+            qs = qs.filter(active=False)
+        elif status == "expired":
+            qs = qs.filter(date_limit__lt=now)
+        elif status == "expiring":
+            day_number = int(days) if days in ("0", "1", "2", "3") else 3
+            target_date = django_timezone.localdate() + datetime.timedelta(days=day_number)
+            qs = qs.filter(active=True, date_limit__date=target_date)
+        return qs
 
     def render_column(self, row, column):
-        return super(CountListJson, self).render_column(row, column)
+        return super().render_column(row, column)
 
     def filter_queryset(self, qs):
 
         search = self.request.GET.get('search[value]', None)
         if search:
-            q = Q(email__icontains=search) | Q(platform__name__icontains=search)
+            q = (
+                Q(email__icontains=search)
+                | Q(platform__name__icontains=search)
+                | Q(plan__name__icontains=search)
+                | Q(country__country__icontains=search)
+            )
             qs = qs.filter(q)
 
         return qs
@@ -832,20 +930,26 @@ class CountListAjax(BaseDatatableView):
     def prepare_results(self, qs):
 
         json_data = []
-        rest_days = "indeterminado"
         permissions = my_permissions(self.request.user)
+        can_change = 'change_count' in permissions or '*' in permissions
+        can_delete = 'delete_count' in permissions or '*' in permissions
         for item in qs:
             now = django_timezone.now()
-            profiles = Profile.objects.filter(count=item)
-            len_profiles = len(profiles)
-            profiles_available = len(profiles.filter(saled=False))
+            rest_days = "Indeterminado"
+            len_profiles = item.total_profiles
+            profiles_available = item.available_profiles
+            link_change_password = ''
+            link_change_password_email = ''
+            link_change_date = ''
+            link_update = ''
+            link_delete = ''
             if item.date_limit:
                 rest_days = getDifference(now, item.date_limit ,  'days')
                 if rest_days < 0:
                     rest_days = "Vencida"
                 else:
                     rest_days = str(rest_days) + " dia(s)"
-            if 'change_count' in permissions:
+            if can_change:
                 link_change_password = f'<button type="button" id_count="{ item.id }" class="btn btn-warning change-password">Cuenta</button>'
                 link_change_password_email = f'<button type="button" id_count="{ item.id }" class="btn btn-info change-password-email">Correo</button>'
                 link_change_date = f'<button type="button" id_count="{item.id}" class="btn btn-primary btn-icon-text change-date-limit">Fecha</button>'
@@ -854,10 +958,28 @@ class CountListAjax(BaseDatatableView):
                 link_change_password = ''
                 link_change_password_email = ''
                 link_change_date = ''
-            if 'delete_count' in permissions:
+            if can_delete:
                 link_delete= f'<button type="button" id_count="{ item.id }" class="btn btn-danger delete-count">Eliminar</button>'
+            is_expired = bool(item.date_limit and item.date_limit < now)
+            state_class = (
+                "badge-danger" if is_expired
+                else "badge-success" if item.active
+                else "badge-secondary"
+            )
+            state_label = (
+                "Vencida" if is_expired
+                else "Activa" if item.active
+                else "Inactiva"
+            )
+            if is_expired:
+                state_html = f'<span class="badge {state_class}">{state_label}</span>'
+            elif can_change:
+                state_html = (
+                    f'<button type="button" class="badge {state_class} toggle-count-status" '
+                    f'data-url="/count/toggle-status/{item.id}" title="Cambiar estado">{state_label}</button>'
+                )
             else:
-                link_delete = ''
+                state_html = f'<span class="badge {state_class}">{state_label}</span>'
 
             if item.plan:
                 json_data.append([
@@ -870,6 +992,7 @@ class CountListAjax(BaseDatatableView):
                     item.email_password,
                     item.country.country,
                     rest_days,
+                    state_html,
                     item.link,
                     link_change_password,
                     link_change_password_email,
@@ -888,6 +1011,7 @@ class CountListAjax(BaseDatatableView):
                     item.email_password,
                     item.country.country,
                     rest_days,
+                    state_html,
                     item.link,
                     link_change_password,
                     link_change_password_email,
@@ -897,43 +1021,42 @@ class CountListAjax(BaseDatatableView):
                 ])
         return json_data
 
-@method_decorator(login_required, name='dispatch')
-class CountNextExpiredView(ListView):
-
-    model = Count
-    template_name = "count/list-to-expire.html"
-
-    def get_queryset(self,  *args, **kwargs):
-
-        #date_init = datetime.datetime.now() - datetime.timedelta(days=2)
-
-        date_start = django_timezone.now()
-        date_finish = date_start + datetime.timedelta(days=3)
-        count_to_expires = self.model.objects.filter(date_limit__range=[date_start, date_finish]).order_by('date_limit')
-        for count in count_to_expires:
-            profiles = Profile.objects.filter(count=count)
-            count.profiles_available = len(profiles.filter(saled=False))
-            rest_days = getDifference(django_timezone.now(), count.date_limit, 'days')
-            if rest_days < 0:
-                rest_days = "Vencida"
-            else:
-                count.rest_days = str(rest_days) + " dia(s)"
-        return count_to_expires
-
 
 @method_decorator(login_required, name='dispatch')
-class CountExpiredView(ListView):
+@method_decorator(permissions_in_view, name='dispatch')
+class CountToggleStatusView(View):
+    permission_required = 'count.change_count'
 
-    model = Count
-    template_name = "count/list-expired.html"
+    def post(self, request, *args, **kwargs):
+        account = get_object_or_404(Count, pk=kwargs["pk"])
+        account.active = not account.active
+        account.save(update_fields=["active"])
+        state = "activó" if account.active else "desactivó"
+        Action.action_register(
+            request.user,
+            state.capitalize() + " cuenta id = " + str(account.id),
+        )
+        return JsonResponse({
+            "ok": True,
+            "active": account.active,
+            "label": "Activa" if account.active else "Inactiva",
+        })
 
-    def get_queryset(self,  *args, **kwargs):
+@method_decorator(login_required, name='dispatch')
+class CountNextExpiredView(View):
 
-        count_expired = self.model.objects.filter(date_limit__lt=django_timezone.now()).order_by('date')
-        for count in count_expired:
-            profiles = Profile.objects.filter(count=count)
-            count.profiles_available = len(profiles.filter(saled=False))
-        return count_expired
+    def get(self, request, *args, **kwargs):
+        days = request.GET.get("days", "3")
+        if days not in ("0", "1", "2", "3"):
+            days = "3"
+        return redirect("/count/list?status=expiring&days=" + days)
+
+
+@method_decorator(login_required, name='dispatch')
+class CountExpiredView(View):
+
+    def get(self, request, *args, **kwargs):
+        return redirect("/count/list?status=expired")
 
 
 @method_decorator(login_required, name='dispatch')

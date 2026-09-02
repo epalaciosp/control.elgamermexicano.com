@@ -101,6 +101,7 @@ class Count(models.Model):
     )
     date = models.DateTimeField(auto_now_add=True)
     date_limit = models.DateTimeField(blank=True,  null=True, verbose_name="Fecha de vencimiento",  auto_now_add=False)#Fecha de vencimiento de la cuenta
+    active = models.BooleanField(default=True, verbose_name="Cuenta activa")
 
     class Meta:
         verbose_name = 'Cuenta'

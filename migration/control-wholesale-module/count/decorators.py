@@ -12,6 +12,7 @@ PERMISSION_BY_VIEW = {
     'update-customer' : ['change_customer'],
     'add-user' : ['add_user'],
     'create-count': ['add_count'],
+    'toggle-count-status': ['change_count'],
     'edit-count-data': ['change_count'],
     'delete-count': ['delete_count'],
     'change-date-limit': ['change_count'],
