@@ -1253,7 +1253,6 @@ class EditSaleDataView(View):
                     'id': kwargs['id'],
                     'is_ibo_player': form.is_ibo_player,
                 },
-                status=400,
             )
 
         sale.date = form.cleaned_data['date']
