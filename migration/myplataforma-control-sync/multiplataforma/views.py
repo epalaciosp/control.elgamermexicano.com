@@ -61,6 +61,93 @@ def get_control_services(username):
     return payload.get("services", []), None
 
 
+def group_control_services_by_account(services):
+    """Group profile-level Control sales into complete wholesale accounts."""
+    accounts = {}
+
+    for service in services:
+        account_id = service.get("account_id")
+        fallback_key = "|".join([
+            str(service.get("platform") or ""),
+            str(service.get("email") or service.get("access_identifier") or ""),
+            str(service.get("plan") or ""),
+        ])
+        account_key = str(account_id) if account_id is not None else fallback_key
+        days_remaining = int(service.get("days_remaining") or 0)
+        sale_id = service.get("control_sale_id")
+        email = service.get("email") or service.get("access_identifier") or ""
+        password = service.get("password") or service.get("access_password") or ""
+
+        if account_key not in accounts:
+            accounts[account_key] = {
+                "account_id": account_id,
+                "dom_id": account_id or sale_id,
+                "platform": service.get("platform") or "Sin plataforma",
+                "plan": service.get("plan") or "Plan general",
+                "email": email,
+                "password": password,
+                "email_password": service.get("email_password") or "",
+                "link": service.get("link") or "",
+                "account_capacity": int(service.get("account_capacity") or 0),
+                "purchase_date": service.get("purchase_date") or "",
+                "purchase_date_label": service.get("purchase_date_label") or "—",
+                "expires_at": service.get("expires_at") or "",
+                "expires_label": service.get("expires_label") or "—",
+                "days_remaining": days_remaining,
+                "profiles": [],
+            }
+
+        account = accounts[account_key]
+        account["account_capacity"] = max(
+            account["account_capacity"],
+            int(service.get("account_capacity") or 0),
+        )
+
+        if days_remaining < account["days_remaining"]:
+            account["days_remaining"] = days_remaining
+            account["expires_at"] = service.get("expires_at") or ""
+            account["expires_label"] = service.get("expires_label") or "—"
+
+        profile_access = service.get("access_identifier") or ""
+        profile_password = service.get("access_password") or ""
+        has_individual_access = bool(
+            (profile_access and profile_access != email)
+            or (profile_password and profile_password != password)
+        )
+        account["profiles"].append({
+            "control_sale_id": sale_id,
+            "profile": service.get("profile") or "—",
+            "pin": service.get("pin") or "—",
+            "months": service.get("months") or 0,
+            "access_identifier": profile_access,
+            "access_password": profile_password,
+            "has_individual_access": has_individual_access,
+            "purchase_date_label": service.get("purchase_date_label") or "—",
+            "expires_label": service.get("expires_label") or "—",
+            "days_remaining": days_remaining,
+        })
+
+    def profile_order(profile):
+        value = str(profile.get("profile") or "")
+        return (0, int(value)) if value.isdigit() else (1, value.casefold())
+
+    grouped_accounts = list(accounts.values())
+    for account in grouped_accounts:
+        account["profiles"].sort(key=profile_order)
+        account["profiles_count"] = len(account["profiles"])
+        account["account_capacity"] = max(
+            account["account_capacity"],
+            account["profiles_count"],
+        )
+
+    grouped_accounts.sort(key=lambda account: (
+        account["days_remaining"],
+        str(account["platform"]).casefold(),
+        str(account["email"]).casefold(),
+    ))
+    return grouped_accounts
+
+
 @login_required
 def check_user_type(request):
     if request.user.is_superuser:
@@ -171,10 +258,14 @@ def IndexView(request):
         })
     else:
         my_services, integration_error = get_control_services(request.user.username)
+        my_accounts = group_control_services_by_account(my_services)
         context.update({
-            "my_services_total": len(my_services),
+            "my_services_total": len(my_accounts),
+            "my_profiles_total": sum(
+                account["profiles_count"] for account in my_accounts
+            ),
             "my_renewals": sum(
-                1 for service in my_services if service.get("days_remaining", 0) <= 7
+                1 for account in my_accounts if account["days_remaining"] <= 7
             ),
             "my_balance": request.user.get_my_money(),
             "integration_ready": integration_error is None,
@@ -234,9 +325,9 @@ def PortalSectionView(request, section):
     }
     wholesaler_sections = {
         "services": {
-            "title": "Mis servicios",
-            "eyebrow": "Inventario adquirido",
-            "description": "Aquí estarán los servicios comprados y asignados a tu cuenta mayorista.",
+            "title": "Mis cuentas",
+            "eyebrow": "Inventario mayorista adquirido",
+            "description": "Aquí estarán las cuentas completas y sus perfiles asignados a tu usuario mayorista.",
             "icon": "ti-package",
         },
         "renewals": {
@@ -267,23 +358,30 @@ def PortalSectionView(request, section):
 
     if user_type == "vendedor" and section in ("services", "purchases"):
         services, integration_error = get_control_services(request.user.username)
-        expiring_services = sum(
-            1 for service in services if service.get("days_remaining", 0) <= 7
+        accounts = group_control_services_by_account(services)
+        expiring_accounts = sum(
+            1 for account in accounts if account["days_remaining"] <= 7
         )
         return render(request, "wholesale_services.html", {
             "section": section,
             "section_data": section_data,
+            "accounts": accounts,
+            "accounts_total": len(accounts),
+            "profiles_total": sum(
+                account["profiles_count"] for account in accounts
+            ),
             "services": services,
             "services_total": len(services),
             "platforms_total": len({
-                service.get("platform") for service in services
-                if service.get("platform")
+                account.get("platform") for account in accounts
+                if account.get("platform")
             }),
             "platform_names": sorted({
-                service.get("platform") for service in services
-                if service.get("platform")
+                account.get("platform") for account in accounts
+                if account.get("platform")
             }),
-            "expiring_services": expiring_services,
+            "expiring_accounts": expiring_accounts,
+            "expiring_services": expiring_accounts,
             "integration_error": integration_error,
             "balance": request.user.get_my_money(),
         })

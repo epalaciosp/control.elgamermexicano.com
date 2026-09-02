@@ -79,7 +79,7 @@
     {% else %}
       <article class="metric-card"><div class="metric-icon"><i class="ti-wallet"></i></div><span class="metric-label">Saldo disponible</span><strong class="metric-value">${{ my_balance|default:0|intcomma }}</strong></article>
       <article class="metric-card"><div class="metric-icon"><i class="ti-layout-grid2-alt"></i></div><span class="metric-label">Productos disponibles</span><strong class="metric-value">{{ published_catalog }}</strong></article>
-      <article class="metric-card"><div class="metric-icon"><i class="ti-package"></i></div><span class="metric-label">Mis servicios</span><strong class="metric-value">{{ my_services_total }}</strong></article>
+      <article class="metric-card"><div class="metric-icon"><i class="ti-package"></i></div><span class="metric-label">Cuentas completas</span><strong class="metric-value">{{ my_services_total }}</strong></article>
       <article class="metric-card"><div class="metric-icon"><i class="ti-reload"></i></div><span class="metric-label">Vencen en 7 días</span><strong class="metric-value">{{ my_renewals }}</strong></article>
     {% endif %}
   </section>
@@ -98,7 +98,7 @@
         <a class="btn btn-outline-light" href="{% url 'wholesale-partners' %}"><i class="ti-user"></i> Ver mayoristas</a>
         <a class="btn btn-outline-light" href="{% url 'portal-section' 'integration' %}"><i class="ti-link"></i> Integración Control</a>
       {% else %}
-        <a class="btn btn-outline-light" href="{% url 'portal-section' 'services' %}"><i class="ti-package"></i> Mis servicios</a>
+        <a class="btn btn-outline-light" href="{% url 'portal-section' 'services' %}"><i class="ti-package"></i> Mis cuentas</a>
       {% endif %}
     </div>
   </section>

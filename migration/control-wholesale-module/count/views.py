@@ -1842,7 +1842,7 @@ class WholesaleServicesApiView(View):
             active=True,
         )
         now = django_timezone.now()
-        sales = Sale.objects.filter(
+        sales = list(Sale.objects.filter(
             bill__customer_id=partner.customer_id,
             renovated=False,
             cutted=False,
@@ -1853,7 +1853,15 @@ class WholesaleServicesApiView(View):
             "profile__count__platform",
             "profile__count__plan",
             "bill",
-        ).order_by("date_limit", "profile__count__platform__name", "id")
+        ).order_by("date_limit", "profile__count__platform__name", "id"))
+
+        account_ids = {sale.profile.count_id for sale in sales}
+        account_capacities = dict(
+            Profile.objects.filter(count_id__in=account_ids)
+            .values("count_id")
+            .annotate(total=Count_("id"))
+            .values_list("count_id", "total")
+        )
 
         services = []
         for sale in sales:
@@ -1862,6 +1870,8 @@ class WholesaleServicesApiView(View):
             days_remaining = max((sale.date_limit.date() - now.date()).days, 0)
             services.append({
                 "control_sale_id": sale.id,
+                "account_id": account.id,
+                "account_capacity": account_capacities.get(account.id, 0),
                 "platform": account.platform.name,
                 "plan": account.plan.name if account.plan_id else "",
                 "email": account.email,

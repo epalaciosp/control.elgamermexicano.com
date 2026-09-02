@@ -34,9 +34,11 @@
   .platform-copy span { color: #778397; display: block; font-size: 9px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .days-badge { background: rgba(0,200,117,.11); border-radius: 999px; color: #4ae09d; font-size: 9px; font-weight: 750; margin-left: auto; padding: 6px 9px; white-space: nowrap; }
   .days-badge.warning { background: rgba(245,158,11,.13); color: #ffc45f; }
-  .service-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .account-badge { background: rgba(66,221,152,.1); border: 1px solid rgba(66,221,152,.2); border-radius: 8px; color: #6be8ad; font-size: 9px; font-weight: 750; margin-left: auto; padding: 6px 9px; white-space: nowrap; }
+  .days-badge + .account-badge { margin-left: 0; }
+  .service-body { display: grid; grid-template-columns: 1.25fr 1fr 1fr; }
   .service-field { border-right: 1px solid #252e39; border-top: 1px solid #252e39; min-width: 0; padding: 12px 14px; }
-  .service-field:nth-child(2n) { border-right: 0; }
+  .service-field:nth-child(3n) { border-right: 0; }
   .service-field.full { border-right: 0; grid-column: 1 / -1; }
   .service-field label { color: #657185; display: block; font-size: 8px; font-weight: 800; letter-spacing: .08em; margin-bottom: 6px; text-transform: uppercase; }
   .field-value { align-items: center; color: #cfd7e2; display: flex; font-size: 10px; gap: 7px; min-height: 25px; overflow-wrap: anywhere; }
@@ -51,6 +53,20 @@
   .date-block:last-child { text-align: right; }
   .date-arrow { color: #3a4656; font-size: 11px; padding: 0 10px; }
   .service-link { color: #43dc99 !important; font-size: 9px; font-weight: 700; text-decoration: none; }
+  .profiles-panel { border-top: 1px solid #252e39; }
+  .profiles-panel summary { align-items: center; background: #101720; color: #b8c3d1; cursor: pointer; display: flex; font-size: 10px; font-weight: 750; gap: 8px; justify-content: space-between; list-style: none; padding: 12px 14px; }
+  .profiles-panel summary::-webkit-details-marker { display: none; }
+  .profiles-panel summary:after { color: #43dc99; content: '+'; font-size: 17px; }
+  .profiles-panel[open] summary:after { content: '−'; }
+  .profiles-count { background: #202a36; border-radius: 999px; color: #72e5ae; font-size: 9px; margin-left: 4px; padding: 4px 8px; }
+  .profile-list { background: #0c1219; }
+  .profile-row { align-items: center; border-top: 1px solid #202a35; display: grid; gap: 10px; grid-template-columns: 70px 70px minmax(150px, 1fr) 92px 92px; padding: 10px 14px; }
+  .profile-row.profile-head { background: #0a1017; color: #596679; font-size: 8px; font-weight: 800; letter-spacing: .07em; padding-bottom: 8px; padding-top: 8px; text-transform: uppercase; }
+  .profile-cell { color: #9eabba; font-size: 9px; min-width: 0; overflow-wrap: anywhere; }
+  .profile-cell strong { color: #e8edf3; font-size: 10px; }
+  .profile-access { align-items: center; display: flex; gap: 6px; }
+  .profile-access-copy { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .profile-main-access { color: #657185; font-style: italic; }
   .pagination-wrap { align-items: center; display: flex; gap: 8px; justify-content: center; margin-top: 18px; }
   .page-button { background: #151c26; border: 1px solid #293442; border-radius: 8px; color: #8d99aa; cursor: pointer; font-size: 10px; min-width: 38px; padding: 8px 11px; }
   .page-button:disabled { cursor: default; opacity: .35; }
@@ -63,16 +79,23 @@
     .services-hero { padding: 22px 18px; }
     .services-stats, .services-tools { grid-template-columns: 1fr; }
     .service-stat { padding: 13px 15px; }
+    .service-head { align-items: flex-start; flex-wrap: wrap; }
+    .days-badge { margin-left: auto; }
+    .account-badge { margin-left: 51px; }
     .service-body { grid-template-columns: 1fr; }
-    .service-field, .service-field:nth-child(2n) { border-right: 0; }
+    .service-field, .service-field:nth-child(3n) { border-right: 0; }
     .service-field.full { grid-column: auto; }
+    .profile-row { align-items: start; grid-template-columns: 1fr 1fr; }
+    .profile-row.profile-head { display: none; }
+    .profile-cell:nth-child(3) { grid-column: 1 / -1; }
+    .profile-cell:before { color: #586578; content: attr(data-label); display: block; font-size: 7px; font-weight: 800; letter-spacing: .07em; margin-bottom: 3px; text-transform: uppercase; }
   }
 </style>
 
 <div class="services-page">
   <section class="services-hero">
     <div class="services-hero-row">
-      <div><span class="services-eyebrow">Inventario adquirido · Control</span><h2>{% if section == 'purchases' %}Mis compras vigentes{% else %}Mis servicios{% endif %}</h2><p>Consulta accesos, perfiles y vigencias. La información se sincroniza directamente con Control y no se duplica en este portal.</p></div>
+      <div><span class="services-eyebrow">Inventario mayorista · Control</span><h2>{% if section == 'purchases' %}Mis cuentas adquiridas{% else %}Mis cuentas completas{% endif %}</h2><p>Cada tarjeta representa una cuenta completa. Las credenciales se muestran una sola vez y los perfiles incluidos aparecen dentro de la cuenta para que puedas administrarlos y revenderlos.</p></div>
       {% if not integration_error %}<span class="connection-badge"><span class="connection-dot"></span> Sincronización activa</span>{% endif %}
     </div>
   </section>
@@ -80,42 +103,62 @@
   {% if integration_error %}<div class="services-error"><i class="ti-alert"></i> {{ integration_error }}</div>{% endif %}
 
   <section class="services-stats">
-    <article class="service-stat"><span class="stat-icon"><i class="ti-package"></i></span><div><span>Servicios vigentes</span><strong>{{ services_total }}</strong></div></article>
-    <article class="service-stat"><span class="stat-icon"><i class="ti-layout-grid2-alt"></i></span><div><span>Plataformas activas</span><strong>{{ platforms_total }}</strong></div></article>
-    <article class="service-stat"><span class="stat-icon"><i class="ti-alarm-clock"></i></span><div><span>Vencen en 7 días</span><strong>{{ expiring_services }}</strong></div></article>
+    <article class="service-stat"><span class="stat-icon"><i class="ti-package"></i></span><div><span>Cuentas completas</span><strong>{{ accounts_total }}</strong></div></article>
+    <article class="service-stat"><span class="stat-icon"><i class="ti-layout-grid2-alt"></i></span><div><span>Perfiles incluidos</span><strong>{{ profiles_total }}</strong></div></article>
+    <article class="service-stat"><span class="stat-icon"><i class="ti-alarm-clock"></i></span><div><span>Cuentas que vencen en 7 días</span><strong>{{ expiring_accounts }}</strong></div></article>
   </section>
 
-  {% if services %}
+  {% if accounts %}
   <section class="services-tools">
-    <input id="serviceSearch" class="tool-input" type="search" placeholder="Buscar plataforma, plan, correo o perfil">
+    <input id="serviceSearch" class="tool-input" type="search" placeholder="Buscar cuenta, plataforma, plan o perfil">
     <select id="platformFilter" class="tool-select"><option value="">Todas las plataformas</option>{% for platform in platform_names %}<option value="{{ platform|lower }}">{{ platform }}</option>{% endfor %}</select>
     <select id="expiryFilter" class="tool-select"><option value="">Todas las vigencias</option><option value="warning">Vencen en 7 días</option><option value="stable">Más de 7 días</option></select>
     <button id="resetFilters" class="tool-reset" type="button"><i class="ti-reload"></i> Limpiar</button>
   </section>
-  <div class="results-bar"><h4>Servicios encontrados</h4><span>Mostrando <strong id="visibleCount">0</strong> de {{ services_total }}</span></div>
+  <div class="results-bar"><h4>Cuentas encontradas</h4><span>Mostrando <strong id="visibleCount">0</strong> de {{ accounts_total }}</span></div>
 
   <section id="servicesGrid" class="services-grid">
-    {% for service in services %}
-    <article class="service-card" data-service-card data-platform="{{ service.platform|lower }}" data-days="{{ service.days_remaining }}">
+    {% for account in accounts %}
+    <article class="service-card" data-account-card data-platform="{{ account.platform|lower }}" data-days="{{ account.days_remaining }}">
       <header class="service-head">
-        <span class="platform-mark">{{ service.platform|slice:":2"|upper }}</span>
-        <span class="platform-copy"><strong>{{ service.platform }}</strong><span>{{ service.plan|default:'Plan general' }} · Servicio #{{ service.control_sale_id }}</span></span>
-        <span class="days-badge {% if service.days_remaining <= 7 %}warning{% endif %}">{{ service.days_remaining }} días</span>
+        <span class="platform-mark">{{ account.platform|slice:":2"|upper }}</span>
+        <span class="platform-copy"><strong>{{ account.platform }}</strong><span>{{ account.plan }} · Cuenta #{{ account.account_id|default:account.dom_id }}</span></span>
+        <span class="days-badge {% if account.days_remaining <= 7 %}warning{% endif %}">{{ account.days_remaining }} días</span>
+        <span class="account-badge">Cuenta completa · {{ account.profiles_count }}/{{ account.account_capacity }} perfiles</span>
       </header>
       <div class="service-body">
-        <div class="service-field full"><label>Correo o acceso</label><div class="field-value primary"><span>{{ service.access_identifier|default:service.email }}</span><span class="field-actions"><input id="access-{{ service.control_sale_id }}" type="hidden" value="{{ service.access_identifier|default:service.email }}"><button class="mini-button" type="button" data-copy-source="access-{{ service.control_sale_id }}" title="Copiar acceso"><i class="ti-files"></i></button>{% if service.link %}<a class="mini-button service-link" href="{{ service.link }}" target="_blank" rel="noopener" title="Abrir enlace"><i class="ti-new-window"></i></a>{% endif %}</span></div></div>
-        <div class="service-field"><label>Contraseña</label><div class="field-value"><span class="secret-value" id="password-{{ service.control_sale_id }}">••••••••</span><input id="password-source-{{ service.control_sale_id }}" type="hidden" value="{{ service.access_password|default:service.password }}"><span class="field-actions"><button class="mini-button" type="button" data-secret-source="password-source-{{ service.control_sale_id }}" data-secret-target="password-{{ service.control_sale_id }}" title="Mostrar"><i class="ti-eye"></i></button><button class="mini-button" type="button" data-copy-source="password-source-{{ service.control_sale_id }}" title="Copiar"><i class="ti-files"></i></button></span></div></div>
-        <div class="service-field"><label>Contraseña del correo</label><div class="field-value"><span class="secret-value" id="email-password-{{ service.control_sale_id }}">••••••••</span><input id="email-password-source-{{ service.control_sale_id }}" type="hidden" value="{{ service.email_password }}"><span class="field-actions"><button class="mini-button" type="button" data-secret-source="email-password-source-{{ service.control_sale_id }}" data-secret-target="email-password-{{ service.control_sale_id }}" title="Mostrar"><i class="ti-eye"></i></button><button class="mini-button" type="button" data-copy-source="email-password-source-{{ service.control_sale_id }}" title="Copiar"><i class="ti-files"></i></button></span></div></div>
-        <div class="service-field"><label>Perfil</label><div class="field-value primary">{{ service.profile|default:'—' }}</div></div>
-        <div class="service-field"><label>PIN</label><div class="field-value primary">{{ service.pin|default:'—' }}</div></div>
+        <div class="service-field"><label>Correo o acceso principal</label><div class="field-value primary"><span>{{ account.email|default:'—' }}</span><span class="field-actions"><input id="access-{{ account.dom_id }}" type="hidden" value="{{ account.email }}"><button class="mini-button" type="button" data-copy-source="access-{{ account.dom_id }}" title="Copiar acceso"><i class="ti-files"></i></button>{% if account.link %}<a class="mini-button service-link" href="{{ account.link }}" target="_blank" rel="noopener" title="Abrir enlace"><i class="ti-new-window"></i></a>{% endif %}</span></div></div>
+        <div class="service-field"><label>Contraseña de la cuenta</label><div class="field-value"><span class="secret-value" id="password-{{ account.dom_id }}">••••••••</span><input id="password-source-{{ account.dom_id }}" type="hidden" value="{{ account.password }}"><span class="field-actions"><button class="mini-button" type="button" data-secret-source="password-source-{{ account.dom_id }}" data-secret-target="password-{{ account.dom_id }}" title="Mostrar"><i class="ti-eye"></i></button><button class="mini-button" type="button" data-copy-source="password-source-{{ account.dom_id }}" title="Copiar"><i class="ti-files"></i></button></span></div></div>
+        <div class="service-field"><label>Contraseña del correo</label><div class="field-value"><span class="secret-value" id="email-password-{{ account.dom_id }}">••••••••</span><input id="email-password-source-{{ account.dom_id }}" type="hidden" value="{{ account.email_password }}"><span class="field-actions"><button class="mini-button" type="button" data-secret-source="email-password-source-{{ account.dom_id }}" data-secret-target="email-password-{{ account.dom_id }}" title="Mostrar"><i class="ti-eye"></i></button><button class="mini-button" type="button" data-copy-source="email-password-source-{{ account.dom_id }}" title="Copiar"><i class="ti-files"></i></button></span></div></div>
       </div>
-      <footer class="service-dates"><span class="date-block"><span>Comprado</span><strong>{{ service.purchase_date_label }}</strong></span><i class="ti-arrow-right date-arrow"></i><span class="date-block"><span>Vencimiento</span><strong>{{ service.expires_label }}</strong></span></footer>
+      <details class="profiles-panel">
+        <summary><span><i class="ti-user"></i> Perfiles incluidos <span class="profiles-count">{{ account.profiles_count }}</span></span><span>Ver perfiles</span></summary>
+        <div class="profile-list">
+          <div class="profile-row profile-head"><span>Perfil</span><span>PIN</span><span>Acceso individual</span><span>Compra</span><span>Vence</span></div>
+          {% for profile in account.profiles %}
+          <div class="profile-row">
+            <span class="profile-cell" data-label="Perfil"><strong>{{ profile.profile }}</strong></span>
+            <span class="profile-cell" data-label="PIN"><strong>{{ profile.pin }}</strong></span>
+            <span class="profile-cell profile-access" data-label="Acceso individual">
+              {% if profile.has_individual_access %}
+                <span class="profile-access-copy">{{ profile.access_identifier|default:'Acceso individual' }}</span>
+                {% if profile.access_identifier %}<input id="profile-access-{{ profile.control_sale_id }}" type="hidden" value="{{ profile.access_identifier }}"><button class="mini-button" type="button" data-copy-source="profile-access-{{ profile.control_sale_id }}" title="Copiar acceso"><i class="ti-files"></i></button>{% endif %}
+                {% if profile.access_password %}<input id="profile-password-{{ profile.control_sale_id }}" type="hidden" value="{{ profile.access_password }}"><button class="mini-button" type="button" data-copy-source="profile-password-{{ profile.control_sale_id }}" title="Copiar contraseña"><i class="ti-key"></i></button>{% endif %}
+              {% else %}<span class="profile-main-access">Usa el acceso principal</span>{% endif %}
+            </span>
+            <span class="profile-cell" data-label="Compra">{{ profile.purchase_date_label }}</span>
+            <span class="profile-cell" data-label="Vence">{{ profile.expires_label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      <footer class="service-dates"><span class="date-block"><span>Cuenta adquirida</span><strong>{{ account.purchase_date_label }}</strong></span><i class="ti-arrow-right date-arrow"></i><span class="date-block"><span>Vencimiento más próximo</span><strong>{{ account.expires_label }}</strong></span></footer>
     </article>
     {% endfor %}
   </section>
   <nav class="pagination-wrap" aria-label="Paginación"><button id="previousPage" class="page-button" type="button"><i class="ti-angle-left"></i></button><span id="pageStatus" class="page-status"></span><button id="nextPage" class="page-button" type="button"><i class="ti-angle-right"></i></button></nav>
   {% elif not integration_error %}
-  <section class="services-empty"><i class="ti-package"></i><h4>No tienes servicios vigentes</h4><p>Cuando exista una compra activa en Control aparecerá aquí automáticamente.</p></section>
+  <section class="services-empty"><i class="ti-package"></i><h4>No tienes cuentas vigentes</h4><p>Cuando se te asigne una cuenta completa desde Control aparecerá aquí automáticamente con todos sus perfiles.</p></section>
   {% endif %}
 </div>
 
@@ -141,12 +184,12 @@
     });
   });
 
-  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-service-card]'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-account-card]'));
   if (!cards.length) return;
   var search = document.getElementById('serviceSearch');
   var platform = document.getElementById('platformFilter');
   var expiry = document.getElementById('expiryFilter');
-  var pageSize = 18; var currentPage = 1; var filtered = cards;
+  var pageSize = 12; var currentPage = 1; var filtered = cards;
 
   function applyFilters(resetPage) {
     var query = search.value.toLowerCase().trim();
