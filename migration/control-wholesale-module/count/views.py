@@ -1342,6 +1342,7 @@ class AddSaleView(View):
             return redirect('index')
 
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
 
 
@@ -1377,15 +1378,15 @@ class AddSaleView(View):
             ibo_credentials = {}
 
             if is_ibo_player:
-                if not plan_object or num_profiles != plan_object.num_profiles:
+                if not plan_object or not selected_ids or num_profiles > plan_object.num_profiles:
                     return HttpResponse(
-                        "Para este plan debes seleccionar exactamente "
+                        "Para este plan debes seleccionar entre 1 y "
                         + str(plan_object.num_profiles if plan_object else 0)
-                        + " perfil(es).",
+                        + " dispositivo(s) de la misma lista.",
                         status=400,
                     )
                 selected_profiles = list(
-                    Profile.objects.filter(
+                    Profile.objects.select_for_update().filter(
                         id__in=selected_ids,
                         saled=False,
                         count__platform=platform,
@@ -1398,6 +1399,25 @@ class AddSaleView(View):
                         "Los dispositivos deben pertenecer a una misma lista IBO.",
                         status=400,
                     )
+                if num_profiles < plan_object.num_profiles:
+                    pending_profiles = list(
+                        Profile.objects.select_for_update().filter(
+                            count_id=selected_profiles[0].count_id,
+                            saled=False,
+                        ).exclude(
+                            id__in=selected_ids,
+                        ).select_related("count").order_by("id")[
+                            :plan_object.num_profiles - num_profiles
+                        ]
+                    )
+                    selected_profiles.extend(pending_profiles)
+                    if len(selected_profiles) != plan_object.num_profiles:
+                        return HttpResponse(
+                            "La lista IBO ya no tiene los dispositivos suficientes para vender la cuenta completa.",
+                            status=409,
+                        )
+                    selected_ids = [profile.id for profile in selected_profiles]
+                    num_profiles = len(selected_ids)
                 for selected_profile in selected_profiles:
                     raw_mac = request.POST.get(
                         "device_mac_" + str(selected_profile.id),
@@ -1501,59 +1521,56 @@ class AddSaleView(View):
             )
             ibo_devices = []
             i=0
-            for item in request.POST:
+            for profile_id in selected_ids:
                 template = 'sale/sale_post.html'
                 if plan_object:
                     template = 'sale/sale_plan_post.html'
-                if item.isnumeric():
-                    if request.POST[item] == 'on':
-                        profile = Profile.objects.filter(id = item).first()
-                        #profile.pin = request.POST['pin_'+item]
-                        #profile.profile = request.POST['profile_'+item]
-                        device_mac, device_key = ibo_credentials.get(
-                            profile.id,
-                            ("", ""),
-                        )
-                        access_identifier = (
-                            device_mac or "Pendiente"
-                            if is_ibo_player
-                            else profile.count.email
-                        )
-                        access_password = (
-                            device_key or "Pendiente"
-                            if is_ibo_player
-                            else profile.count.password
-                        )
-                        if is_chatgpt_plus:
-                            access_password = ""
-                        profile_json = {"platform": profile.count.platform.name,
-                                        "plan":plan,
-                                        "email":access_identifier,
-                                        "password":access_password,
-                                        "phone":str(customer.phone),
-                                        "date_limit":str(date_limit.strftime('%d/%m/%Y')),
-                                        "profile":"" if is_chatgpt_plus else profile.profile,
-                                        "link":"" if is_chatgpt_plus else profile.count.link,
-                                        "plus_code":profile.count.password if is_plus_code else "",
-                                        "pin":"" if is_chatgpt_plus else profile.pin}
-                        profiles_json[i] = profile_json
-                        profile.save()
-                        profiles.append(profile)
-                        if is_ibo_player:
-                            ibo_devices.append({
-                                "profile": profile.profile,
-                                "device_mac": device_mac or "Pendiente",
-                                "device_key": device_key or "Pendiente",
-                            })
-                        i+=1
-                        request.user.sale_profile(
-                            profile,
-                            int(request.POST['months']),
-                            date_limit,
-                            bill,
-                            device_mac=device_mac if is_ibo_player else "",
-                            device_key=device_key if is_ibo_player else "",
-                        )
+                profile = Profile.objects.filter(id=profile_id).first()
+                if profile:
+                    device_mac, device_key = ibo_credentials.get(
+                        profile.id,
+                        ("", ""),
+                    )
+                    access_identifier = (
+                        device_mac or "Pendiente"
+                        if is_ibo_player
+                        else profile.count.email
+                    )
+                    access_password = (
+                        device_key or "Pendiente"
+                        if is_ibo_player
+                        else profile.count.password
+                    )
+                    if is_chatgpt_plus:
+                        access_password = ""
+                    profile_json = {"platform": profile.count.platform.name,
+                                    "plan":plan,
+                                    "email":access_identifier,
+                                    "password":access_password,
+                                    "phone":str(customer.phone),
+                                    "date_limit":str(date_limit.strftime('%d/%m/%Y')),
+                                    "profile":"" if is_chatgpt_plus else profile.profile,
+                                    "link":"" if is_chatgpt_plus else profile.count.link,
+                                    "plus_code":profile.count.password if is_plus_code else "",
+                                    "pin":"" if is_chatgpt_plus else profile.pin}
+                    profiles_json[i] = profile_json
+                    profile.save()
+                    profiles.append(profile)
+                    if is_ibo_player:
+                        ibo_devices.append({
+                            "profile": profile.profile,
+                            "device_mac": device_mac or "Pendiente",
+                            "device_key": device_key or "Pendiente",
+                        })
+                    i+=1
+                    request.user.sale_profile(
+                        profile,
+                        int(request.POST['months']),
+                        date_limit,
+                        bill,
+                        device_mac=device_mac if is_ibo_player else "",
+                        device_key=device_key if is_ibo_player else "",
+                    )
             return render(request, template,
                           {
                               'profiles': profiles,
