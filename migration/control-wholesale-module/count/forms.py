@@ -181,12 +181,24 @@ class ChangeSaleDataForm(forms.Form):
 
         super(ChangeSaleDataForm, self).__init__(*args, **kwargs)
         sale = Sale.objects.filter(id=id).first()
-        self.fields['date'] = forms.DateField(widget=forms.DateInput(
-            attrs={'type': 'date', 'placeholder': 'Fecha de venta', 'data-date-format': 'YYYY/MMMM/DD',
-                   'value': sale.date}))
-        self.fields['date_limit'] = forms.DateField(widget=forms.DateInput(
-            attrs={'type': 'date', 'placeholder': 'Fecha de finalización', 'data-date-format': 'YYYY/MMMM/DD',
-                   'value': sale.date_limit}))
+        self.fields['date'] = forms.DateField(
+            label="Fecha de inicio",
+            initial=sale.date.date() if sale and sale.date else None,
+            input_formats=['%Y-%m-%d'],
+            widget=forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date', 'placeholder': 'Fecha de inicio'},
+            ),
+        )
+        self.fields['date_limit'] = forms.DateField(
+            label="Fecha de vencimiento",
+            initial=sale.date_limit.date() if sale and sale.date_limit else None,
+            input_formats=['%Y-%m-%d'],
+            widget=forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date', 'placeholder': 'Fecha de vencimiento'},
+            ),
+        )
         self.is_ibo_player = bool(sale and sale.is_ibo_player)
         if self.is_ibo_player:
             self.fields['device_mac'] = forms.CharField(

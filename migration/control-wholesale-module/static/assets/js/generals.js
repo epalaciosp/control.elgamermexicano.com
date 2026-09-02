@@ -563,9 +563,11 @@ function count_functions(){
           });
 
 
-     $('body').on("click", ".change-sale" , function(){
-        sale_id = $(this).attr('id_sale')
-        $.get('/count/edit-sale-data/'+sale_id)
+     $('body').off("click.changeSaleOpen", ".change-sale")
+       .on("click.changeSaleOpen", ".change-sale" , function(event){
+        event.preventDefault()
+        const saleId = $(this).attr('id_sale')
+        $.get('/count/edit-sale-data/'+saleId)
           .done(function( data ) {
                 $('.modal-body').html(data)
                 $('.modal-title').text("Editar fechas de venta")
@@ -575,19 +577,33 @@ function count_functions(){
                     escapeClose: false,
                     clickClose: false
                     })
-                $('.changer-sale').click(function(e){
-                  e.preventDefault()
-                  json = convertFormToJSON($('.change-sale-form'))
-                  $.post('/count/edit-sale-data/'+sale_id, json)
-                    .done(function( data ) {
-                      $('.modal-body').html(data)
-                  })
-                })
                 $("#myModal").on('hide.bs.modal', function (e) {
                   location.reload();
                 });
             });
-          });
+       });
+
+     // Delegation keeps this active when validation replaces the modal HTML.
+     // The explicit form action also makes the non-JavaScript fallback safe.
+     $('body').off("submit.changeSale", ".change-sale-form")
+       .on("submit.changeSale", ".change-sale-form", function(event){
+          event.preventDefault()
+          const form = $(this)
+          const button = form.find('.changer-sale')
+          const endpoint = form.attr('action')
+          button.prop('disabled', true).text('Guardando...')
+          csrfPost(endpoint, convertFormToJSON(form))
+            .done(function(data) {
+              $('.modal-body').html(data)
+            })
+            .fail(function(xhr) {
+              const message = xhr.responseText || 'No se pudo actualizar la fecha.'
+              $('.modal-body').prepend(
+                $('<div>', {class: 'alert alert-danger', text: message})
+              )
+              button.prop('disabled', false).text('Guardar')
+            })
+       });
 }
 
 function change_password(){

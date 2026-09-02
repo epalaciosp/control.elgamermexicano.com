@@ -6,15 +6,17 @@
     <div class="card-body">
       <h4 class="card-title">{% if is_ibo_player %}Editar dispositivo IBO{% else %}Editar venta{% endif %}</h4>
       <p class="card-description">{% if is_ibo_player %}Completa o actualiza la MAC y la clave de este dispositivo.{% else %}Digite los cambios de venta.{% endif %}</p>
-      <form method="post" class="forms-sample change-sale-form">
+      <form method="post" action="/count/edit-sale-data/{{ id }}" class="forms-sample change-sale-form">
         {% csrf_token %}
         <div class="form-group">
           <label for="date">{{ form.date.label }}</label>
           {{ form.date|add_class:'form-control' }}
+          {{ form.date.errors }}
         </div>
         <div class="form-group">
           <label for="date_limit">{{ form.date_limit.label }}</label>
           {{ form.date_limit|add_class:'form-control' }}
+          {{ form.date_limit.errors }}
         </div>
         {% if is_ibo_player %}
         <div class="form-group">

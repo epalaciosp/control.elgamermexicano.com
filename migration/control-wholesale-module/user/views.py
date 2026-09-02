@@ -211,6 +211,14 @@ class UpdateCustomerView(UpdateView):
     template_name = "user/update_customer.html"
     success_url = "/user/list-customer"
 
+    def post(self, request, *args, **kwargs):
+        # A service modal must never be interpreted as a customer edit. If a
+        # browser falls back to a native date-form submit, keep the customer
+        # untouched and reload its existing data.
+        if 'name' not in request.POST or 'phone' not in request.POST:
+            return redirect(request.path)
+        return super().post(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         ctx = super(UpdateCustomerView, self).get_context_data(**kwargs)
         current_sales = Sale.objects.filter(
