@@ -35,6 +35,7 @@ from .libraries import (
     normalize_ibo_device_identifier,
 )
 import datetime, json
+import logging
 import secrets
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -59,6 +60,8 @@ from django.db import transaction
 from django.urls import reverse_lazy
 from django.http import Http404
 from django.views.decorators.csrf import csrf_exempt
+
+logger = logging.getLogger(__name__)
 
 #class GetValidSalesView(View):
 #    def get(self, request, customer_id):
@@ -2125,7 +2128,21 @@ class WholesaleSlidesView(WholesaleSuperuserMixin, View):
         if form.is_valid():
             slide = form.save(commit=False)
             slide.created_by = request.user
-            slide.save()
+            try:
+                slide.save()
+            except OSError:
+                logger.exception("No se pudo guardar la imagen del anuncio mayorista")
+                form.add_error(
+                    "image",
+                    "No se pudo guardar la imagen. Inténtalo nuevamente o contacta al administrador.",
+                )
+                messages.error(request, "No fue posible publicar el anuncio.")
+                return render(
+                    request,
+                    self.template_name,
+                    wholesale_slides_context(form=form),
+                    status=503,
+                )
             Action.action_register(
                 request.user,
                 "Anuncio de MyPlataforma publicado: " + slide.title,
@@ -2154,7 +2171,21 @@ class WholesaleSlideEditView(WholesaleSuperuserMixin, View):
         slide = get_object_or_404(WholesaleSlide, pk=kwargs["pk"])
         form = WholesaleSlideForm(request.POST, request.FILES, instance=slide)
         if form.is_valid():
-            slide = form.save()
+            try:
+                slide = form.save()
+            except OSError:
+                logger.exception("No se pudo actualizar la imagen del anuncio mayorista")
+                form.add_error(
+                    "image",
+                    "No se pudo guardar la imagen. Inténtalo nuevamente o contacta al administrador.",
+                )
+                messages.error(request, "No fue posible actualizar el anuncio.")
+                return render(
+                    request,
+                    self.template_name,
+                    wholesale_slides_context(form=form, editing_slide=slide),
+                    status=503,
+                )
             Action.action_register(
                 request.user,
                 "Anuncio de MyPlataforma actualizado: " + slide.title,
