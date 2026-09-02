@@ -317,7 +317,7 @@
           </li>
           {% endif %}
 
-          {% if '*' in permissions %}
+          {% if 'manage_myplataforma' in permissions or '*' in permissions %}
           <li class="nav-item menu-items">
             <div class="customer-menu-row">
               <a class="nav-link customer-menu-main" href="{% url 'wholesale-modules' %}">

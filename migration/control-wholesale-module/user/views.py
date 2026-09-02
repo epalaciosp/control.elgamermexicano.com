@@ -38,6 +38,12 @@ VIP_PURCHASE_WINDOW_DAYS = 90
 VIP_MIN_PURCHASES = 4
 
 
+def user_can_manage_myplataforma(user):
+    return user.is_authenticated and (
+        user.is_superuser or user.has_perm("count.manage_myplataforma")
+    )
+
+
 def normalize_customer_segment(segment):
     segment = (segment or "all").strip().casefold()
     allowed = {"all", "active", "inactive", "vip", "never", "wholesale"}
@@ -425,6 +431,8 @@ class CustomerListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         segment = normalize_customer_segment(self.request.GET.get("segment"))
+        if segment == "wholesale" and not user_can_manage_myplataforma(self.request.user):
+            raise PermissionDenied
         segment_copy = {
             "all": (
                 "Todos los clientes",
@@ -592,6 +600,8 @@ class CustomerJson(BaseDatatableView):
 
     def get_initial_queryset(self):
         segment = normalize_customer_segment(self.request.GET.get("segment"))
+        if segment == "wholesale" and not user_can_manage_myplataforma(self.request.user):
+            raise PermissionDenied
         return customer_queryset_for_segment(segment)
 
 

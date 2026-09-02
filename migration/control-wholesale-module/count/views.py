@@ -1893,12 +1893,15 @@ class CountDeleteView(View):
 
 
 class WholesaleSuperuserMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """El inventario mayorista sólo puede administrarlo un superusuario."""
+    """Allow superusers and collaborators authorized for MyPlataforma."""
 
     raise_exception = False
 
     def test_func(self):
-        return self.request.user.is_superuser
+        return (
+            self.request.user.is_superuser
+            or self.request.user.has_perm("count.manage_myplataforma")
+        )
 
 
 class WholesaleModulesView(WholesaleSuperuserMixin, View):

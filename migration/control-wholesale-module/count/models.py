@@ -704,6 +704,9 @@ class WholesaleSlide(models.Model):
 
     class Meta:
         ordering = ("sort_order", "-updated_at")
+        permissions = (
+            ("manage_myplataforma", "Puede administrar MyPlataforma"),
+        )
         verbose_name = "Anuncio de MyPlataforma"
         verbose_name_plural = "Anuncios de MyPlataforma"
 
