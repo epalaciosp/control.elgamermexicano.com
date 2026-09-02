@@ -197,6 +197,36 @@
           </li>
           <li class="nav-item menu-items">
             <div class="customer-menu-row">
+              <a class="nav-link customer-menu-main" href="{% url 'count-modules' %}">
+                <span class="menu-icon"><i class="mdi mdi-ticket"></i></span>
+                <span class="menu-title">Cuentas</span>
+              </a>
+              <a class="customer-menu-toggle" data-toggle="collapse" href="#counts" aria-expanded="false" aria-controls="counts" aria-label="Mostrar módulos de cuentas"><i class="mdi mdi-chevron-down"></i></a>
+            </div>
+            <div class="collapse" id="counts">
+              <ul class="nav flex-column sub-menu">
+                {% if 'add_count' in permissions or '*' in permissions %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'create-count' %}">Nueva cuenta</a></li>
+                {% endif %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=all">Todas las cuentas</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=active">Cuentas activas</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=inactive">Cuentas inactivas</a></li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=3">Próximas a vencer</a>
+                  <ul class="nav flex-column sub-menu customer-expiring-submenu">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=3">En 3 días</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=2">En 2 días</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=1">En 1 día</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=0">Hoy (0 días)</a></li>
+                  </ul>
+                </li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=expired">Cuentas vencidas</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'count-modules' %}#platforms">Por plataforma</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="nav-item menu-items">
+            <div class="customer-menu-row">
               <a class="nav-link customer-menu-main" href="{% url 'customer-modules' %}">
                 <span class="menu-icon">
                   <i class="mdi mdi-account-card-details"></i>
@@ -230,75 +260,6 @@
               </ul>
             </div>
           </li>
-          {% if 'view_user' in permissions or '*' in permissions %}
-          <li class="nav-item menu-items">
-            <a class="nav-link" data-toggle="collapse" href="#users" aria-expanded="false" aria-controls="users">
-              <span class="menu-icon">
-                <i class="mdi mdi-account-plus"></i>
-              </span>
-              <span class="menu-title">Colaboradores</span>
-              <i class="menu-arrow"></i>
-            </a>
-            <div class="collapse" id="users">
-              <ul class="nav flex-column sub-menu">
-
-                {% if '*' in permissions %}
-                <li class="nav-item"> <a class="nav-link" href="{% url 'add-user' %}">Nuevo usuario</a></li>
-                {% endif %}
-                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user' %}">Listado</a></li>
-
-              </ul>
-            </div>
-          </li>
-          {% endif %}
-          <li class="nav-item menu-items">
-            <div class="customer-menu-row">
-              <a class="nav-link customer-menu-main" href="{% url 'count-modules' %}">
-                <span class="menu-icon"><i class="mdi mdi-ticket"></i></span>
-                <span class="menu-title">Cuentas</span>
-              </a>
-              <a class="customer-menu-toggle" data-toggle="collapse" href="#counts" aria-expanded="false" aria-controls="counts" aria-label="Mostrar módulos de cuentas"><i class="mdi mdi-chevron-down"></i></a>
-            </div>
-            <div class="collapse" id="counts">
-              <ul class="nav flex-column sub-menu">
-                {% if 'add_count' in permissions or '*' in permissions %}
-                <li class="nav-item"> <a class="nav-link" href="{% url 'create-count' %}">Nueva cuenta</a></li>
-                {% endif %}
-                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=all">Todas las cuentas</a></li>
-                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=active">Cuentas activas</a></li>
-                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=inactive">Cuentas inactivas</a></li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=3">Próximas a vencer</a>
-                  <ul class="nav flex-column sub-menu customer-expiring-submenu">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=3">En 3 días</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=2">En 2 días</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=1">En 1 día</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'count-list' %}?status=expiring&amp;days=0">Hoy (0 días)</a></li>
-                  </ul>
-                </li>
-                <li class="nav-item"> <a class="nav-link" href="{% url 'count-list' %}?status=expired">Cuentas vencidas</a></li>
-                <li class="nav-item"> <a class="nav-link" href="{% url 'count-modules' %}#platforms">Por plataforma</a></li>
-              </ul>
-            </div>
-          </li>
-          {% if '*' in permissions %}
-          <li class="nav-item menu-items">
-            <a class="nav-link" href="{% url 'wholesale-inventory' %}">
-              <span class="menu-icon">
-                <i class="mdi mdi-store"></i>
-              </span>
-              <span class="menu-title">Inventario mayorista</span>
-            </a>
-          </li>
-          <li class="nav-item menu-items">
-            <a class="nav-link" href="{% url 'wholesale-slides' %}">
-              <span class="menu-icon">
-                <i class="mdi mdi-image-multiple"></i>
-              </span>
-              <span class="menu-title">Anuncios MyPlataforma</span>
-            </a>
-          </li>
-          {% endif %}
            <li class="nav-item menu-items">
             <a class="nav-link" data-toggle="collapse" href="#promotions" aria-expanded="false" aria-controls="promotions">
               <span class="menu-icon">
@@ -335,6 +296,45 @@
               </ul>
             </div>
           </li>
+
+          {% if '*' in permissions %}
+          <li class="nav-item menu-items">
+            <a class="nav-link" href="{% url 'wholesale-inventory' %}">
+              <span class="menu-icon">
+                <i class="mdi mdi-store"></i>
+              </span>
+              <span class="menu-title">Inventario mayorista</span>
+            </a>
+          </li>
+          <li class="nav-item menu-items">
+            <a class="nav-link" href="{% url 'wholesale-slides' %}">
+              <span class="menu-icon">
+                <i class="mdi mdi-image-multiple"></i>
+              </span>
+              <span class="menu-title">Anuncios MyPlataforma</span>
+            </a>
+          </li>
+          {% endif %}
+
+          {% if 'view_user' in permissions or '*' in permissions %}
+          <li class="nav-item menu-items">
+            <a class="nav-link" data-toggle="collapse" href="#users" aria-expanded="false" aria-controls="users">
+              <span class="menu-icon">
+                <i class="mdi mdi-account-plus"></i>
+              </span>
+              <span class="menu-title">Colaboradores</span>
+              <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="users">
+              <ul class="nav flex-column sub-menu">
+                {% if '*' in permissions %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'add-user' %}">Nuevo usuario</a></li>
+                {% endif %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'list-user' %}">Listado</a></li>
+              </ul>
+            </div>
+          </li>
+          {% endif %}
 
         </ul>
       </nav>
