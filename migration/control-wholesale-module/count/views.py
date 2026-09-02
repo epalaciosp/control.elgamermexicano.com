@@ -1072,17 +1072,34 @@ class ChangeDateLimitView(View):
 
         return render(request, self.template_name,  {'form': self.form_class, 'id':kwargs['id'] })
     def post(self, request, *args, **kwargs):
+        raw_date = request.POST.get('date_limit', '').strip()
+        try:
+            selected_date = datetime.date.fromisoformat(raw_date)
+        except ValueError:
+            return HttpResponse("Selecciona una fecha válida.", status=400)
 
-        date_now = django_timezone.now()
-        date_now = date_now +  datetime.timedelta(days=1)
-        date_limit = datetime.datetime.strptime(request.POST['date_limit'], '%Y-%m-%d')
-        if date_limit > date_now:
-            count = self.model.objects.filter(id=kwargs['id']).first()
-            count.date_limit = date_limit
-            count.save()
-            return HttpResponse("Fecha de finalización cambiada con éxito")
-        else:
-            return HttpResponse("La fecha aregistrada tiene que ser mayor quela fecha actual")
+        today = django_timezone.localdate()
+        if selected_date < today:
+            return HttpResponse(
+                "La fecha registrada no puede ser anterior al día de hoy.",
+                status=400,
+            )
+
+        count = get_object_or_404(self.model, id=kwargs['id'])
+        expiration = datetime.datetime.combine(selected_date, datetime.time.max)
+        if django_timezone.is_aware(django_timezone.now()):
+            expiration = django_timezone.make_aware(
+                expiration,
+                django_timezone.get_current_timezone(),
+            )
+        count.date_limit = expiration
+        count.save(update_fields=["date_limit"])
+        Action.action_register(
+            request.user,
+            "Cambió vencimiento de cuenta id = " + str(count.id)
+            + " a " + selected_date.isoformat(),
+        )
+        return HttpResponse("Fecha de finalización cambiada con éxito")
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(permissions_in_view, name='dispatch')
