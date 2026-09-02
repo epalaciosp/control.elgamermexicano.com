@@ -35,6 +35,7 @@ urlpatterns = [
         path('platform/set-prices_by-profiles/<int:quantity>', views.SetPricesOfQuantityProfilesView.as_view(), name='set-prices_by-profiles'),
 
         # wholesale inventory
+        path('wholesale', views.WholesaleModulesView.as_view(), name='wholesale-modules'),
         path('wholesale/inventory', views.WholesaleInventoryView.as_view(), name='wholesale-inventory'),
         path('wholesale/publication/<int:pk>/edit', views.WholesalePublicationEditView.as_view(), name='wholesale-publication-edit'),
         path('wholesale/publication/<int:pk>/toggle', views.WholesalePublicationToggleView.as_view(), name='wholesale-publication-toggle'),

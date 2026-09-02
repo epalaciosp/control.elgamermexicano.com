@@ -1402,10 +1402,24 @@ class AddSaleView(View):
                     )
 
             plan = plan_object.name if plan_object else ""
-            total = Price.objects.filter(platform=platform, num_profiles=num_profiles).first()
-            if not total:
+            configured_price = (
+                plan_object.sale_price
+                if plan_object and plan_object.sale_price > 0
+                else None
+            )
+            if configured_price is None:
+                total = Price.objects.filter(
+                    platform=platform,
+                    num_profiles=num_profiles,
+                ).first()
+                configured_price = total.price if total else None
+            if configured_price is None:
                 return HttpResponse("No existe un precio configurado para esta venta.", status=400)
-            bill = Bill.objects.create(customer=customer, saler= request.user, total=total.price)
+            bill = Bill.objects.create(
+                customer=customer,
+                saler=request.user,
+                total=configured_price,
+            )
             i=0
             for item in request.POST:
                 template = 'sale/sale_post.html'
@@ -1882,6 +1896,15 @@ class WholesaleSuperuserMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         return self.request.user.is_superuser
+
+
+class WholesaleModulesView(WholesaleSuperuserMixin, View):
+    """Landing page for every Control feature connected to MyPlataforma."""
+
+    template_name = "wholesale/modules.html"
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
 
 
 def _sync_default_wholesale_publications(created_by=None):
