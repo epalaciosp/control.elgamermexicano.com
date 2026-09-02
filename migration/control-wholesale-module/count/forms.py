@@ -10,7 +10,7 @@ from .models import (
     WholesalePublication,
     WholesaleSlide,
 )
-from .libraries import is_chatgpt_plus_platform
+from .libraries import is_chatgpt_plus_platform, normalize_ibo_device_identifier
 
 from datetime import date
 
@@ -69,6 +69,12 @@ class CountForm(forms.Form):
         decimal_places=2,
         label="Precio de venta de cuenta completa",
     )
+    profile_sale_price = forms.DecimalField(
+        required=False,
+        min_value=0,
+        decimal_places=2,
+        label="Precio de venta por perfil",
+    )
     wholesale_price = forms.DecimalField(
         required=False,
         min_value=0,
@@ -110,6 +116,7 @@ class CountUpdateForm(forms.ModelForm):
             'email',
             'date_limit',
             'sale_price',
+            'profile_sale_price',
             'wholesale_price',
         ]
 
@@ -170,7 +177,7 @@ class ChangeCountDataForm(forms.Form):
 
 class ChangeSaleDataForm(forms.Form):
 
-     def __init__(self, id,  *args, **kwargs):
+    def __init__(self, id, *args, **kwargs):
 
         super(ChangeSaleDataForm, self).__init__(*args, **kwargs)
         sale = Sale.objects.filter(id=id).first()
@@ -180,6 +187,40 @@ class ChangeSaleDataForm(forms.Form):
         self.fields['date_limit'] = forms.DateField(widget=forms.DateInput(
             attrs={'type': 'date', 'placeholder': 'Fecha de finalización', 'data-date-format': 'YYYY/MMMM/DD',
                    'value': sale.date_limit}))
+        self.is_ibo_player = bool(sale and sale.is_ibo_player)
+        if self.is_ibo_player:
+            self.fields['device_mac'] = forms.CharField(
+                required=False,
+                max_length=17,
+                initial=sale.device_mac,
+                label="MAC address o Device ID",
+                help_text="Déjalo vacío mientras el dispositivo esté pendiente.",
+            )
+            self.fields['device_key'] = forms.CharField(
+                required=False,
+                max_length=50,
+                initial=sale.device_key,
+                label="Clave del dispositivo",
+                help_text="Déjala vacía mientras el dispositivo esté pendiente.",
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not getattr(self, 'is_ibo_player', False):
+            return cleaned_data
+
+        raw_mac = (cleaned_data.get('device_mac') or '').strip()
+        device_key = (cleaned_data.get('device_key') or '').strip()
+        device_mac = normalize_ibo_device_identifier(raw_mac)
+        if raw_mac and not device_mac:
+            self.add_error('device_mac', 'Ingresa una MAC address o Device ID válido.')
+        if bool(device_mac) != bool(device_key):
+            raise forms.ValidationError(
+                'Ingresa la MAC y la clave juntas, o deja ambas pendientes.'
+            )
+        cleaned_data['device_mac'] = device_mac
+        cleaned_data['device_key'] = device_key
+        return cleaned_data
 
 
 

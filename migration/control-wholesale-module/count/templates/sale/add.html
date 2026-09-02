@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+{% block page_header %}Formulario de venta{% endblock %}
+{% load widget_tweaks %}
+{% load humanize %}
+{% block content %}
+<style>
+  .title_promotion { align-items: center; display: flex; justify-content: center; word-break: break-all; }
+  .ibo-sale-help { background: #13251f; border: 1px solid #176542; border-radius: 9px; color: #b9e8d2; display: none; margin-bottom: 17px; padding: 13px 15px; }
+</style>
+<div class="col-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Vender perfil a {{ customer.name }}</h4>
+      <p class="card-description">Digite los datos de la venta</p>
+      <form method="post" id="form_sale" class="forms-sample platforms">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="platform">{{ form.platform.label }}</label>
+          {{ form.platform|add_class:'form-control' }}
+        </div>
+        <div id="plans"></div>
+        <div class="form-group">
+          <label for="months">{{ form.months.label }}</label>
+          {{ form.months|add_class:'form-control' }}
+        </div>
+        <div id="ibo-sale-help" class="ibo-sale-help">
+          Selecciona 1, 2 o 4 dispositivos según el plan. Captura una MAC y una clave por dispositivo. Si todavía no te entregan alguno, deja ambos campos vacíos y complétalos después desde el servicio del cliente.
+        </div>
+        <div id="profiles-content"></div>
+        <button type="submit" class="btn btn-primary mr-2 sale">Vender</button>
+      </form>
+      {{ form.errors }}
+    </div>
+  </div>
+</div>
+
+{% for promotion in promotions %}
+<div class="col-12 col-sm-6 col-lg-4 col-xl-2 promotion-card">
+  <div class="card promotion-card-panel" style="background-image: url('/{{ promotion.image }}');background-repeat: no-repeat;background-size: cover;">
+    <div class="card-header" style="height: 100%;"></div>
+    <div class="card-body">
+      <div class="media align-items-center mb-4">
+        <div class="media-body"><h3 class="mb-0">{{ price_plan.plan.platform.name }}</h3></div>
+      </div>
+      <div class="row mb-5">
+        <form method="post" id="promo_form_{{ promotion.id }}" action="" style="width: 100%;">
+          {% csrf_token %}
+          <div class="col">
+            <div class="card-profile border-0 text-center">
+              <input type="number" name="months_promo" min="1" class="form-control" required id="months_promo_{{ promotion.id }}" placeholder="Meses">
+            </div>
+          </div>
+          <div class="col-12 text-center">
+            <button type="submit" class="sale_multiplatform btn btn-danger px-5 promotion" id="{{ promotion.id }}">Vender Promoción</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script>
+$(document).ready(function() {
+  create_sale();
+  $('#id_platform').on('change', function() {
+    const platformName = $('#id_platform option:selected').text().trim().toLowerCase();
+    $('#ibo-sale-help').toggle(platformName === 'iptv ibo pro player');
+  });
+});
+
+$('.sale').on('click', function(e) {
+  e.preventDefault();
+  if ($('#id_months').val() === '') {
+    alert('Tienes que digitar los meses de compra');
+  } else {
+    const saleButton = $(this);
+    saleButton.prop('disabled', true);
+    const form = $('#form_sale');
+    const json = convertFormToJSON(form);
+    $('.modal-title').html('Procesando compra');
+    $('#modal-body').html('<img style="margin-left: 80px;" src="/static/assets/images/loading.gif" alt="Loading" width="300" height="300">');
+    $('.modal-footer').empty();
+    $('#myModal').modal({show: true, backdrop: 'static', keyboard: false});
+    $.post('/count/sale/{{ customer.id }}', json)
+      .done(function(data) {
+        if (data !== '{}') {
+          $('.modal-title').html('Compra Exitosa');
+          $('#modal-body').html(data);
+          $('.modal-footer').html('<button type="button" class="btn btn-success btn-lg btn-secondary btn-block btn-icon-text send-message close-modal"><i class="mdi mdi-whatsapp btn-icon-prepend"></i> Enviar mensaje</button>');
+        } else {
+          alert('Datos de conexión inválidos');
+        }
+      })
+      .fail(function(xhr) {
+        let message = xhr.responseText || 'No fue posible procesar la venta. Intenta nuevamente.';
+        if (xhr.status === 403) {
+          message = 'La sesión expiró. Recarga la página e intenta nuevamente.';
+        }
+        $('.modal-title').text('No se pudo procesar la venta');
+        $('#modal-body').empty().append($('<div>', {class: 'alert alert-danger', text: message}));
+        $('.modal-footer').html('<button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Corregir datos</button>');
+        saleButton.prop('disabled', false);
+      });
+  }
+});
+
+$('.promotion').on('click', function(e) {
+  e.preventDefault();
+  const promotionId = $(this).attr('id');
+  const form = $('#promo_form_' + promotionId);
+  const json = convertFormToJSON(form);
+  $('.modal-title').html('Procesando compra');
+  $('#modal-body').append('<img style="margin-left: 80px;" src="/static/assets/images/loading.gif" alt="Loading" width="300" height="300">');
+  $('#myModal').modal({show: true});
+  $.post('/count/promotion/sale/{{ customer.id }}/' + promotionId, json).done(function(data) {
+    $('.modal-title').html('Compra Exitosa');
+    $('#modal-body').html(data);
+    $('.modal-footer').html('<button type="button" class="close-modal btn btn-lg btn-secondary btn-block" data-dismiss="modal">Aceptar</button>');
+  });
+});
+</script>
+{% endblock %}

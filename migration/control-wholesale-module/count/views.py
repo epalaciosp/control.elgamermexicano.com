@@ -321,10 +321,13 @@ class CreateCount(View):
         is_plus_code = is_plus_code_platform(platform.name)
         try:
             sale_price = Decimal(request.POST.get("sale_price") or "0")
+            profile_sale_price = Decimal(
+                request.POST.get("profile_sale_price") or "0"
+            )
             wholesale_price = Decimal(request.POST.get("wholesale_price") or "0")
         except InvalidOperation:
             return HttpResponse("Los precios no son válidos.", status=400)
-        if sale_price < 0 or wholesale_price < 0:
+        if sale_price < 0 or profile_sale_price < 0 or wholesale_price < 0:
             return HttpResponse("Los precios no pueden ser negativos.", status=400)
         if is_plus_code:
             plus_code = request.POST.get("password", "").strip()
@@ -355,6 +358,7 @@ class CreateCount(View):
                 link="",
                 date_limit=expiration,
                 sale_price=sale_price,
+                profile_sale_price=profile_sale_price,
                 wholesale_price=wholesale_price,
             )
             new_count.email = "Código Plus #" + str(new_count.id)
@@ -403,6 +407,7 @@ class CreateCount(View):
                 link="",
                 date_limit=expiration,
                 sale_price=sale_price,
+                profile_sale_price=profile_sale_price,
                 wholesale_price=wholesale_price,
             )
             for profile_number in range(1, 7):
@@ -433,6 +438,7 @@ class CreateCount(View):
                 email_password="",
                 date_limit=request.POST['date_limit'],
                 sale_price=sale_price,
+                profile_sale_price=profile_sale_price,
                 wholesale_price=wholesale_price,
             )
             new_count.email = "Lista IBO #" + str(new_count.id)
@@ -455,6 +461,7 @@ class CreateCount(View):
                                          email_password="" if is_ibo_player else request.POST['email_password'],
                                          date_limit = request.POST['date_limit'],
                                          sale_price=sale_price,
+                                         profile_sale_price=profile_sale_price,
                                          wholesale_price=wholesale_price,
                                          )
 
@@ -499,10 +506,17 @@ class UpdateCount(UpdateView):
         count = Count.objects.filter(id=id).first()
         try:
             count.sale_price = Decimal(request.POST.get("sale_price") or "0")
+            count.profile_sale_price = Decimal(
+                request.POST.get("profile_sale_price") or "0"
+            )
             count.wholesale_price = Decimal(request.POST.get("wholesale_price") or "0")
         except InvalidOperation:
             return HttpResponse("Los precios no son válidos.", status=400)
-        if count.sale_price < 0 or count.wholesale_price < 0:
+        if (
+            count.sale_price < 0
+            or count.profile_sale_price < 0
+            or count.wholesale_price < 0
+        ):
             return HttpResponse("Los precios no pueden ser negativos.", status=400)
         if is_chatgpt_plus_platform(count.platform.name):
             email = request.POST.get("email", "").strip()
@@ -526,6 +540,7 @@ class UpdateCount(UpdateView):
                 "email",
                 "date_limit",
                 "sale_price",
+                "profile_sale_price",
                 "wholesale_price",
             ])
             return redirect("count-list")
@@ -554,6 +569,7 @@ class UpdateCount(UpdateView):
                 "password",
                 "date_limit",
                 "sale_price",
+                "profile_sale_price",
                 "wholesale_price",
             ])
             return redirect("count-list")
@@ -568,6 +584,7 @@ class UpdateCount(UpdateView):
                 "link",
                 "date_limit",
                 "sale_price",
+                "profile_sale_price",
                 "wholesale_price",
             ])
             existing_numbers = set(
@@ -937,8 +954,8 @@ class CountModulesView(View):
 @method_decorator(login_required, name='dispatch')
 class CountListAjax(BaseDatatableView):
 
-    columns = ['Plataforma', 'Plan', 'Correo', 'Perfiles', 'Disponibles', 'Contraseña de cuenta', 'Contraseña de correo', 'pais', 'Vence', 'Estado', 'Precio venta', 'Precio mayoreo', 'link']
-    order_columns = ['platform__name', 'plan__name', 'email', '', '', '', '', 'country__country', 'date_limit', 'active', 'sale_price', 'wholesale_price', '']
+    columns = ['Plataforma', 'Plan', 'Correo', 'Perfiles', 'Disponibles', 'Contraseña de cuenta', 'Contraseña de correo', 'pais', 'Vence', 'Estado', 'Precio cuenta', 'Precio perfil', 'Precio mayoreo', 'link']
+    order_columns = ['platform__name', 'plan__name', 'email', '', '', '', '', 'country__country', 'date_limit', 'active', 'sale_price', 'profile_sale_price', 'wholesale_price', '']
     model = Count
     #max_display_length = 500
 
@@ -1056,6 +1073,7 @@ class CountListAjax(BaseDatatableView):
                     rest_days,
                     state_html,
                     str(item.sale_price),
+                    str(item.profile_sale_price),
                     str(item.wholesale_price),
                     item.link,
                     link_change_password,
@@ -1077,6 +1095,7 @@ class CountListAjax(BaseDatatableView):
                     rest_days,
                     state_html,
                     str(item.sale_price),
+                    str(item.profile_sale_price),
                     str(item.wholesale_price),
                     item.link,
                     link_change_password,
@@ -1211,17 +1230,45 @@ class EditSaleDataView(View):
 
     def get(self, request, *args, **kwargs):
         form_class = ChangeSaleDataForm(kwargs['id'])
-        return render(request, self.template_name,  {'form': form_class, 'id':kwargs['id'] })
+        return render(
+            request,
+            self.template_name,
+            {
+                'form': form_class,
+                'id': kwargs['id'],
+                'is_ibo_player': form_class.is_ibo_player,
+            },
+        )
 
     def post(self, request, *args, **kwargs):
 
-        sale = self.model.objects.filter(id=kwargs['id']).first()
-        if not request.POST['date'] == "":
-            sale.date = request.POST['date']
-        if not request.POST['date_limit'] == "":
-            sale.date_limit = request.POST['date_limit']
-        sale.save()
-        return HttpResponse("Venta Actualizados")
+        sale = get_object_or_404(self.model, id=kwargs['id'])
+        form = ChangeSaleDataForm(kwargs['id'], request.POST)
+        if not form.is_valid():
+            return render(
+                request,
+                self.template_name,
+                {
+                    'form': form,
+                    'id': kwargs['id'],
+                    'is_ibo_player': form.is_ibo_player,
+                },
+                status=400,
+            )
+
+        sale.date = form.cleaned_data['date']
+        sale.date_limit = form.cleaned_data['date_limit']
+        update_fields = ['date', 'date_limit']
+        if form.is_ibo_player:
+            sale.device_mac = form.cleaned_data['device_mac']
+            sale.device_key = form.cleaned_data['device_key']
+            update_fields.extend(['device_mac', 'device_key'])
+        sale.save(update_fields=update_fields)
+        Action.action_register(
+            request.user,
+            "Servicio actualizado: venta id = " + str(sale.id),
+        )
+        return HttpResponse("Servicio actualizado correctamente")
 
 
 
@@ -1327,10 +1374,8 @@ class AddSaleView(View):
             is_chatgpt_plus = bool(
                 platform and is_chatgpt_plus_platform(platform.name)
             )
-            device_mac = normalize_ibo_device_identifier(
-                request.POST.get("device_mac", "")
-            )
-            device_key = request.POST.get("device_key", "").strip()
+            selected_profiles = []
+            ibo_credentials = {}
 
             if is_ibo_player:
                 if not plan_object or num_profiles != plan_object.num_profiles:
@@ -1340,13 +1385,6 @@ class AddSaleView(View):
                         + " perfil(es).",
                         status=400,
                     )
-                if not device_mac:
-                    return HttpResponse(
-                        "Ingresa una MAC address o Device ID válido.",
-                        status=400,
-                    )
-                if not device_key:
-                    return HttpResponse("Ingresa la clave del dispositivo.", status=400)
                 selected_profiles = list(
                     Profile.objects.filter(
                         id__in=selected_ids,
@@ -1356,10 +1394,38 @@ class AddSaleView(View):
                 )
                 if len(selected_profiles) != num_profiles:
                     return HttpResponse("Uno de los perfiles ya no está disponible.", status=409)
-                if num_profiles == 4 and len({p.count_id for p in selected_profiles}) != 1:
+                if len({p.count_id for p in selected_profiles}) != 1:
                     return HttpResponse(
-                        "La cuenta completa debe usar los 4 perfiles de una misma lista.",
+                        "Los dispositivos deben pertenecer a una misma lista IBO.",
                         status=400,
+                    )
+                for selected_profile in selected_profiles:
+                    raw_mac = request.POST.get(
+                        "device_mac_" + str(selected_profile.id),
+                        "",
+                    ).strip()
+                    device_mac = normalize_ibo_device_identifier(raw_mac)
+                    device_key = request.POST.get(
+                        "device_key_" + str(selected_profile.id),
+                        "",
+                    ).strip()
+                    if raw_mac and not device_mac:
+                        return HttpResponse(
+                            "La MAC o Device ID del perfil "
+                            + str(selected_profile.profile)
+                            + " no es válido.",
+                            status=400,
+                        )
+                    if bool(device_mac) != bool(device_key):
+                        return HttpResponse(
+                            "Ingresa la MAC y la clave juntas para el perfil "
+                            + str(selected_profile.profile)
+                            + ", o deja ambas pendientes.",
+                            status=400,
+                        )
+                    ibo_credentials[selected_profile.id] = (
+                        device_mac,
+                        device_key,
                     )
 
             if is_plus_code:
@@ -1405,11 +1471,22 @@ class AddSaleView(View):
                     )
 
             plan = plan_object.name if plan_object else ""
-            configured_price = (
-                plan_object.sale_price
-                if plan_object and plan_object.sale_price > 0
-                else None
-            )
+            configured_price = None
+            if is_ibo_player and selected_profiles:
+                ibo_count = selected_profiles[0].count
+                account_profile_count = Profile.objects.filter(
+                    count=ibo_count,
+                ).count()
+                if num_profiles == account_profile_count and ibo_count.sale_price > 0:
+                    configured_price = ibo_count.sale_price
+                elif ibo_count.profile_sale_price > 0:
+                    configured_price = ibo_count.profile_sale_price * num_profiles
+            if configured_price is None:
+                configured_price = (
+                    plan_object.sale_price
+                    if plan_object and plan_object.sale_price > 0
+                    else None
+                )
             if configured_price is None:
                 total = Price.objects.filter(
                     platform=platform,
@@ -1423,6 +1500,7 @@ class AddSaleView(View):
                 saler=request.user,
                 total=configured_price,
             )
+            ibo_devices = []
             i=0
             for item in request.POST:
                 template = 'sale/sale_post.html'
@@ -1433,8 +1511,20 @@ class AddSaleView(View):
                         profile = Profile.objects.filter(id = item).first()
                         #profile.pin = request.POST['pin_'+item]
                         #profile.profile = request.POST['profile_'+item]
-                        access_identifier = device_mac if is_ibo_player else profile.count.email
-                        access_password = device_key if is_ibo_player else profile.count.password
+                        device_mac, device_key = ibo_credentials.get(
+                            profile.id,
+                            ("", ""),
+                        )
+                        access_identifier = (
+                            device_mac or "Pendiente"
+                            if is_ibo_player
+                            else profile.count.email
+                        )
+                        access_password = (
+                            device_key or "Pendiente"
+                            if is_ibo_player
+                            else profile.count.password
+                        )
                         if is_chatgpt_plus:
                             access_password = ""
                         profile_json = {"platform": profile.count.platform.name,
@@ -1450,6 +1540,12 @@ class AddSaleView(View):
                         profiles_json[i] = profile_json
                         profile.save()
                         profiles.append(profile)
+                        if is_ibo_player:
+                            ibo_devices.append({
+                                "profile": profile.profile,
+                                "device_mac": device_mac or "Pendiente",
+                                "device_key": device_key or "Pendiente",
+                            })
                         i+=1
                         request.user.sale_profile(
                             profile,
@@ -1463,8 +1559,7 @@ class AddSaleView(View):
                           {
                               'profiles': profiles,
                               'profiles_json': json.dumps(profiles_json),
-                              'device_mac': device_mac,
-                              'device_key': device_key,
+                              'ibo_devices': ibo_devices,
                               'is_ibo_player': is_ibo_player,
                               'is_plus_code': is_plus_code,
                               'is_chatgpt_plus': is_chatgpt_plus,
@@ -1566,6 +1661,10 @@ class GetProfilesAvailableView(ListView):
             profiles, num_profiles  = self.model.search_profiles_no_saled_by_plan(self.kwargs['plan'])
             context['num_profiles'] = num_profiles
             plan = Plan.objects.filter(id=self.kwargs['plan']).select_related('platform').first()
+            context['is_ibo_player'] = bool(
+                plan
+                and plan.platform.name.strip().casefold() == "iptv ibo pro player"
+            )
             context['is_chatgpt_plus'] = bool(
                 plan and is_chatgpt_plus_platform(plan.platform.name)
             )

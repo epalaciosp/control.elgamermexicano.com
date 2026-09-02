@@ -1,0 +1,86 @@
+{% block page_header %}
+Seleccione los perfiles a vender, puede cambiar los perfiles y pines a solicitud del cliente.
+{% endblock %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="col-lg-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+      {% if is_ibo_player %}
+      <p class="card-description">Cada fila corresponde a un dispositivo. Los campos pueden quedar pendientes y completarse después desde el cliente.</p>
+      {% endif %}
+      <div class="table-responsive">
+        {% if profiles|length == 0 %}
+          No existen cuentas disponibles
+        {% else %}
+        <table class="table table-dark table-normal">
+          <thead>
+            <tr>
+              <th>#</th>
+              {% if not is_plus_code and not is_chatgpt_plus %}<th>Plan</th>{% endif %}
+              <th>{% if is_plus_code %}Código Plus{% elif is_chatgpt_plus %}Correo{% else %}Cuenta{% endif %}</th>
+              {% if not is_plus_code and not is_chatgpt_plus %}<th>Contraseña</th>{% endif %}
+              {% if num_profiles and not is_chatgpt_plus %}<th>Link</th>{% endif %}
+              {% if not is_plus_code %}<th>Perfil</th>{% endif %}
+              {% if not is_plus_code and not is_chatgpt_plus %}<th>Pin</th>{% endif %}
+              {% if is_ibo_player %}<th>MAC / Device ID</th><th>Clave</th>{% endif %}
+              <th>Seleccionar</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for profile in profiles %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              {% if not is_plus_code and not is_chatgpt_plus %}
+              <td>{% if profile.count.plan.name %}{{ profile.count.plan.name }}{% else %}—{% endif %}</td>
+              {% endif %}
+              <td>{% if is_plus_code %}{{ profile.count.password }}{% else %}{{ profile.count.email }}{% endif %}</td>
+              {% if not is_plus_code and not is_chatgpt_plus %}<td>{{ profile.count.password }}</td>{% endif %}
+              {% if num_profiles and not is_chatgpt_plus %}<td>{{ profile.count.link }}</td>{% endif %}
+              {% if not is_plus_code %}<td>{{ profile.profile }}</td>{% endif %}
+              {% if not is_plus_code and not is_chatgpt_plus %}<td>{{ profile.pin }}</td>{% endif %}
+              {% if is_ibo_player %}
+              <td>
+                <input type="text" name="device_mac_{{ profile.id }}" class="form-control" maxlength="17" placeholder="MAC o Device ID">
+              </td>
+              <td>
+                <input type="text" name="device_key_{{ profile.id }}" class="form-control" maxlength="50" placeholder="Clave">
+              </td>
+              {% endif %}
+              <td class="text-center" style="vertical-align: top !important">
+                <input type="checkbox" class="form-check-input" data-toggle="toggle" data-onstyle="primary" name="{{ profile.id }}">
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+$(document).ready(function() {
+  $('.table-normal').DataTable({
+    responsive: true,
+    ordering: false,
+    language: {
+      processing: 'Procesamiento en curso...',
+      search: 'Buscar&nbsp;:',
+      lengthMenu: 'Mostrar _MENU_ elementos',
+      info: 'Mostrar del elemento _START_ al _END_, Total _TOTAL_',
+      infoEmpty: 'Visualización del elemento 0 a 0 de 0 artículos',
+      infoFiltered: '(filtrados _MAX_ elementos del total)',
+      loadingRecords: 'Procesamiento en curso...',
+      zeroRecords: 'No hay elementos para mostrar',
+      emptyTable: 'No se encontraron elementos',
+      paginate: {first: 'Primera', previous: 'Anterior', next: 'Próxima', last: 'Última'},
+      aria: {
+        sortAscending: ': activar para ordenar la columna en orden ascendente',
+        sortDescending: ': activar para ordenar la columna en orden descendente'
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

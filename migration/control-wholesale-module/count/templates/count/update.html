@@ -46,12 +46,17 @@ Crear cuentas
               </div>
           </div>
           <div class="row">
-            <div class="form-group col-md-6">
+            <div class="form-group col-md-4">
               <label for="sale_price">{{ form.sale_price.label }}</label>
               {{ form.sale_price|add_class:'form-control' }}
               <small class="form-text text-muted">Precio de venta de toda la cuenta.</small>
             </div>
-            <div class="form-group col-md-6">
+            <div class="form-group col-md-4">
+              <label for="profile_sale_price">{{ form.profile_sale_price.label }}</label>
+              {{ form.profile_sale_price|add_class:'form-control' }}
+              <small class="form-text text-muted">Precio de venta de cada perfil o dispositivo.</small>
+            </div>
+            <div class="form-group col-md-4">
               <label for="wholesale_price">{{ form.wholesale_price.label }}</label>
               {{ form.wholesale_price|add_class:'form-control' }}
               <small class="form-text text-muted">Precio de la cuenta completa para mayoristas.</small>

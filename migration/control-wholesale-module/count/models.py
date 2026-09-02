@@ -123,6 +123,13 @@ class Count(models.Model):
         validators=[MinValueValidator(Decimal("0"))],
         verbose_name="Precio de venta de cuenta completa",
     )
+    profile_sale_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0"))],
+        verbose_name="Precio de venta por perfil",
+    )
     wholesale_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -375,11 +382,15 @@ class Sale(models.Model):
 
     @property
     def access_identifier(self):
-        return self.device_mac if self.is_ibo_player else self.profile.count.email
+        if self.is_ibo_player:
+            return self.device_mac or "Pendiente"
+        return self.profile.count.email
 
     @property
     def access_password(self):
-        return self.device_key if self.is_ibo_player else self.profile.count.password
+        if self.is_ibo_player:
+            return self.device_key or "Pendiente"
+        return self.profile.count.password
 
     @classmethod
     def search_customer_by_profile(cls, profile, now):
