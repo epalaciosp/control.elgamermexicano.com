@@ -28,7 +28,10 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
-from .plex_partner import get_plex_market, plex_api_configured
+from .plex_partner import (
+    get_media_market,
+    partner_api_configured,
+)
 
 
 
@@ -383,6 +386,18 @@ def PortalSectionView(request, section):
             "description": "Consulta los planes Plex disponibles mediante la conexión oficial de Multiplataforma.",
             "icon": "ti-video-camera",
         },
+        "emby": {
+            "title": "Emby",
+            "eyebrow": "Integración API Partner",
+            "description": "Consulta planes Emby estándar y Premium + TV directamente desde el proveedor.",
+            "icon": "ti-control-play",
+        },
+        "jellyfin": {
+            "title": "Jellyfin",
+            "eyebrow": "Integración API Partner",
+            "description": "Consulta planes Jellyfin estándar y Premium + TV directamente desde el proveedor.",
+            "icon": "ti-video-clapper",
+        },
     }
     admin_sections = {
         "orders": {
@@ -511,14 +526,14 @@ def PortalSectionView(request, section):
             "balance": balance,
         })
 
-    if user_type == "vendedor" and section == "plex":
-        plans, plex_error = get_plex_market()
-        return render(request, "plex_market.html", {
+    if user_type == "vendedor" and section in ("plex", "emby", "jellyfin"):
+        market, market_error = get_media_market(section)
+        return render(request, "media_market.html", {
             "section": section,
             "section_data": section_data,
-            "plex_plans": plans,
-            "plex_error": plex_error,
-            "plex_configured": plex_api_configured(),
+            "market": market,
+            "market_error": market_error,
+            "partner_configured": partner_api_configured(),
             "balance": request.user.get_my_money(),
         })
 

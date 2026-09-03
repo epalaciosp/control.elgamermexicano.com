@@ -166,6 +166,18 @@
                 <span class="pcoded-mtext">Plex</span>
               </a>
             </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'emby' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'emby' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-control-play"></i></span>
+                <span class="pcoded-mtext">Emby</span>
+              </a>
+            </li>
+            <li class="{% if request.resolver_match.kwargs.section == 'jellyfin' %}active{% endif %}">
+              <a href="{% url 'portal-section' 'jellyfin' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-video-clapper"></i></span>
+                <span class="pcoded-mtext">Jellyfin</span>
+              </a>
+            </li>
             <li class="{% if request.resolver_match.kwargs.section == 'renewals' %}active{% endif %}">
               <a href="{% url 'portal-section' 'renewals' %}" class="waves-effect waves-dark">
                 <span class="pcoded-micon"><i class="ti-reload"></i></span>
