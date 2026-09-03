@@ -23,8 +23,14 @@ from .models import (
     WholesalePurchase,
     WholesaleSlide,
     PartnerMediaPrice,
+    PartnerMediaAccount,
 )
-from .partner_media import get_partner_media_markets, partner_api_configured
+from .partner_media import (
+    get_partner_media_market,
+    get_partner_media_markets,
+    partner_api_configured,
+    purchase_partner_media_account,
+)
 from user.models import Customer, Action
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
@@ -42,6 +48,10 @@ import secrets
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from django.contrib import messages
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.utils.dateparse import parse_date, parse_datetime
 from count.libraries import CalculateDateLimit
 from user.whatsapp_api import (
     WHATSAPP_SEND_ERROR,
@@ -2071,6 +2081,204 @@ class WholesalePermissionMixin(LoginRequiredMixin, UserPassesTestMixin):
                 for permission_name in self.permission_names
             )
         )
+
+
+PARTNER_MEDIA_SERVICES = {
+    "plex": {
+        "label": "Plex",
+        "permission": "count.purchase_partner_plex",
+        "identifier_label": "Correo de la cuenta",
+        "identifier_type": "email",
+    },
+    "emby": {
+        "label": "Emby",
+        "permission": "count.purchase_partner_emby",
+        "identifier_label": "Usuario de la cuenta",
+        "identifier_type": "text",
+    },
+    "jellyfin": {
+        "label": "Jellyfin",
+        "permission": "count.purchase_partner_jellyfin",
+        "identifier_label": "Usuario de la cuenta",
+        "identifier_type": "text",
+    },
+}
+
+
+def _provider_datetime(value):
+    if not value:
+        return None
+    value = str(value).strip()
+    parsed = parse_datetime(value)
+    if parsed is None:
+        parsed_date = parse_date(value[:10])
+        if parsed_date:
+            parsed = datetime.datetime.combine(parsed_date, datetime.time.min)
+    if parsed is not None and django_timezone.is_naive(parsed):
+        parsed = django_timezone.make_aware(
+            parsed,
+            django_timezone.get_current_timezone(),
+        )
+    return parsed
+
+
+class PartnerMediaAccountsView(WholesalePermissionMixin, View):
+    """Generate Plex, Emby and Jellyfin accounts at the provider's live cost."""
+
+    template_name = "partner_media/accounts.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.service = str(kwargs.get("service") or "").strip().lower()
+        self.service_config = PARTNER_MEDIA_SERVICES.get(self.service)
+        if self.service_config is None:
+            raise Http404("Servicio multimedia no encontrado")
+        self.permission_names = (self.service_config["permission"],)
+        return super().dispatch(request, *args, **kwargs)
+
+    def _context(self, request):
+        plans, provider, error = get_partner_media_market(self.service)
+        for plan in plans:
+            plan["display_id"] = str(plan.get("plan_id", plan.get("id", "")))
+            plan["display_name"] = str(
+                plan.get("name") or plan.get("plan") or "Plan"
+            )
+            plan["duration_label"] = "{} {}".format(
+                plan.get("time", ""),
+                plan.get("unity_time", ""),
+            ).strip()
+        token = secrets.token_urlsafe(32)
+        request.session["partner_media_purchase_" + self.service] = token
+        accessible_services = []
+        for slug, config in PARTNER_MEDIA_SERVICES.items():
+            if request.user.is_superuser or request.user.has_perm(config["permission"]):
+                accessible_services.append({"slug": slug, "label": config["label"]})
+        return {
+            "service": self.service,
+            "service_config": self.service_config,
+            "plans": plans,
+            "provider": provider,
+            "provider_error": error,
+            "purchase_token": token,
+            "accessible_services": accessible_services,
+            "accounts": PartnerMediaAccount.objects.filter(
+                service=self.service
+            ).select_related("purchased_by")[:100],
+        }
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self._context(request))
+
+    def post(self, request, *args, **kwargs):
+        plans, provider, error = get_partner_media_market(self.service)
+        if error:
+            messages.error(request, error)
+            return redirect("partner-media-accounts", service=self.service)
+
+        plan_id = str(request.POST.get("plan_id") or "").strip()
+        with_tv = request.POST.get("with_tv") == "1"
+        plan = next(
+            (
+                item
+                for item in plans
+                if str(item.get("plan_id", item.get("id"))) == plan_id
+                and bool(item.get("with_tv")) == with_tv
+            ),
+            None,
+        )
+        if plan is None:
+            messages.error(request, "El plan cambió o ya no está disponible. Intenta nuevamente.")
+            return redirect("partner-media-accounts", service=self.service)
+
+        customer = str(request.POST.get("customer") or "").strip()
+        identifier = str(request.POST.get("identifier") or "").strip()
+        password = str(request.POST.get("password") or "")
+        if not customer or not identifier or not password:
+            messages.error(request, "Completa el cliente, el acceso y la contraseña.")
+            return redirect("partner-media-accounts", service=self.service)
+        if self.service == "plex":
+            try:
+                validate_email(identifier)
+            except ValidationError:
+                messages.error(request, "Ingresa un correo válido para la cuenta Plex.")
+                return redirect("partner-media-accounts", service=self.service)
+
+        expected_token = request.session.get("partner_media_purchase_" + self.service)
+        received_token = str(request.POST.get("purchase_token") or "")
+        if not expected_token or not secrets.compare_digest(expected_token, received_token):
+            messages.error(
+                request,
+                "Esta solicitud ya fue utilizada o venció. Actualiza la página para continuar.",
+            )
+            return redirect("partner-media-accounts", service=self.service)
+        request.session.pop("partner_media_purchase_" + self.service, None)
+        cache_key = "partner_media_purchase_lock_" + received_token
+        if not cache.add(cache_key, True, 300):
+            messages.error(request, "La cuenta ya se está generando. No vuelvas a enviar el formulario.")
+            return redirect("partner-media-accounts", service=self.service)
+
+        try:
+            provider_cost = Decimal(str(plan.get("price") or 0)).quantize(
+                Decimal("0.01")
+            )
+        except (InvalidOperation, TypeError, ValueError):
+            messages.error(request, "El proveedor devolvió un costo no válido.")
+            return redirect("partner-media-accounts", service=self.service)
+
+        result, purchase_error = purchase_partner_media_account(
+            self.service,
+            plan_id,
+            identifier,
+            password,
+            customer,
+        )
+        if purchase_error:
+            messages.error(request, purchase_error)
+            return redirect("partner-media-accounts", service=self.service)
+
+        external_id = result.get("count_id", result.get("account_id", result.get("id")))
+        if external_id in (None, ""):
+            external_id = "sin-id-" + received_token
+        account = PartnerMediaAccount.objects.create(
+            service=self.service,
+            external_account_id=str(external_id),
+            external_plan_id=plan_id,
+            plan_name=str(
+                result.get("plan")
+                or plan.get("name")
+                or plan.get("plan")
+                or "Plan"
+            )[:200],
+            connections=max(int(plan.get("connections") or 1), 1),
+            with_tv=with_tv,
+            customer_name=str(result.get("customer") or customer)[:200],
+            access_identifier=str(result.get("email") or identifier)[:254],
+            access_password=str(result.get("password") or password)[:255],
+            provider_cost=provider_cost,
+            currency_prefix=str(provider.get("currency_prefix") or "MXN")[:12],
+            date_start=_provider_datetime(result.get("date_start")),
+            date_end=_provider_datetime(result.get("date_end")),
+            server_url=str(result.get("server_url") or "")[:500],
+            activation_label=str(result.get("activation_label") or "")[:200],
+            instructions=str(result.get("instructions") or ""),
+            purchased_by=request.user,
+        )
+        Action.action_register(
+            request.user,
+            "Cuenta {} generada a costo: id {}, plan {}, costo {} {}".format(
+                self.service_config["label"],
+                account.external_account_id,
+                account.plan_name,
+                account.currency_prefix,
+                account.provider_cost,
+            ),
+        )
+        messages.success(
+            request,
+            "La cuenta {} se generó correctamente. Copia los datos del historial.".format(
+                self.service_config["label"]
+            ),
+        )
+        return redirect("partner-media-accounts", service=self.service)
 
 
 class WholesaleModulesView(WholesalePermissionMixin, View):

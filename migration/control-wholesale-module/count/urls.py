@@ -52,6 +52,7 @@ urlpatterns = [
 
         #count
         path('accounts', views.CountModulesView.as_view(), name='count-modules'),
+        path('partner-media/<str:service>', views.PartnerMediaAccountsView.as_view(), name='partner-media-accounts'),
         path('create', views.CreateCount.as_view(), name='create-count'),
         path('update/<int:id>', views.UpdateCount.as_view(), name='update-count'),
         path('create-pins-profiles/<str:type>/<int:id>', views.CreatePinsProfiles.as_view(), name='create-pins-profiles'),

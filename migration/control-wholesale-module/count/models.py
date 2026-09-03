@@ -799,6 +799,72 @@ class PartnerMediaPrice(models.Model):
         )
 
 
+class PartnerMediaAccount(models.Model):
+    """Account generated from Control through the private Partner API."""
+
+    SERVICE_CHOICES = PartnerMediaPrice.SERVICE_CHOICES
+
+    service = models.CharField(
+        max_length=20,
+        choices=SERVICE_CHOICES,
+        verbose_name="Servicio",
+    )
+    external_account_id = models.CharField(
+        max_length=100,
+        verbose_name="ID externo",
+    )
+    external_plan_id = models.CharField(max_length=100, verbose_name="ID del plan")
+    plan_name = models.CharField(max_length=200, verbose_name="Plan")
+    connections = models.PositiveIntegerField(default=1, verbose_name="Dispositivos")
+    with_tv = models.BooleanField(default=False, verbose_name="Incluye TV")
+    customer_name = models.CharField(max_length=200, verbose_name="Cliente")
+    access_identifier = models.CharField(max_length=254, verbose_name="Correo o usuario")
+    access_password = models.CharField(max_length=255, verbose_name="Contraseña")
+    provider_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0"))],
+        verbose_name="Costo proveedor",
+    )
+    currency_prefix = models.CharField(max_length=12, blank=True, default="MXN")
+    date_start = models.DateTimeField(blank=True, null=True, verbose_name="Inicio")
+    date_end = models.DateTimeField(blank=True, null=True, verbose_name="Vencimiento")
+    server_url = models.URLField(max_length=500, blank=True, default="")
+    activation_label = models.CharField(max_length=200, blank=True, default="")
+    instructions = models.TextField(blank=True, default="")
+    purchased_by = models.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        related_name="partner_media_accounts_purchased",
+        verbose_name="Generado por",
+        on_delete=models.SET_NULL,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+        unique_together = (("service", "external_account_id"),)
+        permissions = (
+            ("purchase_partner_plex", "Puede generar cuentas Plex a costo"),
+            ("purchase_partner_emby", "Puede generar cuentas Emby a costo"),
+            (
+                "purchase_partner_jellyfin",
+                "Puede generar cuentas Jellyfin a costo",
+            ),
+        )
+        verbose_name = "Cuenta multimedia del proveedor"
+        verbose_name_plural = "Cuentas multimedia del proveedor"
+
+    def __str__(self):
+        return "{} · {} · {}".format(
+            self.get_service_display(),
+            self.plan_name,
+            self.access_identifier,
+        )
+
+
 
 def sale_profile(self, profile, months, date_limit, bill, device_mac="", device_key=""):
 

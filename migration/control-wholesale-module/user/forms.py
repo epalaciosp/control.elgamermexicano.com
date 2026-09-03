@@ -26,6 +26,9 @@ PERMISSIONS_ACTIVES = [
     'manage_wholesale_customers',
     'manage_wholesale_slides',
     'manage_partner_media_prices',
+    'purchase_partner_plex',
+    'purchase_partner_emby',
+    'purchase_partner_jellyfin',
 ]
 
 PERMISSION_LABELS = {
@@ -48,6 +51,9 @@ PERMISSION_LABELS = {
     'manage_wholesale_customers': 'MyPlataforma: clientes mayoristas',
     'manage_wholesale_slides': 'MyPlataforma: anuncios',
     'manage_partner_media_prices': 'MyPlataforma: precios de Plex, Emby y Jellyfin',
+    'purchase_partner_plex': 'Cuentas multimedia: generar Plex a costo',
+    'purchase_partner_emby': 'Cuentas multimedia: generar Emby a costo',
+    'purchase_partner_jellyfin': 'Cuentas multimedia: generar Jellyfin a costo',
 }
 
 

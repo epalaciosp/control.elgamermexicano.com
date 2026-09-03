@@ -126,23 +126,32 @@ def _access_token(force_refresh=False):
     return token
 
 
-def _authorized_request(path):
+def _authorized_request(path, method="GET", payload=None):
     token = _access_token()
     if not token:
         raise ValueError("La API no devolvió un token válido")
     try:
-        return _request_json(path, token=token)
+        return _request_json(path, method=method, payload=payload, token=token)
     except HTTPError as exc:
         if exc.code != 401:
             raise
     token = _access_token(force_refresh=True)
     if not token:
         raise ValueError("La API no devolvió un token válido")
-    return _request_json(path, token=token)
+    return _request_json(path, method=method, payload=payload, token=token)
 
 
 def _error_message(exc):
     if isinstance(exc, HTTPError):
+        try:
+            payload = json.loads(exc.read().decode("utf-8"))
+            detail = payload.get("error", {})
+            if isinstance(detail, dict) and detail.get("message"):
+                return str(detail["message"])
+            if isinstance(detail, str) and detail:
+                return detail
+        except (ValueError, UnicodeDecodeError, OSError):
+            pass
         if exc.code == 403:
             return "La IP fija del KVM4 no está autorizada por el proveedor."
         return "La API Partner respondió con error {}.".format(exc.code)
@@ -183,3 +192,73 @@ def get_partner_media_markets():
     except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
         return [], provider, _error_message(exc)
     return plans, provider, None
+
+
+def get_partner_media_market(service):
+    """Return one live provider catalog with private balance and costs."""
+    service = str(service or "").strip().lower()
+    if service not in SERVICES:
+        return [], {}, "El servicio solicitado no es válido."
+    if not partner_api_configured():
+        return [], {}, "La API Partner todavía no está configurada en Control."
+
+    plans = []
+    provider = {"balance": 0, "currency_prefix": "", "currency_code": ""}
+    try:
+        variants = (None,) if service == "plex" else (0, 1)
+        for tv in variants:
+            path = service + "/market/"
+            if tv is not None:
+                path += "?" + urlencode({"tv": tv})
+            data = _authorized_request(path).get("data", {})
+            provider["balance"] = data.get("balance", provider["balance"])
+            provider["currency_prefix"] = data.get(
+                "currency_prefix",
+                provider["currency_prefix"],
+            )
+            provider["currency_code"] = data.get(
+                "currency_code",
+                provider["currency_code"],
+            )
+            for source_plan in data.get("plans", []):
+                plan = dict(source_plan)
+                plan["service"] = service
+                plan["with_tv"] = bool(plan.get("with_tv", tv or False))
+                plans.append(plan)
+    except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+        return [], provider, _error_message(exc)
+    return plans, provider, None
+
+
+def purchase_partner_media_account(service, plan_id, email, password, customer):
+    """Buy one provider account at the authenticated seller's live cost."""
+    service = str(service or "").strip().lower()
+    if service not in SERVICES:
+        return {}, "El servicio solicitado no es válido."
+    if not partner_api_configured():
+        return {}, "La API Partner todavía no está configurada en Control."
+
+    normalized_plan_id = str(plan_id).strip()
+    if normalized_plan_id.isdigit():
+        normalized_plan_id = int(normalized_plan_id)
+    payload = {
+        "plan_id": normalized_plan_id,
+        "email": email,
+        "password": password,
+        "customer": customer,
+    }
+    try:
+        response = _authorized_request(
+            service + "/accounts/",
+            method="POST",
+            payload=payload,
+        )
+    except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+        return {}, _error_message(exc)
+
+    if not response.get("success", False):
+        detail = response.get("error", {})
+        if isinstance(detail, dict):
+            detail = detail.get("message")
+        return {}, str(detail or "El proveedor no pudo generar la cuenta.")
+    return response.get("data", {}), None

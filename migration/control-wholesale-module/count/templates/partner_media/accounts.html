@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  .pm-page{color:#eef2f7}.pm-head{align-items:flex-start;display:flex;gap:18px;justify-content:space-between;margin-bottom:18px}.pm-head h2{font-size:1.6rem;margin:0 0 7px}.pm-muted{color:#8e99aa}.pm-tabs{display:flex;flex-wrap:wrap;gap:8px}.pm-tab{background:#202735;border:1px solid #303a4b;border-radius:8px;color:#c5cfdd;font-weight:700;padding:10px 16px}.pm-tab:hover,.pm-tab-active{background:#0799e5;border-color:#0799e5;color:#fff;text-decoration:none}.pm-flash{border:1px solid;border-radius:10px;font-weight:700;margin-bottom:14px;padding:13px 15px}.pm-flash-success{background:rgba(0,200,117,.11);border-color:rgba(0,200,117,.34);color:#69e6ac}.pm-flash-error{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.35);color:#ff9296}.pm-flash-warning{background:rgba(242,176,30,.11);border-color:rgba(242,176,30,.32);color:#f6ca68}.pm-flash-info{background:rgba(21,151,229,.11);border-color:rgba(21,151,229,.32);color:#72c8f7}.pm-info{align-items:center;background:linear-gradient(125deg,#141b25,#19242b);border:1px solid #293544;border-left:4px solid #00c878;border-radius:12px;display:flex;justify-content:space-between;margin-bottom:18px;padding:16px 18px}.pm-info strong{color:#fff}.pm-balance{background:rgba(0,200,117,.1);border:1px solid rgba(0,200,117,.3);border-radius:999px;color:#6ce4ad;font-weight:800;padding:8px 12px}.pm-grid{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:24px}.pm-plan{background:#191f29;border:1px solid #2b3544;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}.pm-plan-top{border-bottom:1px solid #2b3544;padding:17px}.pm-plan-title{align-items:flex-start;display:flex;gap:12px;justify-content:space-between}.pm-plan h3{color:#fff;font-size:1.05rem;margin:0}.pm-badge{background:rgba(7,153,229,.14);border-radius:999px;color:#64c8fa;font-size:.68rem;font-weight:800;padding:5px 8px;white-space:nowrap}.pm-cost{color:#51dfa1;font-size:1.55rem;font-weight:900;margin-top:12px}.pm-cost small{color:#7f8a9b;font-size:.68rem;font-weight:600}.pm-meta{color:#8f9aac;font-size:.78rem;margin-top:7px}.pm-form{display:grid;gap:11px;padding:17px}.pm-form label{color:#aab4c2;font-size:.73rem;font-weight:700;margin:0}.pm-input{background:#0f151d!important;border:1px solid #354153!important;color:#fff!important;min-height:41px}.pm-password{display:flex;gap:7px}.pm-password .pm-input{flex:1;min-width:0}.pm-icon-btn{background:#283344;border:0;border-radius:7px;color:#dbe4ef;cursor:pointer;padding:0 12px}.pm-buy{background:#00b968;border:0;border-radius:8px;color:#fff;cursor:pointer;font-weight:900;margin-top:3px;padding:12px}.pm-buy:disabled{cursor:wait;opacity:.6}.pm-panel{background:#191f29;border:1px solid #2b3544;border-radius:14px;padding:18px}.pm-panel h3{font-size:1.15rem;margin:0 0 14px}.pm-table-wrap{overflow-x:auto}.pm-table{border-collapse:collapse;min-width:1050px;width:100%}.pm-table th{background:#222a35;color:#8995a7;font-size:.68rem;letter-spacing:.04em;padding:11px;text-align:left;text-transform:uppercase}.pm-table td{border-top:1px solid #2d3745;color:#cad3df;padding:12px 11px;vertical-align:middle}.pm-table strong{color:#fff}.pm-secret{align-items:center;display:flex;gap:7px}.pm-copy{background:#2b3646;border:0;border-radius:6px;color:#dbe6f4;cursor:pointer;padding:5px 8px}.pm-empty{color:#8e99aa;padding:28px;text-align:center}.pm-server{color:#65c8fa;word-break:break-all}.pm-error{background:rgba(229,72,77,.1);border:1px solid rgba(229,72,77,.35);border-radius:12px;color:#ff9ca0;margin-bottom:18px;padding:16px}@media(max-width:1200px){.pm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){.pm-grid{grid-template-columns:1fr}.pm-head,.pm-info{display:block}.pm-tabs,.pm-balance{margin-top:12px}}
+</style>
+
+<div class="pm-page">
+  <div class="pm-head">
+    <div>
+      <h2>Generar cuentas {{ service_config.label }}</h2>
+      <div class="pm-muted">Compra directamente a costo con el saldo privado de Multiplataforma.</div>
+    </div>
+    <nav class="pm-tabs" aria-label="Servicios multimedia">
+      {% for item in accessible_services %}
+      <a class="pm-tab {% if item.slug == service %}pm-tab-active{% endif %}" href="{% url 'partner-media-accounts' item.slug %}">{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+
+  {% if messages %}{% for message in messages %}<div class="pm-flash pm-flash-{{ message.tags|default:'info' }}" role="status">{{ message }}</div>{% endfor %}{% endif %}
+
+  <div class="pm-info">
+    <div><strong>Costo directo del proveedor</strong><div class="pm-muted">El sistema confirma el costo vigente antes de generar cada cuenta. Las credenciales de la API permanecen ocultas.</div></div>
+    {% if user.is_superuser %}<div class="pm-balance">Saldo privado: {{ provider.currency_prefix|default:'MXN' }} {{ provider.balance|floatformat:2 }}</div>{% endif %}
+  </div>
+
+  {% if provider_error %}
+  <div class="pm-error"><strong>No se pudo cargar el catálogo:</strong> {{ provider_error }}</div>
+  {% endif %}
+
+  <section class="pm-grid">
+    {% for plan in plans %}
+    <article class="pm-plan">
+      <div class="pm-plan-top">
+        <div class="pm-plan-title"><h3>{{ plan.display_name }}</h3>{% if plan.with_tv %}<span class="pm-badge">INCLUYE TV</span>{% endif %}</div>
+        <div class="pm-cost">{{ provider.currency_prefix|default:'MXN' }} {{ plan.price|floatformat:2 }} <small>costo</small></div>
+        <div class="pm-meta">{{ plan.connections|default:1 }} dispositivo{% if plan.connections != 1 %}s{% endif %} · {{ plan.duration_label|default:'Vigencia del plan' }}</div>
+      </div>
+      <form class="pm-form" method="post" data-service="{{ service_config.label }}" data-cost="{{ provider.currency_prefix|default:'MXN' }} {{ plan.price|floatformat:2 }}">
+        {% csrf_token %}
+        <input type="hidden" name="plan_id" value="{{ plan.display_id }}">
+        <input type="hidden" name="with_tv" value="{% if plan.with_tv %}1{% else %}0{% endif %}">
+        <input type="hidden" name="purchase_token" value="{{ purchase_token }}">
+        <label>Nombre o referencia del cliente</label>
+        <input class="form-control pm-input" type="text" name="customer" maxlength="200" required autocomplete="off" placeholder="Ej. Cliente mostrador">
+        <label>{{ service_config.identifier_label }}</label>
+        <input class="form-control pm-input" type="{{ service_config.identifier_type }}" name="identifier" maxlength="254" required autocomplete="off" placeholder="{% if service == 'plex' %}cliente@correo.com{% else %}usuario_del_cliente{% endif %}">
+        <label>Contraseña para la cuenta</label>
+        <div class="pm-password"><input class="form-control pm-input" type="text" name="password" maxlength="255" required autocomplete="new-password"><button class="pm-icon-btn pm-generate-password" type="button" title="Generar contraseña">Generar</button></div>
+        <button class="pm-buy" type="submit">Generar a costo</button>
+      </form>
+    </article>
+    {% empty %}
+      {% if not provider_error %}<div class="pm-empty">El proveedor no tiene planes disponibles para {{ service_config.label }}.</div>{% endif %}
+    {% endfor %}
+  </section>
+
+  <section class="pm-panel">
+    <h3>Cuentas {{ service_config.label }} generadas desde Control</h3>
+    <div class="pm-table-wrap">
+      <table class="pm-table">
+        <thead><tr><th>Fecha</th><th>Cliente</th><th>Plan</th><th>Acceso</th><th>Contraseña</th><th>Servidor</th><th>Vence</th><th>Costo</th><th>Generó</th></tr></thead>
+        <tbody>
+          {% for account in accounts %}
+          <tr>
+            <td>{{ account.created_at|date:'d/m/Y H:i' }}</td>
+            <td><strong>{{ account.customer_name }}</strong><br><small>ID {{ account.external_account_id }}</small></td>
+            <td>{{ account.plan_name }}{% if account.with_tv %}<br><small>Incluye TV</small>{% endif %}</td>
+            <td><div class="pm-secret"><span>{{ account.access_identifier }}</span><button class="pm-copy" type="button" data-copy="{{ account.access_identifier }}">Copiar</button></div></td>
+            <td><div class="pm-secret"><span>••••••••</span><button class="pm-copy" type="button" data-copy="{{ account.access_password }}">Copiar</button></div></td>
+            <td>{% if account.server_url %}<a class="pm-server" href="{{ account.server_url }}" target="_blank" rel="noopener">{{ account.server_url }}</a>{% else %}—{% endif %}</td>
+            <td>{{ account.date_end|date:'d/m/Y H:i'|default:'—' }}</td>
+            <td><strong>{{ account.currency_prefix }} {{ account.provider_cost|floatformat:2 }}</strong></td>
+            <td>{{ account.purchased_by.username|default:'Sistema' }}</td>
+          </tr>
+          {% empty %}<tr><td class="pm-empty" colspan="9">Aún no hay cuentas {{ service_config.label }} generadas desde Control.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+  document.querySelectorAll('.pm-generate-password').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+      var values = new Uint32Array(14);
+      window.crypto.getRandomValues(values);
+      var password = Array.from(values, function (value) { return alphabet[value % alphabet.length]; }).join('');
+      button.parentElement.querySelector('input[name="password"]').value = password;
+    });
+  });
+  document.querySelectorAll('.pm-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      if (!form.checkValidity()) { return; }
+      var message = '¿Confirmas generar esta cuenta ' + form.dataset.service + ' por ' + form.dataset.cost + '? El importe se descontará del saldo privado.';
+      if (!window.confirm(message)) { event.preventDefault(); return; }
+      var button = form.querySelector('.pm-buy');
+      button.disabled = true;
+      button.textContent = 'Generando…';
+    });
+  });
+  document.querySelectorAll('.pm-copy').forEach(function (button) {
+    button.addEventListener('click', function () {
+      navigator.clipboard.writeText(button.dataset.copy).then(function () {
+        var previous = button.textContent;
+        button.textContent = 'Copiado';
+        window.setTimeout(function () { button.textContent = previous; }, 1200);
+      });
+    });
+  });
+</script>
+{% endblock %}

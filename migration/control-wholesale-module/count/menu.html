@@ -225,6 +225,28 @@
               </ul>
             </div>
           </li>
+          {% if 'purchase_partner_plex' in permissions or 'purchase_partner_emby' in permissions or 'purchase_partner_jellyfin' in permissions or '*' in permissions %}
+          <li class="nav-item menu-items">
+            <a class="nav-link" data-toggle="collapse" href="#partner-media" aria-expanded="false" aria-controls="partner-media">
+              <span class="menu-icon"><i class="mdi mdi-play-network"></i></span>
+              <span class="menu-title">Plex, Emby y Jellyfin</span>
+              <i class="menu-arrow"></i>
+            </a>
+            <div class="collapse" id="partner-media">
+              <ul class="nav flex-column sub-menu">
+                {% if 'purchase_partner_plex' in permissions or '*' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'partner-media-accounts' 'plex' %}">Plex</a></li>
+                {% endif %}
+                {% if 'purchase_partner_emby' in permissions or '*' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'partner-media-accounts' 'emby' %}">Emby</a></li>
+                {% endif %}
+                {% if 'purchase_partner_jellyfin' in permissions or '*' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'partner-media-accounts' 'jellyfin' %}">Jellyfin</a></li>
+                {% endif %}
+              </ul>
+            </div>
+          </li>
+          {% endif %}
           <li class="nav-item menu-items">
             <div class="customer-menu-row">
               <a class="nav-link customer-menu-main" href="{% url 'customer-modules' %}">
