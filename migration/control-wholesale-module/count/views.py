@@ -22,7 +22,9 @@ from .models import (
     WholesalePublication,
     WholesalePurchase,
     WholesaleSlide,
+    PartnerMediaPrice,
 )
+from .partner_media import get_partner_media_markets, partner_api_configured
 from user.models import Customer, Action
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
@@ -2078,10 +2080,149 @@ class WholesaleModulesView(WholesalePermissionMixin, View):
     permission_names = (
         "count.manage_wholesale_customers",
         "count.manage_wholesale_slides",
+        "count.manage_partner_media_prices",
     )
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name)
+
+
+def _sync_partner_media_prices():
+    """Refresh private provider costs without overwriting our sale prices."""
+    plans, provider, error = get_partner_media_markets()
+    if error:
+        return 0, provider, error
+
+    synchronized = 0
+    with transaction.atomic():
+        for source in plans:
+            external_plan_id = source.get("plan_id", source.get("id"))
+            if external_plan_id in (None, ""):
+                continue
+            try:
+                provider_cost = Decimal(str(source.get("price") or 0)).quantize(
+                    Decimal("0.01")
+                )
+            except (InvalidOperation, TypeError, ValueError):
+                continue
+            time_value = source.get("time")
+            time_unit = str(source.get("unity_time") or "").strip()
+            duration = "{} {}".format(time_value, time_unit).strip()
+            PartnerMediaPrice.objects.update_or_create(
+                service=source["service"],
+                external_plan_id=str(external_plan_id),
+                with_tv=bool(source.get("with_tv")),
+                defaults={
+                    "name": str(source.get("name") or source.get("plan") or "Plan"),
+                    "connections": max(int(source.get("connections") or 1), 1),
+                    "duration": duration,
+                    "currency_prefix": str(
+                        provider.get("currency_prefix") or "MXN"
+                    )[:12],
+                    "provider_cost": provider_cost,
+                },
+            )
+            synchronized += 1
+    return synchronized, provider, None
+
+
+def partner_media_prices_context():
+    prices = list(PartnerMediaPrice.objects.all())
+    published = sum(1 for item in prices if item.active and item.sale_price > 0)
+    profitable = [item for item in prices if item.sale_price > item.provider_cost]
+    return {
+        "prices": prices,
+        "partner_api_configured": partner_api_configured(),
+        "stats": {
+            "plans": len(prices),
+            "published": published,
+            "pending": len(prices) - published,
+            "average_margin": (
+                sum((item.margin_percent for item in profitable), Decimal("0"))
+                / len(profitable)
+                if profitable
+                else Decimal("0")
+            ),
+        },
+    }
+
+
+class WholesaleMediaPricesView(WholesalePermissionMixin, View):
+    template_name = "wholesale/media_prices.html"
+    permission_names = ("count.manage_partner_media_prices",)
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, partner_media_prices_context())
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get("action", "").strip()
+        if action == "sync":
+            synchronized, provider, error = _sync_partner_media_prices()
+            if error:
+                messages.error(request, error)
+            else:
+                messages.success(
+                    request,
+                    "Se actualizaron {} planes y sus costos privados. Saldo proveedor: {} {}.".format(
+                        synchronized,
+                        provider.get("currency_prefix") or "MXN",
+                        provider.get("balance") or 0,
+                    ),
+                )
+                Action.action_register(
+                    request.user,
+                    "Costos API de MyPlataforma sincronizados: {} planes".format(
+                        synchronized
+                    ),
+                )
+            return redirect("wholesale-media-prices")
+
+        if action != "save":
+            messages.error(request, "Acción de precios no válida.")
+            return redirect("wholesale-media-prices")
+
+        price_row = get_object_or_404(
+            PartnerMediaPrice,
+            pk=request.POST.get("price_id"),
+        )
+        try:
+            sale_price = Decimal(
+                str(request.POST.get("sale_price", "0")).strip()
+            ).quantize(Decimal("0.01"))
+        except (InvalidOperation, TypeError, ValueError):
+            messages.error(request, "Ingresa un precio de venta válido.")
+            return redirect("wholesale-media-prices")
+
+        publish = request.POST.get("active") == "on"
+        if sale_price < 0:
+            messages.error(request, "El precio de venta no puede ser negativo.")
+            return redirect("wholesale-media-prices")
+        if sale_price and sale_price <= price_row.provider_cost:
+            messages.error(
+                request,
+                "El precio de venta debe ser mayor al costo para generar utilidad.",
+            )
+            return redirect("wholesale-media-prices")
+        if publish and not sale_price:
+            messages.error(
+                request,
+                "Configura un precio de venta antes de publicar el plan.",
+            )
+            return redirect("wholesale-media-prices")
+
+        price_row.sale_price = sale_price
+        price_row.active = publish
+        price_row.save(update_fields=("sale_price", "active", "updated_at"))
+        Action.action_register(
+            request.user,
+            "Precio API actualizado: {} · {} · venta {}".format(
+                price_row.get_service_display(),
+                price_row.name,
+                sale_price,
+            ),
+        )
+        messages.success(request, "Precio y estado guardados correctamente.")
+        return redirect("wholesale-media-prices")
 
 
 def _sync_default_wholesale_publications(created_by=None):

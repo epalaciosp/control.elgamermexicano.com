@@ -14,6 +14,7 @@
   .myp-module::before { background: var(--module-color); content: ""; height: 3px; left: 0; position: absolute; right: 0; top: 0; }
   .myp-module-clients { --module-color: #9b6dff; }
   .myp-module-slides { --module-color: #1597e5; }
+  .myp-module-prices { --module-color: #f2b01e; }
   .myp-icon { align-items: center; background: color-mix(in srgb, var(--module-color) 13%, transparent); border: 1px solid color-mix(in srgb, var(--module-color) 32%, transparent); border-radius: 12px; color: var(--module-color); display: flex; font-size: 26px; height: 52px; justify-content: center; margin-bottom: 19px; width: 52px; }
   .myp-module h3 { color: #fff; font-size: 19px; margin: 0 0 8px; }
   .myp-module p { color: #929dac; line-height: 1.55; margin: 0; }
@@ -42,6 +43,14 @@
       <span class="myp-icon"><i class="mdi mdi-image-multiple"></i></span>
       <h3>Anuncios</h3>
       <p>Publica y programa los banners que aparecen en el dashboard de los clientes mayoristas.</p>
+      <i class="mdi mdi-arrow-right myp-arrow"></i>
+    </a>
+    {% endif %}
+    {% if 'manage_partner_media_prices' in permissions or '*' in permissions %}
+    <a class="myp-module myp-module-prices" href="{% url 'wholesale-media-prices' %}">
+      <span class="myp-icon"><i class="mdi mdi-cash-multiple"></i></span>
+      <h3>Precios API</h3>
+      <p>Sincroniza los costos privados de Plex, Emby y Jellyfin; define el precio de venta, utilidad y margen.</p>
       <i class="mdi mdi-arrow-right myp-arrow"></i>
     </a>
     {% endif %}

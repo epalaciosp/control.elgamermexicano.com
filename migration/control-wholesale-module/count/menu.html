@@ -317,7 +317,7 @@
           </li>
           {% endif %}
 
-          {% if 'manage_wholesale_customers' in permissions or 'manage_wholesale_slides' in permissions or '*' in permissions %}
+          {% if 'manage_wholesale_customers' in permissions or 'manage_wholesale_slides' in permissions or 'manage_partner_media_prices' in permissions or '*' in permissions %}
           <li class="nav-item menu-items">
             <div class="customer-menu-row">
               <a class="nav-link customer-menu-main" href="{% url 'wholesale-modules' %}">
@@ -333,6 +333,9 @@
                 {% endif %}
                 {% if 'manage_wholesale_slides' in permissions or '*' in permissions %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'wholesale-slides' %}">Anuncios</a></li>
+                {% endif %}
+                {% if 'manage_partner_media_prices' in permissions or '*' in permissions %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'wholesale-media-prices' %}">Precios API</a></li>
                 {% endif %}
               </ul>
             </div>

@@ -25,6 +25,7 @@ PERMISSIONS_ACTIVES = [
     'change_plan',
     'manage_wholesale_customers',
     'manage_wholesale_slides',
+    'manage_partner_media_prices',
 ]
 
 PERMISSION_LABELS = {
@@ -46,6 +47,7 @@ PERMISSION_LABELS = {
     'change_plan': 'Editar planes',
     'manage_wholesale_customers': 'MyPlataforma: clientes mayoristas',
     'manage_wholesale_slides': 'MyPlataforma: anuncios',
+    'manage_partner_media_prices': 'MyPlataforma: precios de Plex, Emby y Jellyfin',
 }
 
 

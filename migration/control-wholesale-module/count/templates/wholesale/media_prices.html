@@ -1,0 +1,61 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  .api-price-page{color:#eef2f7}.api-price-head{align-items:flex-start;display:flex;gap:18px;justify-content:space-between;margin-bottom:20px}.api-price-head h2{font-size:1.5rem;margin:0 0 7px}.api-muted{color:#8f99aa}.api-actions{display:flex;gap:9px}.api-btn{border:0;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;padding:11px 15px}.api-btn-primary{background:#0799e5}.api-btn-secondary{background:#293241}.api-stats{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:20px}.api-stat{background:#191e27;border:1px solid #2a3240;border-radius:12px;padding:17px}.api-stat span{color:#8f99aa;display:block;font-size:.72rem;text-transform:uppercase}.api-stat strong{display:block;font-size:1.55rem;margin-top:5px}.api-panel{background:#191e27;border:1px solid #2a3240;border-radius:12px;padding:20px}.api-notice{background:rgba(0,200,117,.08);border:1px solid rgba(0,200,117,.22);border-radius:10px;color:#9cb7aa;margin-bottom:18px;padding:13px}.api-table-wrap{border:1px solid #2d3541;border-radius:10px;overflow-x:auto}.api-table{border-collapse:collapse;min-width:1120px;width:100%}.api-table th{background:#20262f;color:#8994a7;font-size:.7rem;letter-spacing:.04em;padding:12px;text-align:left;text-transform:uppercase}.api-table td{border-top:1px solid #2d3541;color:#cbd3df;padding:13px 12px;vertical-align:middle}.api-table strong{color:#f5f7fa}.api-service{border-radius:999px;display:inline-flex;font-size:.7rem;font-weight:800;padding:5px 9px;text-transform:uppercase}.api-service-plex{background:rgba(229,160,13,.15);color:#f3bd49}.api-service-emby{background:rgba(82,192,76,.14);color:#69dd69}.api-service-jellyfin{background:rgba(139,92,246,.16);color:#b79bff}.api-price-input{background:#10151d!important;border:1px solid #364152!important;color:#fff!important;max-width:135px;min-height:39px}.api-profit-positive{color:#52dfa0;font-weight:800}.api-profit-pending{color:#f2b01e}.api-row-form{align-items:center;display:flex;gap:9px}.api-switch{align-items:center;display:flex;gap:6px;white-space:nowrap}.api-empty{color:#8f99aa;padding:32px;text-align:center}.api-private{color:#7f8a9b;font-size:.7rem;margin-top:4px}.api-btn[disabled]{cursor:not-allowed;opacity:.5}@media(max-width:950px){.api-stats{grid-template-columns:repeat(2,1fr)}.api-price-head{display:block}.api-actions{margin-top:14px}}@media(max-width:560px){.api-stats{grid-template-columns:1fr}.api-panel{padding:13px}}
+</style>
+
+<div class="api-price-page">
+  <div class="api-price-head">
+    <div>
+      <h2>Precios API de MyPlataforma</h2>
+      <div class="api-muted">Administra el costo privado y el precio que pagarán tus clientes mayoristas.</div>
+    </div>
+    <div class="api-actions">
+      <a class="api-btn api-btn-secondary" href="{% url 'wholesale-modules' %}">Volver a MyPlataforma</a>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="sync"><button class="api-btn api-btn-primary" type="submit" {% if not partner_api_configured %}disabled{% endif %}>Actualizar costos desde API</button></form>
+    </div>
+  </div>
+
+  <section class="api-stats">
+    <div class="api-stat"><span>Planes sincronizados</span><strong>{{ stats.plans }}</strong></div>
+    <div class="api-stat"><span>Publicados</span><strong>{{ stats.published }}</strong></div>
+    <div class="api-stat"><span>Pendientes</span><strong>{{ stats.pending }}</strong></div>
+    <div class="api-stat"><span>Margen promedio</span><strong>{{ stats.average_margin|floatformat:2 }}%</strong></div>
+  </section>
+
+  <section class="api-panel">
+    <div class="api-notice"><strong>Información privada.</strong> El costo y el saldo de Multiplataforma solo se consultan en Control. El mayorista únicamente verá el precio de venta que publiques.</div>
+    <div class="api-table-wrap">
+      <table class="api-table">
+        <thead><tr><th>Servicio</th><th>Plan</th><th>Modalidad</th><th>Duración</th><th>Costo privado</th><th>Precio de venta</th><th>Utilidad</th><th>Margen</th><th>Estado y acción</th></tr></thead>
+        <tbody>
+          {% for item in prices %}
+          <tr>
+            <td><span class="api-service api-service-{{ item.service }}">{{ item.get_service_display }}</span></td>
+            <td><strong>{{ item.name }}</strong><div class="api-private">ID {{ item.external_plan_id }}</div></td>
+            <td>{{ item.connections }} dispositivo{% if item.connections != 1 %}s{% endif %}{% if item.with_tv %}<br><small>Incluye TV</small>{% endif %}</td>
+            <td>{{ item.duration|default:"—" }}</td>
+            <td><strong>{{ item.currency_prefix }} {{ item.provider_cost|floatformat:2 }}</strong><div class="api-private">Nunca visible al cliente</div></td>
+            <td colspan="4">
+              <form class="api-row-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="price_id" value="{{ item.id }}">
+                <input class="form-control api-price-input" type="number" name="sale_price" min="0" step="0.01" value="{{ item.sale_price|floatformat:2 }}" aria-label="Precio de venta">
+                <span class="{% if item.sale_price > item.provider_cost %}api-profit-positive{% else %}api-profit-pending{% endif %}">{{ item.currency_prefix }} {{ item.profit|floatformat:2 }}</span>
+                <span class="{% if item.sale_price > item.provider_cost %}api-profit-positive{% else %}api-profit-pending{% endif %}">{{ item.margin_percent|floatformat:2 }}%</span>
+                <label class="api-switch"><input type="checkbox" name="active" {% if item.active %}checked{% endif %}> Publicado</label>
+                <button class="api-btn api-btn-primary" type="submit">Guardar</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td class="api-empty" colspan="9">Todavía no hay planes. Presiona “Actualizar costos desde API” para crear la tabla.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

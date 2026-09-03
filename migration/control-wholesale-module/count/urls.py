@@ -40,6 +40,7 @@ urlpatterns = [
         path('wholesale/publication/<int:pk>/edit', views.WholesalePublicationEditView.as_view(), name='wholesale-publication-edit'),
         path('wholesale/publication/<int:pk>/toggle', views.WholesalePublicationToggleView.as_view(), name='wholesale-publication-toggle'),
         path('wholesale/slides', views.WholesaleSlidesView.as_view(), name='wholesale-slides'),
+        path('wholesale/media-prices', views.WholesaleMediaPricesView.as_view(), name='wholesale-media-prices'),
         path('wholesale/slide/<int:pk>/edit', views.WholesaleSlideEditView.as_view(), name='wholesale-slide-edit'),
         path('wholesale/slide/<int:pk>/toggle', views.WholesaleSlideToggleView.as_view(), name='wholesale-slide-toggle'),
         path('wholesale/slide/<int:pk>/delete', views.WholesaleSlideDeleteView.as_view(), name='wholesale-slide-delete'),
