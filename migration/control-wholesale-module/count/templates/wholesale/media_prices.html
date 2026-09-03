@@ -3,6 +3,7 @@
 {% block content %}
 <style>
   .api-price-page{color:#eef2f7}.api-price-head{align-items:flex-start;display:flex;gap:18px;justify-content:space-between;margin-bottom:20px}.api-price-head h2{font-size:1.5rem;margin:0 0 7px}.api-muted{color:#8f99aa}.api-actions{display:flex;gap:9px}.api-btn{border:0;border-radius:8px;color:#fff;cursor:pointer;font-weight:700;padding:11px 15px}.api-btn-primary{background:#0799e5}.api-btn-secondary{background:#293241}.api-stats{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:20px}.api-stat{background:#191e27;border:1px solid #2a3240;border-radius:12px;padding:17px}.api-stat span{color:#8f99aa;display:block;font-size:.72rem;text-transform:uppercase}.api-stat strong{display:block;font-size:1.55rem;margin-top:5px}.api-panel{background:#191e27;border:1px solid #2a3240;border-radius:12px;padding:20px}.api-notice{background:rgba(0,200,117,.08);border:1px solid rgba(0,200,117,.22);border-radius:10px;color:#9cb7aa;margin-bottom:18px;padding:13px}.api-table-wrap{border:1px solid #2d3541;border-radius:10px;overflow-x:auto}.api-table{border-collapse:collapse;min-width:1120px;width:100%}.api-table th{background:#20262f;color:#8994a7;font-size:.7rem;letter-spacing:.04em;padding:12px;text-align:left;text-transform:uppercase}.api-table td{border-top:1px solid #2d3541;color:#cbd3df;padding:13px 12px;vertical-align:middle}.api-table strong{color:#f5f7fa}.api-service{border-radius:999px;display:inline-flex;font-size:.7rem;font-weight:800;padding:5px 9px;text-transform:uppercase}.api-service-plex{background:rgba(229,160,13,.15);color:#f3bd49}.api-service-emby{background:rgba(82,192,76,.14);color:#69dd69}.api-service-jellyfin{background:rgba(139,92,246,.16);color:#b79bff}.api-price-input{background:#10151d!important;border:1px solid #364152!important;color:#fff!important;max-width:135px;min-height:39px}.api-profit-positive{color:#52dfa0;font-weight:800}.api-profit-pending{color:#f2b01e}.api-row-form{align-items:center;display:flex;gap:9px}.api-switch{align-items:center;display:flex;gap:6px;white-space:nowrap}.api-empty{color:#8f99aa;padding:32px;text-align:center}.api-private{color:#7f8a9b;font-size:.7rem;margin-top:4px}.api-btn[disabled]{cursor:not-allowed;opacity:.5}@media(max-width:950px){.api-stats{grid-template-columns:repeat(2,1fr)}.api-price-head{display:block}.api-actions{margin-top:14px}}@media(max-width:560px){.api-stats{grid-template-columns:1fr}.api-panel{padding:13px}}
+  .api-flash{border:1px solid;border-radius:10px;font-weight:700;margin-bottom:16px;padding:13px 15px}.api-flash-success{background:rgba(0,200,117,.11);border-color:rgba(0,200,117,.34);color:#69e6ac}.api-flash-error{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.35);color:#ff9296}.api-flash-warning{background:rgba(242,176,30,.11);border-color:rgba(242,176,30,.32);color:#f6ca68}.api-flash-info{background:rgba(21,151,229,.11);border-color:rgba(21,151,229,.32);color:#72c8f7}
 </style>
 
 <div class="api-price-page">
@@ -16,6 +17,12 @@
       <form method="post">{% csrf_token %}<input type="hidden" name="action" value="sync"><button class="api-btn api-btn-primary" type="submit" {% if not partner_api_configured %}disabled{% endif %}>Actualizar costos desde API</button></form>
     </div>
   </div>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="api-flash api-flash-{{ message.tags|default:'info' }}" role="status">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
 
   <section class="api-stats">
     <div class="api-stat"><span>Planes sincronizados</span><strong>{{ stats.plans }}</strong></div>
@@ -58,4 +65,15 @@
     </div>
   </section>
 </div>
+<script>
+  document.querySelectorAll('.api-row-form').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      var button = form.querySelector('button[type="submit"]');
+      if (button && form.checkValidity()) {
+        button.disabled = true;
+        button.textContent = 'Guardando…';
+      }
+    });
+  });
+</script>
 {% endblock %}
