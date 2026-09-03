@@ -2128,7 +2128,7 @@ def _sync_partner_media_prices():
 
 def partner_media_prices_context():
     prices = list(PartnerMediaPrice.objects.all())
-    published = sum(1 for item in prices if item.active and item.sale_price > 0)
+    published = sum(1 for item in prices if item.active)
     profitable = [item for item in prices if item.sale_price > item.provider_cost]
     return {
         "prices": prices,
@@ -2203,10 +2203,11 @@ class WholesaleMediaPricesView(WholesalePermissionMixin, View):
                 "El precio de venta debe ser mayor al costo para generar utilidad.",
             )
             return redirect("wholesale-media-prices")
-        if publish and not sale_price:
+        if publish and not sale_price and price_row.provider_cost > 0:
             messages.error(
                 request,
-                "Configura un precio de venta antes de publicar el plan.",
+                "Configura un precio de venta antes de publicar un plan de pago. "
+                "Los demos con costo $0 sí pueden publicarse gratis.",
             )
             return redirect("wholesale-media-prices")
 
@@ -2623,7 +2624,9 @@ class WholesaleMediaPricesApiView(View):
         prices = PartnerMediaPrice.objects.filter(
             service=service,
             active=True,
-            sale_price__gt=0,
+        ).filter(
+            Q(sale_price__gt=0)
+            | Q(provider_cost=0, sale_price=0)
         )
         return JsonResponse({
             "service": service,
