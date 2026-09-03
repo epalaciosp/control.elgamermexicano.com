@@ -2603,6 +2603,42 @@ def _public_media_url(field):
     return "https://control.elgamermexicano.com" + url
 
 
+class WholesaleMediaPricesApiView(View):
+    """Expose only published sale prices; provider costs remain in Control."""
+
+    def get(self, request, *args, **kwargs):
+        authorized, error_response = _wholesale_api_authorized(request)
+        if not authorized:
+            return error_response
+
+        get_object_or_404(
+            WholesalePartner,
+            username__iexact=kwargs["username"],
+            active=True,
+        )
+        service = request.GET.get("service", "").strip().lower()
+        if service not in dict(PartnerMediaPrice.SERVICE_CHOICES):
+            return JsonResponse({"error": "Servicio no válido"}, status=400)
+
+        prices = PartnerMediaPrice.objects.filter(
+            service=service,
+            active=True,
+            sale_price__gt=0,
+        )
+        return JsonResponse({
+            "service": service,
+            "prices": [
+                {
+                    "external_plan_id": item.external_plan_id,
+                    "with_tv": item.with_tv,
+                    "sale_price": str(item.sale_price),
+                    "currency_prefix": item.currency_prefix,
+                }
+                for item in prices
+            ],
+        })
+
+
 def _available_profiles_for_plan(plan, now=None):
     """Live, unassigned profiles eligible for one plan purchase."""
     now = now or django_timezone.now()

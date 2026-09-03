@@ -26,7 +26,7 @@ import secrets
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 from .plex_partner import (
     get_media_market,
@@ -39,6 +39,7 @@ PERCENT_COMISSION = 4
 CONTROL_SERVICES_URL = "http://127.0.0.1:8000/count/api/wholesale/services/"
 CONTROL_PORTAL_URL = "http://127.0.0.1:8000/count/api/wholesale/portal/"
 CONTROL_PURCHASE_URL = "http://127.0.0.1:8000/count/api/wholesale/purchase/"
+CONTROL_MEDIA_PRICES_URL = "http://127.0.0.1:8000/count/api/wholesale/media-prices/"
 CONTROL_TOKEN_FILE = Path("/etc/wholesale-integration.token")
 # if PercentCommission and PercentCommission.objects.all():
 #    PERCENT_COMISSION = PercentCommission.objects.all().first().percent
@@ -96,6 +97,36 @@ def get_control_portal(username):
         return {}, "Control rechazó temporalmente el catálogo ({}).".format(exc.code)
     except (URLError, TimeoutError, ValueError):
         return {}, "No fue posible consultar el catálogo de Control en este momento."
+
+
+def get_control_media_prices(username, service):
+    """Read public sale prices without exposing provider costs or balance."""
+    try:
+        token = CONTROL_TOKEN_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return [], "La integración con Control todavía no está configurada."
+
+    url = CONTROL_MEDIA_PRICES_URL + quote(username) + "?" + urlencode({
+        "service": service,
+    })
+    request = Request(
+        url,
+        headers={
+            "Authorization": "Bearer " + token,
+            "Accept": "application/json",
+            "User-Agent": "MyPlataforma-MediaPrices/1.0",
+            "Host": "control.elgamermexicano.com",
+            "X-Forwarded-Proto": "https",
+        },
+    )
+    try:
+        with urlopen(request, timeout=8) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        return [], "Control rechazó temporalmente los precios ({}).".format(exc.code)
+    except (URLError, TimeoutError, ValueError):
+        return [], "No fue posible consultar los precios de Control."
+    return payload.get("prices", []), None
 
 
 def purchase_control_account(username, offer_key, reference, expected_price):
@@ -528,6 +559,17 @@ def PortalSectionView(request, section):
 
     if user_type == "vendedor" and section in ("plex", "emby", "jellyfin"):
         market, market_error = get_media_market(section)
+        control_prices, pricing_error = get_control_media_prices(
+            request.user.username,
+            section,
+        )
+        price_map = {
+            (
+                str(item.get("external_plan_id")),
+                bool(item.get("with_tv")),
+            ): item
+            for item in control_prices
+        }
         # The partner API returns our private provider balance and acquisition
         # prices.  Neither value belongs in the wholesaler-facing context: the
         # customer must only see the sale price configured by us.
@@ -538,6 +580,10 @@ def PortalSectionView(request, section):
         public_plans = []
         for source_plan in market.get("plans", []):
             plan = dict(source_plan)
+            configured_price = price_map.get((
+                str(plan.get("plan_id", plan.get("id"))),
+                bool(plan.get("with_tv")),
+            ))
             for private_field in (
                 "price",
                 "cost",
@@ -546,8 +592,15 @@ def PortalSectionView(request, section):
                 "can_purchase",
             ):
                 plan.pop(private_field, None)
-            public_plans.append(plan)
+            if configured_price:
+                plan["sale_price"] = configured_price.get("sale_price")
+                plan["currency_prefix"] = configured_price.get(
+                    "currency_prefix"
+                ) or "MXN"
+                public_plans.append(plan)
         market["plans"] = public_plans
+        if not market_error and pricing_error:
+            market_error = pricing_error
         return render(request, "media_market.html", {
             "section": section,
             "section_data": section_data,

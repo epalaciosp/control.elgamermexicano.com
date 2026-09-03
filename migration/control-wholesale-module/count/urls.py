@@ -47,6 +47,7 @@ urlpatterns = [
         path('api/wholesale/portal/<str:username>', views.WholesalePortalApiView.as_view(), name='wholesale-portal-api'),
         path('api/wholesale/purchase/<str:username>', views.WholesalePurchaseApiView.as_view(), name='wholesale-purchase-api'),
         path('api/wholesale/services/<str:username>', views.WholesaleServicesApiView.as_view(), name='wholesale-services-api'),
+        path('api/wholesale/media-prices/<str:username>', views.WholesaleMediaPricesApiView.as_view(), name='wholesale-media-prices-api'),
 
 
         #count
