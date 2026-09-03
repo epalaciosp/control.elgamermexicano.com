@@ -528,6 +528,26 @@ def PortalSectionView(request, section):
 
     if user_type == "vendedor" and section in ("plex", "emby", "jellyfin"):
         market, market_error = get_media_market(section)
+        # The partner API returns our private provider balance and acquisition
+        # prices.  Neither value belongs in the wholesaler-facing context: the
+        # customer must only see the sale price configured by us.
+        market = dict(market)
+        market.pop("balance", None)
+        market.pop("currency_code", None)
+        market.pop("currency_prefix", None)
+        public_plans = []
+        for source_plan in market.get("plans", []):
+            plan = dict(source_plan)
+            for private_field in (
+                "price",
+                "cost",
+                "buy_price",
+                "purchase_price",
+                "can_purchase",
+            ):
+                plan.pop(private_field, None)
+            public_plans.append(plan)
+        market["plans"] = public_plans
         return render(request, "media_market.html", {
             "section": section,
             "section_data": section_data,

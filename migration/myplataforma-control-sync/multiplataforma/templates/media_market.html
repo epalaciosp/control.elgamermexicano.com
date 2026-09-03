@@ -13,9 +13,8 @@
   <section class="media-status {% if market_error %}pending{% else %}ready{% endif %}">
     <div>
       <strong>{% if market_error %}La integración necesita atención{% else %}Conexión API activa{% endif %}</strong>
-      <span>{% if market_error %}{{ market_error }}{% else %}Planes, precios y disponibilidad consultados en tiempo real.{% endif %}</span>
+      <span>{% if market_error %}{{ market_error }}{% else %}Planes y disponibilidad consultados en tiempo real.{% endif %}</span>
     </div>
-    {% if not market_error %}<div class="media-balance">{{ market.currency_prefix }} {{ market.balance }}</div>{% endif %}
   </section>
 
   {% if market.plans %}
@@ -33,8 +32,8 @@
       </div>
       {% if plan.features %}<ul class="media-features">{% for feature in plan.features %}<li>{{ feature }}</li>{% endfor %}</ul>{% endif %}
       <div class="media-price-row">
-        <span class="media-price">{{ market.currency_prefix }} {{ plan.price }}</span>
-        <button class="media-action" type="button" disabled>{% if plan.can_purchase %}API disponible{% else %}Saldo proveedor insuficiente{% endif %}</button>
+        <span class="media-price">Precio por configurar</span>
+        <button class="media-action" type="button" disabled>Venta no habilitada</button>
       </div>
     </article>
     {% endfor %}
@@ -43,6 +42,6 @@
   <div class="media-empty">El proveedor no devolvió planes para este servicio.</div>
   {% endif %}
 
-  <div class="media-note">La consulta de catálogo y cuentas ya está conectada. La compra permanecerá protegida hasta configurar precios de venta y contar con saldo suficiente en la cuenta del proveedor.</div>
+  <div class="media-note">La consulta de catálogo ya está conectada. El precio final será el precio de venta configurado por El Gamer MX; el costo y el saldo del proveedor permanecen privados.</div>
 </div>
 {% endblock %}
