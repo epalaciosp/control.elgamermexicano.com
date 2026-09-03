@@ -1378,26 +1378,41 @@ class AddSaleView(View):
             is_chatgpt_plus = bool(
                 platform and is_chatgpt_plus_platform(platform.name)
             )
-            selected_profiles = []
+            if not selected_ids:
+                return HttpResponse(
+                    "Selecciona al menos un perfil disponible.",
+                    status=400,
+                )
+
+            # Lock and validate every profile submitted by the browser.  The
+            # availability table can become stale while a seller has it open,
+            # and historical data may contain a false ``saled`` flag.  A sale
+            # must never be created while another current, uncut sale exists.
+            selected_profiles = list(
+                Profile.objects.select_for_update().filter(
+                    id__in=selected_ids,
+                    count__platform=platform,
+                ).select_related("count")
+            )
+            if (
+                len(selected_profiles) != num_profiles
+                or any(profile.saled for profile in selected_profiles)
+            ):
+                return HttpResponse(
+                    "Uno de los perfiles ya no está disponible.",
+                    status=409,
+                )
+
             ibo_credentials = {}
 
             if is_ibo_player:
-                if not plan_object or not selected_ids or num_profiles > plan_object.num_profiles:
+                if not plan_object or num_profiles > plan_object.num_profiles:
                     return HttpResponse(
                         "Para este plan debes seleccionar entre 1 y "
                         + str(plan_object.num_profiles if plan_object else 0)
                         + " dispositivo(s) de la misma lista.",
                         status=400,
                     )
-                selected_profiles = list(
-                    Profile.objects.select_for_update().filter(
-                        id__in=selected_ids,
-                        saled=False,
-                        count__platform=platform,
-                    ).select_related("count")
-                )
-                if len(selected_profiles) != num_profiles:
-                    return HttpResponse("Uno de los perfiles ya no está disponible.", status=409)
                 if len({p.count_id for p in selected_profiles}) != 1:
                     return HttpResponse(
                         "Los dispositivos deben pertenecer a una misma lista IBO.",
@@ -1452,15 +1467,14 @@ class AddSaleView(View):
                     )
 
             if is_plus_code:
-                selected_profiles = list(
-                    Profile.objects.filter(
-                        id__in=selected_ids,
-                        saled=False,
-                        count__platform=platform,
-                        count__date_limit__date__gte=django_timezone.localdate(),
-                    ).select_related("count")
-                )
-                if num_profiles != 1 or len(selected_profiles) != 1:
+                if (
+                    num_profiles != 1
+                    or not selected_profiles[0].count.date_limit
+                    or (
+                        selected_profiles[0].count.date_limit.date()
+                        < django_timezone.localdate()
+                    )
+                ):
                     return HttpResponse(
                         "Selecciona exactamente un Código Plus vigente.",
                         status=400,
@@ -1474,15 +1488,14 @@ class AddSaleView(View):
                         + " perfil(es).",
                         status=400,
                     )
-                selected_profiles = list(
-                    Profile.objects.filter(
-                        id__in=selected_ids,
-                        saled=False,
-                        count__platform=platform,
-                        count__date_limit__date__gte=django_timezone.localdate(),
-                    ).select_related("count")
-                )
-                if len(selected_profiles) != num_profiles:
+                if any(
+                    not profile.count.date_limit
+                    or (
+                        profile.count.date_limit.date()
+                        < django_timezone.localdate()
+                    )
+                    for profile in selected_profiles
+                ):
                     return HttpResponse(
                         "Uno de los perfiles ya no está disponible.",
                         status=409,
@@ -1492,6 +1505,37 @@ class AddSaleView(View):
                         "La cuenta completa debe usar los 6 perfiles de una misma cuenta.",
                         status=400,
                     )
+
+            if plan_object and not (
+                is_ibo_player or is_plus_code or is_chatgpt_plus
+            ):
+                if any(
+                    profile.count.plan_id != plan_object.id
+                    for profile in selected_profiles
+                ):
+                    return HttpResponse(
+                        "Uno de los perfiles no pertenece al plan seleccionado.",
+                        status=400,
+                    )
+
+            open_sale_profile_ids = set(
+                Sale.objects.select_for_update().filter(
+                    profile_id__in=selected_ids,
+                    renovated=False,
+                    cutted=False,
+                ).values_list("profile_id", flat=True)
+            )
+            if open_sale_profile_ids:
+                # Repair stale availability flags while refusing the duplicate
+                # sale. This keeps the profile hidden until its real service is
+                # explicitly cut or renewed.
+                Profile.objects.filter(
+                    id__in=open_sale_profile_ids,
+                ).update(saled=True)
+                return HttpResponse(
+                    "Uno de los perfiles ya está asignado a otro cliente.",
+                    status=409,
+                )
 
             plan = plan_object.name if plan_object else ""
             configured_price = None
