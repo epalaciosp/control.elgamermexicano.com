@@ -8,6 +8,7 @@ import http.client
 import json
 import os
 import socket
+import uuid
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import HTTPSHandler, Request, build_opener
@@ -108,6 +109,59 @@ def _request_json(path, method="GET", payload=None, token=""):
         return json.loads(response.read().decode("utf-8"))
 
 
+def _request_multipart_json(
+    path,
+    fields,
+    file_name,
+    file_content,
+    file_content_type,
+    token="",
+):
+    boundary = "----ControlElGamerMX" + uuid.uuid4().hex
+    body = bytearray()
+    for name, value in fields.items():
+        body.extend(("--" + boundary + "\r\n").encode("ascii"))
+        body.extend(
+            ('Content-Disposition: form-data; name="{}"\r\n\r\n'.format(name)).encode(
+                "utf-8"
+            )
+        )
+        body.extend(str(value).encode("utf-8"))
+        body.extend(b"\r\n")
+    safe_file_name = (
+        os.path.basename(str(file_name))
+        .replace('"', "")
+        .replace("\r", "")
+        .replace("\n", "")
+    )
+    body.extend(("--" + boundary + "\r\n").encode("ascii"))
+    body.extend(
+        (
+            'Content-Disposition: form-data; name="image"; filename="{}"\r\n'.format(
+                safe_file_name
+            )
+        ).encode("utf-8")
+    )
+    body.extend(("Content-Type: {}\r\n\r\n".format(file_content_type)).encode("ascii"))
+    body.extend(file_content)
+    body.extend(b"\r\n")
+    body.extend(("--" + boundary + "--\r\n").encode("ascii"))
+    headers = {
+        "Accept": "application/json",
+        "Authorization": "Bearer " + token,
+        "Content-Type": "multipart/form-data; boundary=" + boundary,
+        "User-Agent": "Control-ElGamerMX/1.0",
+    }
+    request = Request(
+        BASE_URL + path.lstrip("/"),
+        data=bytes(body),
+        headers=headers,
+        method="POST",
+    )
+    with _OPENER.open(request, timeout=45) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 def _access_token(force_refresh=False):
     cache_key = "control_partner_media_access_token"
     if force_refresh:
@@ -139,6 +193,41 @@ def _authorized_request(path, method="GET", payload=None):
     if not token:
         raise ValueError("La API no devolvió un token válido")
     return _request_json(path, method=method, payload=payload, token=token)
+
+
+def _authorized_multipart_request(
+    path,
+    fields,
+    file_name,
+    file_content,
+    file_content_type,
+):
+    token = _access_token()
+    if not token:
+        raise ValueError("La API no devolvió un token válido")
+    try:
+        return _request_multipart_json(
+            path,
+            fields,
+            file_name,
+            file_content,
+            file_content_type,
+            token=token,
+        )
+    except HTTPError as exc:
+        if exc.code != 401:
+            raise
+    token = _access_token(force_refresh=True)
+    if not token:
+        raise ValueError("La API no devolvió un token válido")
+    return _request_multipart_json(
+        path,
+        fields,
+        file_name,
+        file_content,
+        file_content_type,
+        token=token,
+    )
 
 
 def _error_message(exc):
@@ -261,4 +350,102 @@ def purchase_partner_media_account(service, plan_id, email, password, customer):
         if isinstance(detail, dict):
             detail = detail.get("message")
         return {}, str(detail or "El proveedor no pudo generar la cuenta.")
+    return response.get("data", {}), None
+
+
+def get_partner_media_issues(service):
+    """Return live issue reports created by this provider account."""
+    service = str(service or "").strip().lower()
+    if service not in SERVICES:
+        return [], {}, "El servicio solicitado no es válido."
+    if not partner_api_configured():
+        return [], {}, "La API Partner todavía no está configurada en Control."
+    try:
+        response = _authorized_request(
+            "seller/account-issues/?"
+            + urlencode({"platform": service, "status": "all", "page_size": 100})
+        )
+    except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+        return [], {}, _error_message(exc)
+    if not response.get("success", False):
+        detail = response.get("error", {})
+        if isinstance(detail, dict):
+            detail = detail.get("message")
+        return [], {}, str(detail or "No fue posible consultar los reportes.")
+    data = response.get("data", {})
+    return data.get("issues", []), data.get("summary", {}), None
+
+
+def search_partner_media_issue_accounts(service, query):
+    """Search provider-owned accounts that can be selected for a report."""
+    service = str(service or "").strip().lower()
+    query = str(query or "").strip()
+    if service not in SERVICES:
+        return [], "El servicio solicitado no es válido."
+    if len(query) < 3:
+        return [], "Escribe por lo menos 3 caracteres para buscar una cuenta."
+    try:
+        response = _authorized_request(
+            "seller/account-issues/search/?"
+            + urlencode({"platform": service, "q": query})
+        )
+    except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+        return [], _error_message(exc)
+    if not response.get("success", False):
+        detail = response.get("error", {})
+        if isinstance(detail, dict):
+            detail = detail.get("message")
+        return [], str(detail or "No fue posible buscar la cuenta.")
+    return response.get("data", {}).get("accounts", []), None
+
+
+def get_partner_media_issue_account(service, count_id):
+    """Validate one provider account immediately before reporting it."""
+    service = str(service or "").strip().lower()
+    if service not in SERVICES:
+        return {}, "El servicio solicitado no es válido."
+    try:
+        response = _authorized_request(
+            "seller/account-issues/account/?"
+            + urlencode({"platform": service, "count_id": count_id})
+        )
+    except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+        return {}, _error_message(exc)
+    if not response.get("success", False):
+        detail = response.get("error", {})
+        if isinstance(detail, dict):
+            detail = detail.get("message")
+        return {}, str(detail or "La cuenta no está disponible para reportarse.")
+    return response.get("data", {}), None
+
+
+def create_partner_media_issue(
+    service,
+    count_id,
+    issue,
+    file_name,
+    file_content,
+    file_content_type,
+):
+    """Send an account issue with the mandatory screenshot to the provider."""
+    service = str(service or "").strip().lower()
+    if service not in SERVICES:
+        return {}, "El servicio solicitado no es válido."
+    if not partner_api_configured():
+        return {}, "La API Partner todavía no está configurada en Control."
+    try:
+        response = _authorized_multipart_request(
+            "seller/account-issues/",
+            {"platform": service, "count_id": count_id, "issue": issue},
+            file_name,
+            file_content,
+            file_content_type,
+        )
+    except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
+        return {}, _error_message(exc)
+    if not response.get("success", False):
+        detail = response.get("error", {})
+        if isinstance(detail, dict):
+            detail = detail.get("message")
+        return {}, str(detail or "El proveedor no pudo registrar el reporte.")
     return response.get("data", {}), None

@@ -26,10 +26,14 @@ from .models import (
     PartnerMediaAccount,
 )
 from .partner_media import (
+    create_partner_media_issue,
     get_partner_media_market,
     get_partner_media_markets,
+    get_partner_media_issue_account,
+    get_partner_media_issues,
     partner_api_configured,
     purchase_partner_media_account,
+    search_partner_media_issue_accounts,
 )
 from user.models import Customer, Action
 from django.http import HttpResponse, JsonResponse
@@ -2271,6 +2275,14 @@ class PartnerMediaAccountsView(WholesalePermissionMixin, View):
 
     def _context(self, request):
         plans, provider, error = get_partner_media_market(self.service)
+        issues, issue_summary, issues_error = get_partner_media_issues(self.service)
+        report_query = str(request.GET.get("report_q") or "").strip()
+        provider_accounts = []
+        provider_account_error = None
+        if report_query:
+            provider_accounts, provider_account_error = (
+                search_partner_media_issue_accounts(self.service, report_query)
+            )
         for plan in plans:
             plan["display_id"] = str(plan.get("plan_id", plan.get("id", "")))
             plan["display_name"] = str(
@@ -2292,6 +2304,12 @@ class PartnerMediaAccountsView(WholesalePermissionMixin, View):
             "plans": plans,
             "provider": provider,
             "provider_error": error,
+            "issues": issues,
+            "issue_summary": issue_summary,
+            "issues_error": issues_error,
+            "report_query": report_query,
+            "provider_accounts": provider_accounts,
+            "provider_account_error": provider_account_error,
             "purchase_token": token,
             "accessible_services": accessible_services,
             "accounts": PartnerMediaAccount.objects.filter(
@@ -2303,6 +2321,9 @@ class PartnerMediaAccountsView(WholesalePermissionMixin, View):
         return render(request, self.template_name, self._context(request))
 
     def post(self, request, *args, **kwargs):
+        if request.POST.get("action") == "report_issue":
+            return self._report_issue(request)
+
         plans, provider, error = get_partner_media_market(self.service)
         if error:
             messages.error(request, error)
@@ -2409,6 +2430,96 @@ class PartnerMediaAccountsView(WholesalePermissionMixin, View):
         messages.success(
             request,
             "La cuenta {} se generó correctamente. Copia los datos del historial.".format(
+                self.service_config["label"]
+            ),
+        )
+        return redirect("partner-media-accounts", service=self.service)
+
+    def _report_issue(self, request):
+        local_account_id = str(request.POST.get("account_id") or "").strip()
+        provider_count_id = str(request.POST.get("provider_count_id") or "").strip()
+        account_reference = ""
+        if local_account_id:
+            account = get_object_or_404(
+                PartnerMediaAccount,
+                pk=local_account_id,
+                service=self.service,
+            )
+            provider_count_id = account.external_account_id
+            account_reference = account.access_identifier
+        elif provider_count_id.isdigit():
+            provider_account, account_error = get_partner_media_issue_account(
+                self.service,
+                provider_count_id,
+            )
+            if account_error:
+                messages.error(request, account_error)
+                return redirect("partner-media-accounts", service=self.service)
+            account_reference = str(
+                provider_account.get("email")
+                or provider_account.get("username")
+                or provider_count_id
+            )
+        else:
+            messages.error(request, "Selecciona una cuenta válida para reportar.")
+            return redirect("partner-media-accounts", service=self.service)
+        issue = str(request.POST.get("issue") or "").strip()
+        image = request.FILES.get("image")
+        if not issue:
+            messages.error(request, "Describe el problema de la cuenta.")
+            return redirect("partner-media-accounts", service=self.service)
+        if len(issue) > 1000:
+            messages.error(request, "La descripción no puede superar 1,000 caracteres.")
+            return redirect("partner-media-accounts", service=self.service)
+        if image is None:
+            messages.error(request, "Adjunta una captura del error; el proveedor la exige.")
+            return redirect("partner-media-accounts", service=self.service)
+        allowed_extensions = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".webp": "image/webp",
+            ".heic": "image/heic",
+            ".gif": "image/gif",
+            ".bmp": "image/bmp",
+        }
+        extension = Path(image.name).suffix.lower()
+        if extension not in allowed_extensions:
+            messages.error(
+                request,
+                "La captura debe ser JPG, PNG, WEBP, HEIC, GIF o BMP.",
+            )
+            return redirect("partner-media-accounts", service=self.service)
+        if image.size > 15 * 1024 * 1024:
+            messages.error(request, "La captura no puede pesar más de 15 MB.")
+            return redirect("partner-media-accounts", service=self.service)
+
+        result, report_error = create_partner_media_issue(
+            self.service,
+            provider_count_id,
+            issue,
+            image.name,
+            image.read(),
+            allowed_extensions[extension],
+        )
+        if report_error:
+            messages.error(request, report_error)
+            return redirect("partner-media-accounts", service=self.service)
+
+        report_id = result.get("id", result.get("issue_id", "sin-id"))
+        Action.action_register(
+            request.user,
+            "Reporte {} enviado: cuenta externa {}, acceso {}, reporte {}, detalle {}".format(
+                self.service_config["label"],
+                provider_count_id,
+                account_reference,
+                report_id,
+                issue[:250],
+            ),
+        )
+        messages.success(
+            request,
+            "El reporte de la cuenta {} fue enviado correctamente al proveedor.".format(
                 self.service_config["label"]
             ),
         )
