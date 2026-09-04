@@ -97,7 +97,7 @@
     </div>
   </section>
 
-  {% if user_type != 'superuser' %}<section class="balance-strip"><div><span>Saldo disponible</span><strong>${{ my_balance|default:0|intcomma }}</strong></div><div class="portal-actions" style="margin:0"><a class="btn btn-success" href="{% url 'portal-section' 'catalog' %}">Ver catálogo</a><a class="btn btn-outline-light" href="{% url 'portal-section' 'balance' %}">Movimientos</a></div></section>{% endif %}
+  {% if user_type != 'superuser' %}<section class="balance-strip"><div><span>Saldo disponible</span><strong>${{ my_balance|default:0|intcomma }}</strong></div><div class="portal-actions" style="margin:0"><a class="btn btn-success" href="{% url 'recharge-center' %}"><i class="ti-plus"></i> Recargar saldo</a><a class="btn btn-outline-light" href="{% url 'portal-section' 'catalog' %}">Ver catálogo</a><a class="btn btn-outline-light" href="{% url 'portal-section' 'balance' %}">Movimientos</a></div></section>{% endif %}
 
   <section class="portal-grid">
     {% if user_type == 'superuser' %}

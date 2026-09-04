@@ -21,6 +21,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.exceptions import PermissionDenied
+from django.utils import timezone
 import json
 import secrets
 from decimal import Decimal, InvalidOperation
@@ -31,6 +32,17 @@ from urllib.request import Request, urlopen
 from .plex_partner import (
     get_media_market,
     partner_api_configured,
+)
+from .recharges import (
+    RechargeOrder,
+    RechargeWebhookEvent,
+    create_mercado_pago_checkout,
+    fetch_mercado_pago_payment,
+    mercado_pago_configured,
+    recharge_limits,
+    validate_mercado_pago_signature,
+    verify_payment_for_order,
+    webhook_event_hash,
 )
 
 
@@ -615,6 +627,146 @@ def PortalSectionView(request, section):
         "section_data": section_data,
         "balance": request.user.get_my_money() if user_type == "vendedor" else 0,
     })
+
+
+@login_required
+def RechargeCenterView(request):
+    """Create and display automatic balance recharge orders."""
+    if check_user_type(request) != "vendedor":
+        raise PermissionDenied
+
+    minimum, maximum = recharge_limits()
+    if request.method == "POST":
+        try:
+            amount = int(str(request.POST.get("amount", "")).strip())
+        except (TypeError, ValueError):
+            amount = 0
+        if amount < minimum or amount > maximum:
+            messages.error(
+                request,
+                "La recarga debe ser de ${:,} a ${:,} MXN.".format(minimum, maximum),
+            )
+            return redirect("recharge-center")
+        if not mercado_pago_configured():
+            messages.error(
+                request,
+                "Mercado Pago todavía no tiene credenciales configuradas.",
+            )
+            return redirect("recharge-center")
+
+        order = RechargeOrder.objects.create(
+            user=request.user,
+            amount_mxn=amount,
+            method=RechargeOrder.METHOD_MERCADO_PAGO,
+        )
+        try:
+            checkout_url = create_mercado_pago_checkout(order, request)
+        except RuntimeError as exc:
+            order.status = RechargeOrder.STATUS_REJECTED
+            order.provider_status = "checkout_error"
+            order.save(update_fields=("status", "provider_status", "updated_at"))
+            messages.error(request, str(exc))
+            return redirect("recharge-center")
+        return redirect(checkout_url)
+
+    payment_result = request.GET.get("payment")
+    if payment_result == "success":
+        messages.info(
+            request,
+            "Recibimos el pago. El saldo aparecerá cuando Mercado Pago lo confirme.",
+        )
+    elif payment_result == "pending":
+        messages.info(request, "El pago continúa pendiente de confirmación.")
+    elif payment_result == "failure":
+        messages.error(request, "El pago no se completó; no se modificó tu saldo.")
+
+    return render(request, "recharge_center.html", {
+        "balance": request.user.get_my_money(),
+        "orders": RechargeOrder.objects.filter(user=request.user)[:30],
+        "minimum": minimum,
+        "maximum": maximum,
+        "preset_amounts": (200, 500, 1000, 2000, 5000),
+        "mercado_pago_ready": mercado_pago_configured(),
+    })
+
+
+@csrf_exempt
+@require_POST
+def MercadoPagoRechargeWebhookView(request):
+    """Validate Mercado Pago and credit the exact recharge once."""
+    raw_body = request.body
+    try:
+        payload = json.loads(raw_body.decode("utf-8") or "{}")
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"error": "invalid_json"}, status=400)
+
+    data_id = (
+        request.GET.get("data.id")
+        or request.GET.get("data_id")
+        or (payload.get("data") or {}).get("id")
+    )
+    if not validate_mercado_pago_signature(request, data_id):
+        return JsonResponse({"error": "invalid_signature"}, status=401)
+
+    event_hash = webhook_event_hash(
+        raw_body,
+        request.headers.get("x-signature", ""),
+        request.headers.get("x-request-id", ""),
+    )
+    event, created = RechargeWebhookEvent.objects.get_or_create(
+        event_hash=event_hash,
+        defaults={
+            "provider": "mercadopago",
+            "external_event_id": str(payload.get("id") or data_id or "")[:160],
+        },
+    )
+    if not created and event.processed:
+        return JsonResponse({"ok": True, "duplicate": True})
+
+    try:
+        payment = fetch_mercado_pago_payment(data_id)
+    except RuntimeError:
+        return JsonResponse({"error": "provider_unavailable"}, status=503)
+
+    external_reference = str(payment.get("external_reference") or "")
+    try:
+        order = RechargeOrder.objects.get(public_id=external_reference)
+    except (RechargeOrder.DoesNotExist, ValueError):
+        event.processed = True
+        event.processed_at = timezone.now()
+        event.save(update_fields=("processed", "processed_at"))
+        return JsonResponse({"ok": True})
+
+    provider_status = str(payment.get("status") or "")
+    order.provider_payment_id = str(payment.get("id") or data_id)[:120]
+    order.provider_status = provider_status[:80]
+    if provider_status == "approved":
+        if verify_payment_for_order(payment, order):
+            order.status = RechargeOrder.STATUS_PAID
+        else:
+            order.status = RechargeOrder.STATUS_REVIEW
+            order.provider_status = "approved_amount_mismatch"
+    elif provider_status in ("rejected", "cancelled"):
+        order.status = RechargeOrder.STATUS_REJECTED
+    elif provider_status == "refunded":
+        # Never silently remove money. Refund reconciliation is an explicit
+        # administrator action so purchases already made cannot corrupt saldo.
+        order.status = RechargeOrder.STATUS_REFUNDED
+    else:
+        order.status = RechargeOrder.STATUS_PENDING
+    order.save(update_fields=(
+        "provider_payment_id",
+        "provider_status",
+        "status",
+        "updated_at",
+    ))
+    if order.status == RechargeOrder.STATUS_PAID:
+        RechargeOrder.credit_once(order.pk)
+
+    event.processed = True
+    event.processed_at = timezone.now()
+    event.save(update_fields=("processed", "processed_at"))
+    return JsonResponse({"ok": True})
 
 
 @login_required

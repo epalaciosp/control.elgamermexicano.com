@@ -30,6 +30,12 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     path("", views.IndexView, name="index"),
+    path("portal/recharge/", views.RechargeCenterView, name="recharge-center"),
+    path(
+        "payments/mercadopago/webhook/",
+        views.MercadoPagoRechargeWebhookView,
+        name="mercadopago-recharge-webhook",
+    ),
     path(
         "portal/catalog/purchase/",
         views.WholesaleCatalogPurchaseView,

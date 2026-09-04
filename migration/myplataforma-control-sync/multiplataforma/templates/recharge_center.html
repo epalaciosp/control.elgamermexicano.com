@@ -1,0 +1,74 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+  .recharge-wrap{color:#fff}.recharge-hero{align-items:center;background:linear-gradient(125deg,#121a20,#12241f);border:1px solid #254238;border-radius:20px;display:flex;justify-content:space-between;margin-bottom:18px;overflow:hidden;padding:28px;position:relative}.recharge-hero:after{background:radial-gradient(circle,rgba(34,218,139,.24),transparent 68%);content:"";height:260px;position:absolute;right:-70px;top:-90px;width:260px}.recharge-eyebrow{color:#36df91;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.recharge-hero h2{font-size:clamp(28px,4vw,42px);margin:7px 0}.recharge-hero p{color:#9aa7b8;margin:0;max-width:680px}.balance-box{background:rgba(7,13,18,.7);border:1px solid rgba(59,225,151,.3);border-radius:16px;min-width:190px;padding:16px 20px;position:relative;z-index:1}.balance-box span{color:#8fa599;display:block;font-size:10px;font-weight:800;text-transform:uppercase}.balance-box strong{color:#49e7a2;display:block;font-size:29px;margin-top:3px}.recharge-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr)}.recharge-card{background:#171d27;border:1px solid #293341;border-radius:18px;padding:24px}.recharge-card h3{font-size:20px;margin:0 0 6px}.recharge-card>p{color:#8f9bad;margin:0 0 20px}.preset-grid{display:grid;gap:9px;grid-template-columns:repeat(5,1fr);margin-bottom:16px}.preset{background:#111821;border:1px solid #303b4a;border-radius:11px;color:#cbd4df;cursor:pointer;font-weight:800;padding:12px 7px;text-align:center}.preset:hover,.preset.active{background:rgba(26,205,123,.12);border-color:#28cf80;color:#47e59c}.amount-label{color:#aeb8c5;display:block;font-size:12px;font-weight:750;margin-bottom:7px}.amount-field{align-items:center;background:#0e141c;border:1px solid #344150;border-radius:12px;display:flex;margin-bottom:16px}.amount-field span{color:#41de95;font-size:20px;font-weight:800;padding-left:15px}.amount-field input{background:transparent;border:0;color:#fff;font-size:20px;font-weight:800;outline:0;padding:14px;width:100%}.method-card{align-items:flex-start;background:#111821;border:1px solid #2f3a48;border-radius:14px;display:flex;gap:13px;margin-bottom:15px;padding:16px}.method-icon{align-items:center;background:rgba(0,157,255,.12);border-radius:10px;color:#2db1ff;display:flex;font-size:20px;height:42px;justify-content:center;width:42px}.method-card strong{display:block}.method-card small{color:#8794a6;display:block;line-height:1.45;margin-top:3px}.pay-button{background:linear-gradient(100deg,#00cb76,#0aac68);border:0;border-radius:12px;color:#fff;cursor:pointer;font-size:15px;font-weight:800;padding:15px;width:100%}.pay-button:disabled{background:#27313d;color:#7e8998;cursor:not-allowed}.security-note{color:#718094;font-size:11px;line-height:1.5;margin:13px 0 0;text-align:center}.history{margin-top:18px}.history-row{align-items:center;border-top:1px solid #27313d;display:grid;gap:12px;grid-template-columns:1.5fr .8fr .8fr 1fr;padding:15px 4px}.history-row:first-of-type{border-top:0}.history-reference{color:#fff;font-weight:700}.history-reference small{color:#738094;display:block;font-weight:400;margin-top:3px}.status{border-radius:999px;display:inline-block;font-size:10px;font-weight:800;padding:6px 10px;text-transform:uppercase}.status-paid{background:rgba(24,207,124,.13);color:#42df94}.status-pending{background:rgba(255,181,47,.13);color:#ffc45a}.status-review{background:rgba(63,164,255,.13);color:#69b9ff}.status-rejected,.status-expired,.status-refunded{background:rgba(255,80,89,.13);color:#ff7b83}.coming-method{align-items:center;background:#111821;border:1px dashed #33404f;border-radius:13px;display:flex;gap:12px;margin-top:10px;padding:14px}.coming-method i{color:#e4b94c;font-size:20px}.coming-method strong{display:block;font-size:13px}.coming-method small{color:#788697}.empty-history{color:#7c899a;padding:30px 0;text-align:center}@media(max-width:900px){.recharge-grid{grid-template-columns:1fr}.recharge-hero{align-items:flex-start;flex-direction:column;gap:18px}.balance-box{width:100%}}@media(max-width:600px){.recharge-hero,.recharge-card{padding:20px}.preset-grid{grid-template-columns:repeat(3,1fr)}.history-row{grid-template-columns:1fr 1fr}.history-method{display:none}}
+</style>
+
+<div class="recharge-wrap">
+  <section class="recharge-hero">
+    <div>
+      <span class="recharge-eyebrow">MyPlataforma · pagos protegidos</span>
+      <h2>Recargar saldo</h2>
+      <p>Agrega saldo para comprar cuentas y servicios. La acreditación se realiza únicamente cuando el proveedor confirma el pago.</p>
+    </div>
+    <div class="balance-box"><span>Saldo disponible</span><strong>${{ balance|default:0|intcomma }}</strong></div>
+  </section>
+
+  <div class="recharge-grid">
+    <section class="recharge-card">
+      <h3>¿Cuánto quieres recargar?</h3>
+      <p>Selecciona una cantidad o escribe un importe entre ${{ minimum|intcomma }} y ${{ maximum|intcomma }} MXN.</p>
+      <form method="post" id="recharge-form">
+        {% csrf_token %}
+        <div class="preset-grid">
+          {% for preset in preset_amounts %}<button class="preset" type="button" data-amount="{{ preset }}">${{ preset|intcomma }}</button>{% endfor %}
+        </div>
+        <label class="amount-label" for="recharge-amount">Cantidad en pesos mexicanos</label>
+        <div class="amount-field"><span>$</span><input id="recharge-amount" name="amount" type="number" inputmode="numeric" min="{{ minimum }}" max="{{ maximum }}" step="1" required placeholder="{{ minimum }}"></div>
+        <div class="method-card">
+          <div class="method-icon"><i class="ti-credit-card"></i></div>
+          <div><strong>Mercado Pago</strong><small>Paga con tarjeta de crédito, débito, saldo Mercado Pago o transferencia SPEI según las opciones disponibles en tu cuenta.</small></div>
+        </div>
+        <button class="pay-button" type="submit" {% if not mercado_pago_ready %}disabled{% endif %}>{% if mercado_pago_ready %}Continuar a Mercado Pago <i class="ti-arrow-right"></i>{% else %}Mercado Pago pendiente de configurar{% endif %}</button>
+        <p class="security-note"><i class="ti-lock"></i> MyPlataforma no recibe ni almacena los datos de tu tarjeta. El regreso a esta página no acredita saldo por sí solo.</p>
+      </form>
+    </section>
+
+    <aside class="recharge-card">
+      <h3>Otros métodos</h3>
+      <p>Se integrarán sobre el mismo historial de recargas.</p>
+      <div class="coming-method"><i class="ti-wallet"></i><div><strong>Binance Pay</strong><small>Próximamente · pago con criptomonedas</small></div></div>
+      <div class="coming-method"><i class="ti-receipt"></i><div><strong>Transferencia con comprobante</strong><small>Próximamente · aprobación administrativa</small></div></div>
+    </aside>
+  </div>
+
+  <section class="recharge-card history">
+    <h3>Historial de recargas</h3>
+    <p>Consulta el folio, importe y estado de cada operación.</p>
+    {% for order in orders %}
+      <div class="history-row">
+        <div class="history-reference">{{ order.public_id }}<small>{{ order.created_at|date:'d/m/Y H:i' }}</small></div>
+        <div class="history-method">{{ order.get_method_display }}</div>
+        <strong>${{ order.amount_mxn|intcomma }}</strong>
+        <div><span class="status status-{{ order.status }}">{{ order.get_status_display }}</span></div>
+      </div>
+    {% empty %}<div class="empty-history">Todavía no has realizado recargas.</div>{% endfor %}
+  </section>
+</div>
+
+<script>
+  (function(){
+    var input=document.getElementById('recharge-amount');
+    var buttons=document.querySelectorAll('.preset');
+    Array.prototype.forEach.call(buttons,function(button){
+      button.addEventListener('click',function(){
+        input.value=button.getAttribute('data-amount');
+        Array.prototype.forEach.call(buttons,function(item){item.classList.remove('active');});
+        button.classList.add('active');
+      });
+    });
+  }());
+</script>
+{% endblock %}

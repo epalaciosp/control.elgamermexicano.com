@@ -196,6 +196,12 @@
                 <span class="pcoded-mtext">Saldo y movimientos</span>
               </a>
             </li>
+            <li class="{% if request.resolver_match.url_name == 'recharge-center' %}active{% endif %}">
+              <a href="{% url 'recharge-center' %}" class="waves-effect waves-dark">
+                <span class="pcoded-micon"><i class="ti-plus"></i></span>
+                <span class="pcoded-mtext">Recargar saldo</span>
+              </a>
+            </li>
             <li class="{% if request.resolver_match.kwargs.section == 'support' %}active{% endif %}">
               <a href="{% url 'portal-section' 'support' %}" class="waves-effect waves-dark">
                 <span class="pcoded-micon"><i class="ti-comment"></i></span>
