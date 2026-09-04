@@ -144,6 +144,11 @@ def mercado_pago_configured():
     )
 
 
+def mercado_pago_environment():
+    mode = os.environ.get("MERCADOPAGO_MODE", "test").strip().lower()
+    return "production" if mode == "production" else "test"
+
+
 def recharge_limits():
     try:
         minimum = max(100, int(os.environ.get("RECHARGE_MIN_MXN", "100")))
@@ -214,7 +219,10 @@ def create_mercado_pago_checkout(order, request):
         method="POST",
         payload=payload,
     )
-    checkout_url = result.get("init_point") or result.get("sandbox_init_point")
+    if mercado_pago_environment() == "production":
+        checkout_url = result.get("init_point")
+    else:
+        checkout_url = result.get("sandbox_init_point")
     if not result.get("id") or not checkout_url:
         raise RuntimeError("Mercado Pago no devolvió un enlace de pago.")
     order.provider_order_id = str(result["id"])
