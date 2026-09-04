@@ -21,7 +21,8 @@ from .ticket_pdf import build_customer_ticket_pdf, customer_ticket_filename
 import datetime
 from count.libraries import getDifference
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.db.models import Count as DbCount, Q
+from django.db.models import Count as DbCount, Exists, OuterRef, Q
+from django.db import transaction
 from django.urls import reverse_lazy
 from count.libraries import CalculateDateLimit
 from user.whatsapp_api import message_renew
@@ -775,27 +776,33 @@ class ProfileNextExpiredView(ListView):
 
 
         counts = {}
+        renewed_any = False
         for item in request.POST:
             if item.isnumeric():
                 if request.POST[item] == 'on':
-                    sale = Sale.objects.filter(id=item).last()
-                    sale.renovated=True
-                    sale.save()
-                    bill = Bill.objects.create(customer_id=sale.bill.customer.id, saler=request.user, total=0)
-                    date_limit = CalculateDateLimit(sale.date_limit, int(request.POST['months']))
-                    renewed_sale = request.user.sale_profile(
-                        sale.profile,
-                        int(request.POST['months']),
-                        date_limit,
-                        bill,
-                        device_mac=sale.device_mac,
-                        device_key=sale.device_key,
-                    )
+                    with transaction.atomic():
+                        sale = Sale.close_open_history_for_renewal(item)
+                        if sale is None:
+                            continue
+                        bill = Bill.objects.create(customer_id=sale.bill.customer.id, saler=request.user, total=0)
+                        date_limit = CalculateDateLimit(sale.date_limit, int(request.POST['months']))
+                        renewed_sale = request.user.sale_profile(
+                            sale.profile,
+                            int(request.POST['months']),
+                            date_limit,
+                            bill,
+                            device_mac=sale.device_mac,
+                            device_key=sale.device_key,
+                        )
+                        subtotal = Price.objects.filter(platform=sale.profile.count.platform, num_profiles=1).first()
+                        if subtotal:
+                            bill.total = subtotal.price * int(request.POST['months'])
+                            bill.save(update_fields=["total"])
+                    renewed_any = True
                     message_renew(sale.profile, bill.customer, date_limit, renewed_sale)
 
-        subtotal = Price.objects.filter(platform=sale.profile.count.platform, num_profiles=1 ).first()
-        bill.total =  subtotal.price *int(request.POST['months'])
-        bill.save()
+        if not renewed_any:
+            messages.warning(request, "No se encontró un servicio vigente para renovar.")
         return redirect('bill-list')
 
 
@@ -844,11 +851,22 @@ class ProfileExpiredView(ListView):
 
     def get_queryset(self,  *args, **kwargs):
         date_finish = django_timezone.localdate()
+        active_replacement = self.model.objects.filter(
+            bill__customer_id=OuterRef("bill__customer_id"),
+            profile_id=OuterRef("profile_id"),
+            renovated=False,
+            cutted=False,
+            date_limit__date__gte=date_finish,
+        ).exclude(pk=OuterRef("pk"))
         sale_expired = self.model.objects.filter(
             profile__saled=True,
             renovated=False,
             cutted=False,
             date_limit__date__lt=date_finish,
+        ).annotate(
+            has_active_replacement=Exists(active_replacement),
+        ).filter(
+            has_active_replacement=False,
         ).select_related(
             "bill__customer",
             "profile__count__platform",

@@ -2044,35 +2044,41 @@ class SalesListView(ListView):
 
         total = 0
         counts = {}
-        bill = Bill.objects.create(customer_id=kwargs['id'], saler=request.user, total=0)
-        for item in request.POST:
-            if item.isnumeric():
-                if request.POST[item] == 'on':
-                    sales = Sale.objects.filter(id=item)
-                    last_sale = sales.last()
-                    sales.update(renovated=True)
-                    profile = Profile.objects.filter(id=last_sale.profile_id).first()
-                    if not profile.count.id in counts:
-                        counts[last_sale.profile.count.id] = { "amount": 1 }
-                    else:
-                        counts[last_sale.profile.count.id]['amount'] = counts[profile.count.id]['amount'] + 1
-                    counts[last_sale.profile.count.id]["platform"] = profile.count.platform.id
-                    date_limit = CalculateDateLimit(last_sale.date_limit, int(request.POST['months']))
-                    renewed_sale = request.user.sale_profile(
-                        last_sale.profile,
-                        int(request.POST['months']),
-                        date_limit,
-                        bill,
-                        device_mac=last_sale.device_mac,
-                        device_key=last_sale.device_key,
-                    )
-                    message_renew(last_sale.profile, last_sale.bill.customer.phone, date_limit, renewed_sale)
+        renewal_messages = []
+        with transaction.atomic():
+            bill = Bill.objects.create(customer_id=kwargs['id'], saler=request.user, total=0)
+            for item in request.POST:
+                if item.isnumeric():
+                    if request.POST[item] == 'on':
+                        last_sale = Sale.close_open_history_for_renewal(item)
+                        if last_sale is None:
+                            continue
+                        profile = last_sale.profile
+                        if not profile.count.id in counts:
+                            counts[last_sale.profile.count.id] = { "amount": 1 }
+                        else:
+                            counts[last_sale.profile.count.id]['amount'] = counts[profile.count.id]['amount'] + 1
+                        counts[last_sale.profile.count.id]["platform"] = profile.count.platform.id
+                        date_limit = CalculateDateLimit(last_sale.date_limit, int(request.POST['months']))
+                        renewed_sale = request.user.sale_profile(
+                            last_sale.profile,
+                            int(request.POST['months']),
+                            date_limit,
+                            bill,
+                            device_mac=last_sale.device_mac,
+                            device_key=last_sale.device_key,
+                        )
+                        renewal_messages.append((last_sale, date_limit, renewed_sale))
 
-        for key in counts:
-            subtotal = Price.objects.filter(platform_id=counts[key]['platform'], num_profiles=counts[key]['amount'] ).first()
-            total = total + subtotal.price
-        bill.total = total
-        bill.save()
+            for key in counts:
+                subtotal = Price.objects.filter(platform_id=counts[key]['platform'], num_profiles=counts[key]['amount'] ).first()
+                if subtotal:
+                    total = total + subtotal.price
+            bill.total = total
+            bill.save(update_fields=["total"])
+
+        for last_sale, date_limit, renewed_sale in renewal_messages:
+            message_renew(last_sale.profile, last_sale.bill.customer.phone, date_limit, renewed_sale)
         return redirect('bill-list')
 
 

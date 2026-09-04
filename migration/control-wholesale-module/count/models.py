@@ -398,6 +398,31 @@ class Sale(models.Model):
         return sale
 
     @classmethod
+    def close_open_history_for_renewal(cls, sale_id):
+        """Return the current service and close duplicate open history rows.
+
+        The caller must wrap this operation and the creation of the renewed sale
+        in ``transaction.atomic()`` so another request cannot renew the same
+        customer/profile at the same time.
+        """
+        selected_sale = cls.objects.select_related("bill").filter(pk=sale_id).first()
+        if selected_sale is None or selected_sale.renovated or selected_sale.cutted:
+            return None
+
+        open_sales = cls.objects.select_for_update().filter(
+            profile_id=selected_sale.profile_id,
+            bill__customer_id=selected_sale.bill.customer_id,
+            renovated=False,
+            cutted=False,
+        )
+        renewal_base = open_sales.order_by("-date_limit", "-date", "-id").first()
+        if renewal_base is None:
+            return None
+
+        open_sales.update(renovated=True)
+        return renewal_base
+
+    @classmethod
     def GetInterdatesSales(cls, user, initial_date, final_date):
 
         initial_date = datetime.datetime.strptime(initial_date, '%Y-%m-%d')
