@@ -1814,6 +1814,140 @@ class SearchSaleView(View):
             sale.rest_days = rest_days
         return render(request, "count/search_list.html", { 'sales':sales, 'email': request.POST['email'], 'have_avaliable':have_avaliable })
 
+
+@method_decorator(login_required, name='dispatch')
+class CustomerAccountSearchView(View):
+    """Find the current and historical owner of any service access."""
+
+    template_name = "customer/account_search.html"
+
+    @staticmethod
+    def _sale_status(sale, now):
+        if sale.cutted:
+            return "Cortado", "cut"
+        if sale.renovated:
+            return "Renovado", "renewed"
+        if sale.date_limit and sale.date_limit < now:
+            return "Vencido", "expired"
+        if sale.date_limit:
+            return "Vigente", "active"
+        return "Sin vencimiento", "pending"
+
+    def get(self, request, *args, **kwargs):
+        query = str(request.GET.get("q") or "").strip()
+        platform_id = str(request.GET.get("platform") or "").strip()
+        scope = str(request.GET.get("scope") or "all").strip().lower()
+        if scope not in ("all", "current", "history"):
+            scope = "all"
+
+        context = {
+            "query": query,
+            "selected_platform": platform_id,
+            "selected_scope": scope,
+            "platforms": Platform.objects.filter(active=True).order_by("name"),
+            "search_performed": bool(query),
+            "query_too_short": bool(query) and len(query) < 3,
+            "current_rows": [],
+            "history_rows": [],
+            "matched_accounts": [],
+            "wholesale_rows": [],
+            "partner_media_rows": [],
+        }
+        if not query or len(query) < 3:
+            return render(request, self.template_name, context)
+
+        now = django_timezone.now()
+        sale_match = (
+            Q(profile__count__email__icontains=query)
+            | Q(device_mac__icontains=query)
+            | Q(bill__customer__name__icontains=query)
+            | Q(bill__customer__phone__icontains=query)
+        )
+        sales = Sale.objects.filter(sale_match).select_related(
+            "profile__count__platform",
+            "profile__count__plan",
+            "bill__customer",
+            "bill__saler",
+        )
+        if platform_id.isdigit():
+            sales = sales.filter(profile__count__platform_id=int(platform_id))
+        sales = sales.order_by("-date", "-id")[:300]
+
+        for sale in sales:
+            status_label, status_code = self._sale_status(sale, now)
+            row = {
+                "sale": sale,
+                "status_label": status_label,
+                "status_code": status_code,
+                "is_current": status_code in ("active", "pending"),
+            }
+            if row["is_current"]:
+                context["current_rows"].append(row)
+            else:
+                context["history_rows"].append(row)
+
+        count_match = Q(email__icontains=query)
+        matched_counts = Count.objects.filter(count_match).select_related(
+            "platform",
+            "plan",
+        ).annotate(
+            total_profiles=Count_("profile", distinct=True),
+            available_profiles=Count_(
+                "profile",
+                filter=Q(profile__saled=False),
+                distinct=True,
+            ),
+        )
+        if platform_id.isdigit():
+            matched_counts = matched_counts.filter(platform_id=int(platform_id))
+        context["matched_accounts"] = list(
+            matched_counts.order_by("platform__name", "email")[:100]
+        )
+
+        wholesale_match = (
+            Q(account__email__icontains=query)
+            | Q(partner__username__icontains=query)
+            | Q(partner__customer__name__icontains=query)
+            | Q(partner__customer__phone__icontains=query)
+        )
+        wholesale_rows = WholesalePurchase.objects.filter(
+            wholesale_match
+        ).select_related(
+            "partner__customer",
+            "account__platform",
+            "plan__platform",
+            "bill__saler",
+        )
+        if platform_id.isdigit():
+            wholesale_rows = wholesale_rows.filter(
+                Q(account__platform_id=int(platform_id))
+                | Q(plan__platform_id=int(platform_id))
+            )
+        context["wholesale_rows"] = list(wholesale_rows.order_by("-created_at")[:100])
+
+        if not platform_id:
+            context["partner_media_rows"] = list(
+                PartnerMediaAccount.objects.filter(
+                    Q(access_identifier__icontains=query)
+                    | Q(customer_name__icontains=query)
+                ).select_related("purchased_by").order_by("-created_at")[:100]
+            )
+
+        if scope == "current":
+            context["history_rows"] = []
+            context["wholesale_rows"] = []
+            context["partner_media_rows"] = []
+        elif scope == "history":
+            context["current_rows"] = []
+
+        context["result_count"] = (
+            len(context["current_rows"])
+            + len(context["history_rows"])
+            + len(context["wholesale_rows"])
+            + len(context["partner_media_rows"])
+        )
+        return render(request, self.template_name, context)
+
 @method_decorator(login_required, name='dispatch')
 class ChangeProfileSaleView(View):
 
