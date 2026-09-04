@@ -11,6 +11,10 @@
 <div class="portal-balance-card">
   <span>Saldo disponible</span>
   <strong>${{ money|default:0|intcomma }}</strong>
+  <a class="portal-balance-recharge{% if request.resolver_match.url_name == 'recharge-center' %} active{% endif %}" href="{% url 'recharge-center' %}">
+    <i class="ti-plus"></i>
+    Recargar saldo
+  </a>
 </div>
 {% endif %}
 

@@ -40,6 +40,9 @@
   .portal-balance-card { background: linear-gradient(135deg, rgba(0,200,117,.13), rgba(7,141,213,.08)); border: 1px solid rgba(0,200,117,.23); border-radius: 12px; margin-bottom: 4px; padding: 12px 14px; }
   .portal-balance-card span { color: #76a891; display: block; font-size: 9px; text-transform: uppercase; }
   .portal-balance-card strong { color: #51e1a0; display: block; font-size: 18px; margin-top: 3px; }
+  .portal-balance-recharge { align-items: center; background: linear-gradient(100deg, #00c875, #0aa969); border: 1px solid rgba(83,232,166,.38); border-radius: 9px; color: #fff !important; display: flex; font-size: 11px; font-weight: 800; gap: 7px; justify-content: center; margin-top: 10px; padding: 9px 11px; transition: transform .18s ease, box-shadow .18s ease; width: 100%; }
+  .portal-balance-recharge:hover { box-shadow: 0 8px 20px rgba(0,200,117,.18); color: #fff !important; transform: translateY(-1px); }
+  .portal-balance-recharge.active { box-shadow: 0 0 0 2px rgba(81,225,160,.2); }
   .pcoded-content { background: var(--portal-bg) !important; margin-left: 286px !important; }
   .pcoded-inner-content, .main-body, .page-wrapper, .page-body { background: var(--portal-bg) !important; }
   .page-wrapper { padding: 28px !important; }
@@ -194,12 +197,6 @@
               <a href="{% url 'portal-section' 'balance' %}" class="waves-effect waves-dark">
                 <span class="pcoded-micon"><i class="ti-wallet"></i></span>
                 <span class="pcoded-mtext">Saldo y movimientos</span>
-              </a>
-            </li>
-            <li class="{% if request.resolver_match.url_name == 'recharge-center' %}active{% endif %}">
-              <a href="{% url 'recharge-center' %}" class="waves-effect waves-dark">
-                <span class="pcoded-micon"><i class="ti-plus"></i></span>
-                <span class="pcoded-mtext">Recargar saldo</span>
               </a>
             </li>
             <li class="{% if request.resolver_match.kwargs.section == 'support' %}active{% endif %}">
