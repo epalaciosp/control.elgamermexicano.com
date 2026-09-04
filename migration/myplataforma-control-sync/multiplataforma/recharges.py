@@ -146,7 +146,7 @@ def mercado_pago_configured():
 
 def recharge_limits():
     try:
-        minimum = max(50, int(os.environ.get("RECHARGE_MIN_MXN", "100")))
+        minimum = max(100, int(os.environ.get("RECHARGE_MIN_MXN", "100")))
         maximum = min(50000, int(os.environ.get("RECHARGE_MAX_MXN", "10000")))
     except ValueError:
         minimum, maximum = 100, 10000

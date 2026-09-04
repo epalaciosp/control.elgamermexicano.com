@@ -685,7 +685,7 @@ def RechargeCenterView(request):
         "orders": RechargeOrder.objects.filter(user=request.user)[:30],
         "minimum": minimum,
         "maximum": maximum,
-        "preset_amounts": (200, 500, 1000, 2000, 5000),
+        "preset_amounts": (100, 200, 500, 1000, 2000),
         "mercado_pago_ready": mercado_pago_configured(),
     })
 
