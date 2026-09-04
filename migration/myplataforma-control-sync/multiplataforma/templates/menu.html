@@ -37,11 +37,12 @@
   .portal-user-copy span { color: #768295; display: block; font-size: 9px; margin-top: 3px; }
   .portal-user-menu { background: transparent; border: 0; color: #6f7b8c; cursor: pointer; margin-left: auto; }
   .portal-user-menu:hover { color: #ff7075; }
-  .portal-balance-card { background: linear-gradient(135deg, rgba(0,200,117,.13), rgba(7,141,213,.08)); border: 1px solid rgba(0,200,117,.23); border-radius: 12px; margin-bottom: 4px; padding: 12px 14px; }
+  .portal-balance-card { background: linear-gradient(135deg, rgba(0,200,117,.13), rgba(7,141,213,.08)); border: 1px solid rgba(0,200,117,.23); border-radius: 12px; box-sizing: border-box; margin-bottom: 4px; max-width: 100%; overflow: hidden; padding: 12px 14px; width: 100%; }
   .portal-balance-card span { color: #76a891; display: block; font-size: 9px; text-transform: uppercase; }
   .portal-balance-card strong { color: #51e1a0; display: block; font-size: 18px; margin-top: 3px; }
-  .portal-balance-recharge { align-items: center; background: linear-gradient(100deg, #00c875, #0aa969); border: 1px solid rgba(83,232,166,.38); border-radius: 9px; color: #fff !important; display: flex; font-size: 11px; font-weight: 800; gap: 7px; justify-content: center; margin-top: 10px; padding: 9px 11px; transition: transform .18s ease, box-shadow .18s ease; width: 100%; }
+  .portal-balance-recharge { align-items: center; background: linear-gradient(100deg, #00c875, #0aa969); border: 1px solid rgba(83,232,166,.38); border-radius: 9px; box-sizing: border-box; color: #fff !important; display: flex; font-size: 11px; font-weight: 800; gap: 7px; justify-content: center; line-height: 1.25; margin-top: 10px; max-width: 100%; min-width: 0; padding: 9px 10px; text-align: center; transition: transform .18s ease, box-shadow .18s ease; white-space: normal; width: 100%; }
   .portal-balance-recharge:hover { box-shadow: 0 8px 20px rgba(0,200,117,.18); color: #fff !important; transform: translateY(-1px); }
+  .portal-balance-recharge:focus-visible { outline: 2px solid #8af0c0; outline-offset: 2px; }
   .portal-balance-recharge.active { box-shadow: 0 0 0 2px rgba(81,225,160,.2); }
   .pcoded-content { background: var(--portal-bg) !important; margin-left: 286px !important; }
   .pcoded-inner-content, .main-body, .page-wrapper, .page-body { background: var(--portal-bg) !important; }
@@ -64,6 +65,8 @@
     .portal-brand strong { font-size: 12px; }
     .portal-header-user { height: 64px; }
     .portal-header-avatar, .portal-header-logout { display: none; }
+    .portal-balance-card { padding: 11px 12px; }
+    .portal-balance-recharge { font-size: 10px; padding: 9px 8px; }
     .page-wrapper { padding: 13px !important; }
   }
 </style>
