@@ -36,12 +36,12 @@ from .plex_partner import (
 from .recharges import (
     RechargeOrder,
     RechargeWebhookEvent,
+    apply_mercado_pago_payment,
     create_mercado_pago_checkout,
     fetch_mercado_pago_payment,
     mercado_pago_configured,
     recharge_limits,
     validate_mercado_pago_signature,
-    verify_payment_for_order,
     webhook_event_hash,
 )
 
@@ -670,7 +670,28 @@ def RechargeCenterView(request):
         return redirect(checkout_url)
 
     payment_result = request.GET.get("payment")
-    if payment_result == "success":
+    payment_id = request.GET.get("payment_id") or request.GET.get("collection_id")
+    reconciled_status = ""
+    if payment_result in ("success", "pending") and str(payment_id or "").isdigit():
+        try:
+            payment = fetch_mercado_pago_payment(payment_id)
+            external_reference = str(payment.get("external_reference") or "")
+            order = RechargeOrder.objects.get(
+                public_id=external_reference,
+                user=request.user,
+            )
+            reconciled_status, _ = apply_mercado_pago_payment(payment, order)
+        except (RechargeOrder.DoesNotExist, RuntimeError, ValueError):
+            reconciled_status = ""
+
+    if reconciled_status == RechargeOrder.STATUS_PAID:
+        messages.success(request, "Pago confirmado. Tu saldo ya fue acreditado.")
+    elif reconciled_status == RechargeOrder.STATUS_REVIEW:
+        messages.error(
+            request,
+            "El pago requiere revisión antes de acreditar el saldo.",
+        )
+    elif payment_result == "success":
         messages.info(
             request,
             "Recibimos el pago. El saldo aparecerá cuando Mercado Pago lo confirme.",
@@ -737,31 +758,7 @@ def MercadoPagoRechargeWebhookView(request):
         event.save(update_fields=("processed", "processed_at"))
         return JsonResponse({"ok": True})
 
-    provider_status = str(payment.get("status") or "")
-    order.provider_payment_id = str(payment.get("id") or data_id)[:120]
-    order.provider_status = provider_status[:80]
-    if provider_status == "approved":
-        if verify_payment_for_order(payment, order):
-            order.status = RechargeOrder.STATUS_PAID
-        else:
-            order.status = RechargeOrder.STATUS_REVIEW
-            order.provider_status = "approved_amount_mismatch"
-    elif provider_status in ("rejected", "cancelled"):
-        order.status = RechargeOrder.STATUS_REJECTED
-    elif provider_status == "refunded":
-        # Never silently remove money. Refund reconciliation is an explicit
-        # administrator action so purchases already made cannot corrupt saldo.
-        order.status = RechargeOrder.STATUS_REFUNDED
-    else:
-        order.status = RechargeOrder.STATUS_PENDING
-    order.save(update_fields=(
-        "provider_payment_id",
-        "provider_status",
-        "status",
-        "updated_at",
-    ))
-    if order.status == RechargeOrder.STATUS_PAID:
-        RechargeOrder.credit_once(order.pk)
+    apply_mercado_pago_payment(payment, order)
 
     event.processed = True
     event.processed_at = timezone.now()

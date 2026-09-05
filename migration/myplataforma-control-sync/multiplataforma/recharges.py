@@ -290,6 +290,37 @@ def verify_payment_for_order(payment, order):
     )
 
 
+def apply_mercado_pago_payment(payment, order):
+    """Persist a provider payment and credit an approved order exactly once."""
+    provider_status = str(payment.get("status") or "")
+    order.provider_payment_id = str(payment.get("id") or "")[:120]
+    order.provider_status = provider_status[:80]
+    if provider_status == "approved":
+        if verify_payment_for_order(payment, order):
+            order.status = RechargeOrder.STATUS_PAID
+        else:
+            order.status = RechargeOrder.STATUS_REVIEW
+            order.provider_status = "approved_amount_mismatch"
+    elif provider_status in ("rejected", "cancelled"):
+        order.status = RechargeOrder.STATUS_REJECTED
+    elif provider_status == "refunded":
+        # Never silently remove money. Refund reconciliation is an explicit
+        # administrator action so purchases already made cannot corrupt saldo.
+        order.status = RechargeOrder.STATUS_REFUNDED
+    else:
+        order.status = RechargeOrder.STATUS_PENDING
+    order.save(update_fields=(
+        "provider_payment_id",
+        "provider_status",
+        "status",
+        "updated_at",
+    ))
+    credited = False
+    if order.status == RechargeOrder.STATUS_PAID:
+        credited = RechargeOrder.credit_once(order.pk)
+    return order.status, credited
+
+
 def webhook_event_hash(raw_body, signature, request_id):
     return hashlib.sha256(
         raw_body + signature.encode("utf-8") + request_id.encode("utf-8")
