@@ -212,7 +212,6 @@ def create_mercado_pago_checkout(order, request):
         "auto_return": "approved",
         "notification_url": base_url + reverse("mercadopago-recharge-webhook"),
         "statement_descriptor": "MYPLATAFORMA",
-        "expires": True,
     }
     result = _api_json(
         MERCADO_PAGO_API + "/checkout/preferences",
