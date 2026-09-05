@@ -145,21 +145,7 @@ def mercado_pago_configured():
 
 
 def mercado_pago_environment():
-    """Return the checkout environment that matches the configured token.
-
-    Mercado Pago production tokens use the ``APP_USR-`` prefix and test
-    tokens use ``TEST-``.  The credential is the source of truth because
-    sending a production preference to the sandbox (or the reverse) makes
-    Checkout Pro reject the payer as a test/production mismatch.
-
-    ``MERCADOPAGO_MODE`` remains as a fallback for legacy token formats.
-    """
-    token = os.environ.get("MERCADOPAGO_ACCESS_TOKEN", "").strip().upper()
-    if token.startswith("APP_USR-"):
-        return "production"
-    if token.startswith("TEST-"):
-        return "test"
-
+    """Use the explicit mode because test tokens can also start APP_USR."""
     mode = os.environ.get("MERCADOPAGO_MODE", "test").strip().lower()
     return "production" if mode == "production" else "test"
 
