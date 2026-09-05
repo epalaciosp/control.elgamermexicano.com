@@ -12,8 +12,24 @@ $email = trim((string) ($_POST['email'] ?? ''));
 $password = (string) ($_POST['password'] ?? '');
 $cookies = trim((string) ($_POST['cookies'] ?? ''));
 
-if ($owner === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || $password === '' || $cookies === '') {
-    egm_flash('error', 'Completa correctamente el correo, la contraseña y la cookie.');
+if ($owner === '') {
+    error_log('No fue posible identificar al usuario autenticado al agregar una cuenta Netflix.');
+    egm_flash('error', 'No fue posible validar tu sesión. Regresa al listado e inténtalo nuevamente.');
+    egm_redirect('agregar.php');
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    egm_flash('error', 'Ingresa un correo de Netflix válido.');
+    egm_redirect('agregar.php');
+}
+
+if ($password === '') {
+    egm_flash('error', 'Ingresa la contraseña de la cuenta de Netflix.');
+    egm_redirect('agregar.php');
+}
+
+if ($cookies === '') {
+    egm_flash('error', 'Pega la cookie de sesión antes de generar los enlaces.');
     egm_redirect('agregar.php');
 }
 

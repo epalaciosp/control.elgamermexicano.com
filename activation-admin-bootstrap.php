@@ -19,7 +19,19 @@ function egm_h(?string $value): string
 
 function egm_owner(): string
 {
-    return (string) ($_SERVER['PHP_AUTH_USER'] ?? '');
+    $authenticatedOwner = (string) (
+        $_SERVER['PHP_AUTH_USER']
+        ?? $_SERVER['REMOTE_USER']
+        ?? $_SERVER['REDIRECT_REMOTE_USER']
+        ?? ''
+    );
+
+    if ($authenticatedOwner !== '') {
+        $_SESSION['egm_owner'] = $authenticatedOwner;
+        return $authenticatedOwner;
+    }
+
+    return (string) ($_SESSION['egm_owner'] ?? '');
 }
 
 function egm_csrf(): string
